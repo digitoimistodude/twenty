@@ -23,6 +23,8 @@ import { JobsModule } from 'src/engine/core-modules/message-queue/jobs.module';
 import { QUEUE_DRIVER } from 'src/engine/core-modules/message-queue/message-queue.constants';
 import { MessageQueueModule } from 'src/engine/core-modules/message-queue/message-queue.module';
 
+import { enforceJobQuiescenceBeforeMigrations } from 'test/integration/utils/enforce-job-quiescence-before-migrations.util';
+
 interface TestingModuleCreatePreHook {
   (moduleBuilder: TestingModuleBuilder): TestingModuleBuilder;
 }
@@ -112,6 +114,12 @@ export const createApp = async (
   }
 
   await app.init();
+
+  // With the real BullMQ driver, drain queued side-effect jobs before any schema
+  // migration takes its table locks, so async jobs can't make the DDL time out.
+  if (isBullMqDriverEnabled) {
+    enforceJobQuiescenceBeforeMigrations(app);
+  }
 
   return app;
 };

@@ -39,14 +39,17 @@ export class GmailGetMessagesService {
       connectedAccount.id,
     );
 
-    const batchedFetchImplementation = batchFetchImplementation({
-      maxBatchSize: GMAIL_BATCH_REQUEST_MAX_SIZE,
-    });
+    // NOTE (dude-crm): Google's Gmail batch endpoint (/batch/gmail/v1) returns
+    // ERR_STREAM_PREMATURE_CLOSE from this server, which fails the entire batch
+    // and blocks all message imports. We bypass the batcher and fetch each
+    // message as an individual request via the default transport (works fine).
+    // Keep MESSAGING_MESSAGES_GET_BATCH_SIZE modest (50) to bound concurrency.
+    void batchFetchImplementation;
+    void GMAIL_BATCH_REQUEST_MAX_SIZE;
 
     const batchedGmailClient = google.gmail({
       version: 'v1',
       auth: oAuth2Client,
-      fetchImplementation: batchedFetchImplementation,
     });
 
     const fetchedMessages = await this.fetchMessages(

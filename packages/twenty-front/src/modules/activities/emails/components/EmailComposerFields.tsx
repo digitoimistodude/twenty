@@ -9,8 +9,13 @@ import { type EmailComposerState } from '@/activities/emails/types/EmailComposer
 import { FormAdvancedTextFieldInput } from '@/object-record/record-field/ui/form-types/components/FormAdvancedTextFieldInput';
 import { FormTextFieldInput } from '@/object-record/record-field/ui/form-types/components/FormTextFieldInput';
 import { GET_MY_CONNECTED_ACCOUNTS } from '@/settings/accounts/graphql/queries/getMyConnectedAccounts';
+import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
+import { useFindOneRecord } from '@/object-record/hooks/useFindOneRecord';
 import { Select } from '@/ui/input/components/Select';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { t } from '@lingui/core/macro';
+import { CoreObjectNameSingular } from 'twenty-shared/types';
+import { isDefined } from 'twenty-shared/utils';
 import { type SelectOption } from 'twenty-ui/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
@@ -46,6 +51,18 @@ const StyledRecipientLimitWarning = styled.div`
   font-size: ${themeCssVariables.font.size.xs};
 `;
 
+const StyledSignatureLabel = styled.div`
+  color: ${themeCssVariables.font.color.tertiary};
+  font-size: ${themeCssVariables.font.size.xs};
+  padding: 0 ${themeCssVariables.spacing[1]};
+`;
+
+const StyledSignaturePreview = styled.iframe`
+  border: none;
+  height: 80px;
+  width: 100%;
+`;
+
 type EmailComposerFieldsProps = {
   composerState: EmailComposerState;
   contextRecord?: EmailComposerContextRecord | null;
@@ -72,6 +89,18 @@ export const EmailComposerFields = ({
     ...composerState.cc,
     ...composerState.bcc,
   ].map((recipient) => getEmailRecipientKey(recipient.address));
+
+  const currentWorkspaceMember = useAtomStateValue(currentWorkspaceMemberState);
+
+  const { record: workspaceMemberRecord } = useFindOneRecord({
+    objectNameSingular: CoreObjectNameSingular.WorkspaceMember,
+    objectRecordId: currentWorkspaceMember?.id ?? '',
+    skip: !isDefined(currentWorkspaceMember?.id),
+  });
+
+  const signatureHtml =
+    (workspaceMemberRecord as { emailSignature?: string | null } | undefined)
+      ?.emailSignature ?? '';
 
   return (
     <StyledFieldsContainer>
@@ -140,6 +169,18 @@ export const EmailComposerFields = ({
         placeholder={t`Type something or press "/" to see commands`}
         preset="inlineEmailBody"
       />
+      {isDefined(signatureHtml) && signatureHtml.length > 0 && (
+        <>
+          <StyledSignatureLabel>
+            {t`Signature (added automatically)`}
+          </StyledSignatureLabel>
+          <StyledSignaturePreview
+            title="email-signature-preview"
+            srcDoc={signatureHtml}
+            sandbox=""
+          />
+        </>
+      )}
       <EmailAttachmentsField
         label={t`Attachments`}
         files={composerState.files}

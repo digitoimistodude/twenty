@@ -5,6 +5,7 @@ import { SetOrChangePassword } from '@/settings/profile/components/SetOrChangePa
 import { DeleteAccount } from '@/settings/profile/components/DeleteAccount';
 import { SettingsProfileDevicesSection } from '@/settings/profile/devices/components/SettingsProfileDevicesSection';
 import { EmailField } from '@/settings/profile/components/EmailField';
+import { EmailSignatureField } from '@/settings/profile/components/EmailSignatureField';
 import { NameFields } from '@/settings/profile/components/NameFields';
 import { WorkspaceMemberPictureUploader } from '@/settings/workspace-member/components/WorkspaceMemberPictureUploader';
 import { useCanChangePassword } from '@/settings/profile/hooks/useCanChangePassword';
@@ -68,6 +69,13 @@ export const SettingsProfile = () => {
             description={t`The email associated to your account`}
           />
           <EmailField />
+        </Section>
+        <Section>
+          <H2Title
+            title={t`Email signature`}
+            description={t`HTML signature added to emails you send from Twenty`}
+          />
+          <EmailSignatureField />
         </Section>
         <Section>
           <H2Title

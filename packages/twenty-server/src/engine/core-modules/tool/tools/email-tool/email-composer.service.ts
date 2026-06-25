@@ -308,17 +308,44 @@ export class EmailComposerService {
     );
   }
 
-  // Per-sender HTML signature, appended to outgoing email. Stored as
-  // <handle>.html in EMAIL_SIGNATURES_DIR. Trusted content, appended after
-  // sanitization so the signature markup is preserved as-is.
+  // Per-sender HTML signature appended to outgoing email. Source of truth is
+  // the sender's workspaceMember.emailSignature field (editable in the UI);
+  // falls back to <handle>.html in EMAIL_SIGNATURES_DIR. Trusted content,
+  // appended after sanitization so the markup is preserved as-is.
   private async getSignatureForHandle(
-    handle?: string | null,
+    handle: string | null | undefined,
+    workspaceId: string,
   ): Promise<string | null> {
     if (
       !isNonEmptyString(handle) ||
       !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+$/.test(handle)
     ) {
       return null;
+    }
+
+    try {
+      const fromField = await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+        async () => {
+          const repository =
+            await this.globalWorkspaceOrmManager.getRepository<{
+              userEmail: string;
+              emailSignature: string | null;
+            }>(workspaceId, 'workspaceMember');
+
+          const member = await repository.findOne({
+            where: { userEmail: handle },
+          });
+
+          return member?.emailSignature ?? null;
+        },
+        buildSystemAuthContext(workspaceId),
+      );
+
+      if (isNonEmptyString(fromField)) {
+        return fromField;
+      }
+    } catch {
+      // fall through to file
     }
 
     try {
@@ -421,6 +448,7 @@ export class EmailComposerService {
     let sanitizedHtmlBody = purify.sanitize(body || '');
     const signatureHtml = await this.getSignatureForHandle(
       connectedAccount.handle,
+      workspaceId,
     );
 
     if (isNonEmptyString(signatureHtml)) {

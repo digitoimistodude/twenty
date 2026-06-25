@@ -72,8 +72,8 @@ export const SettingsProfile = () => {
         </Section>
         <Section>
           <H2Title
-            title={t`Email signature`}
-            description={t`HTML signature added to emails you send from Twenty`}
+            title="Email signature"
+            description="HTML signature added to emails you send from Twenty"
           />
           <EmailSignatureField />
         </Section>

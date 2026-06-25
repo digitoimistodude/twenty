@@ -11,6 +11,7 @@ import { FormTextFieldInput } from '@/object-record/record-field/ui/form-types/c
 import { GET_MY_CONNECTED_ACCOUNTS } from '@/settings/accounts/graphql/queries/getMyConnectedAccounts';
 import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
 import { useFindOneRecord } from '@/object-record/hooks/useFindOneRecord';
+import { useColorScheme } from '@/ui/theme/hooks/useColorScheme';
 import { Select } from '@/ui/input/components/Select';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { t } from '@lingui/core/macro';
@@ -58,10 +59,24 @@ const StyledSignatureLabel = styled.div`
 `;
 
 const StyledSignaturePreview = styled.iframe`
+  background: transparent;
   border: none;
   height: 80px;
   width: 100%;
 `;
+
+// Force signature text white in the compose preview when Twenty is in dark
+// mode; the signature HTML keeps its dark color in the actual email.
+const buildSignaturePreviewDocument = (
+  html: string,
+  isDark: boolean,
+): string => {
+  const baseStyle = `<style>html,body{margin:0;background:transparent;}${
+    isDark ? 'body,body *{color:#ffffff !important;}' : ''
+  }</style>`;
+
+  return `${baseStyle}${html}`;
+};
 
 type EmailComposerFieldsProps = {
   composerState: EmailComposerState;
@@ -101,6 +116,13 @@ export const EmailComposerFields = ({
   const signatureHtml =
     (workspaceMemberRecord as { emailSignature?: string | null } | undefined)
       ?.emailSignature ?? '';
+
+  const { colorScheme } = useColorScheme();
+  const isDark =
+    colorScheme === 'Dark' ||
+    (colorScheme === 'System' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-color-scheme: dark)').matches === true);
 
   return (
     <StyledFieldsContainer>
@@ -172,11 +194,11 @@ export const EmailComposerFields = ({
       {isDefined(signatureHtml) && signatureHtml.length > 0 && (
         <>
           <StyledSignatureLabel>
-            {t`Signature (added automatically)`}
+            Signature (added automatically)
           </StyledSignatureLabel>
           <StyledSignaturePreview
             title="email-signature-preview"
-            srcDoc={signatureHtml}
+            srcDoc={buildSignaturePreviewDocument(signatureHtml, isDark)}
             sandbox=""
           />
         </>

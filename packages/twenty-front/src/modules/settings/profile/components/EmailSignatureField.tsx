@@ -1,10 +1,10 @@
 import { styled } from '@linaria/react';
-import { useLingui } from '@lingui/react/macro';
 import { useState } from 'react';
 
 import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
 import { useFindOneRecord } from '@/object-record/hooks/useFindOneRecord';
 import { useUpdateOneRecord } from '@/object-record/hooks/useUpdateOneRecord';
+import { useColorScheme } from '@/ui/theme/hooks/useColorScheme';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
@@ -36,7 +36,7 @@ const StyledPreviewLabel = styled.div`
 `;
 
 const StyledPreview = styled.iframe`
-  background: ${themeCssVariables.background.primary};
+  background: transparent;
   border: 1px solid ${themeCssVariables.border.color.light};
   border-radius: ${themeCssVariables.border.radius.sm};
   height: 96px;
@@ -47,10 +47,26 @@ const StyledActions = styled.div`
   display: flex;
 `;
 
+// Force the signature text white inside the preview when Twenty is in dark mode
+// (the signature HTML itself keeps its dark color for the actual email).
+const buildPreviewDocument = (html: string, isDark: boolean): string => {
+  const baseStyle = `<style>html,body{margin:0;background:transparent;}${
+    isDark ? 'body,body *{color:#ffffff !important;}' : ''
+  }</style>`;
+
+  return `${baseStyle}${html}`;
+};
+
 export const EmailSignatureField = () => {
-  const { t } = useLingui();
   const currentWorkspaceMember = useAtomStateValue(currentWorkspaceMemberState);
   const workspaceMemberId = currentWorkspaceMember?.id ?? '';
+
+  const { colorScheme } = useColorScheme();
+  const isDark =
+    colorScheme === 'Dark' ||
+    (colorScheme === 'System' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-color-scheme: dark)').matches === true);
 
   const { record, loading } = useFindOneRecord({
     objectNameSingular: CoreObjectNameSingular.WorkspaceMember,
@@ -90,14 +106,18 @@ export const EmailSignatureField = () => {
       <StyledTextArea
         value={value}
         onChange={(event) => setDraft(event.target.value)}
-        placeholder={t`Paste your HTML email signature`}
+        placeholder="Paste your HTML email signature"
         spellCheck={false}
       />
-      <StyledPreviewLabel>{t`Preview`}</StyledPreviewLabel>
-      <StyledPreview title="email-signature-preview" srcDoc={value} sandbox="" />
+      <StyledPreviewLabel>Preview</StyledPreviewLabel>
+      <StyledPreview
+        title="email-signature-preview"
+        srcDoc={buildPreviewDocument(value, isDark)}
+        sandbox=""
+      />
       <StyledActions>
         <Button
-          title={t`Save`}
+          title="Save"
           variant="primary"
           onClick={handleSave}
           disabled={draft === null}

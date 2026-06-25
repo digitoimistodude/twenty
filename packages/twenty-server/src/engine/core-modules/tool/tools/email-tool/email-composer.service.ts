@@ -308,6 +308,30 @@ export class EmailComposerService {
     );
   }
 
+  // Per-sender HTML signature, appended to outgoing email. Stored as
+  // <handle>.html in EMAIL_SIGNATURES_DIR. Trusted content, appended after
+  // sanitization so the signature markup is preserved as-is.
+  private async getSignatureForHandle(
+    handle?: string | null,
+  ): Promise<string | null> {
+    if (
+      !isNonEmptyString(handle) ||
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+$/.test(handle)
+    ) {
+      return null;
+    }
+
+    try {
+      const dir =
+        process.env.EMAIL_SIGNATURES_DIR || '/home/rolle/twenty-signatures';
+      const { readFile } = await import('fs/promises');
+
+      return await readFile(`${dir}/${handle}.html`, 'utf8');
+    } catch {
+      return null;
+    }
+  }
+
   async composeEmail(
     parameters: ComposeEmailParams,
     context: ToolExecutionContext,
@@ -394,7 +418,14 @@ export class EmailComposerService {
     const window = new JSDOM('').window;
     const purify = DOMPurify(window);
 
-    const sanitizedHtmlBody = purify.sanitize(body || '');
+    let sanitizedHtmlBody = purify.sanitize(body || '');
+    const signatureHtml = await this.getSignatureForHandle(
+      connectedAccount.handle,
+    );
+
+    if (isNonEmptyString(signatureHtml)) {
+      sanitizedHtmlBody = `${sanitizedHtmlBody}<br/><br/>${signatureHtml}`;
+    }
     const plainTextBody = toPlainText(sanitizedHtmlBody);
     const sanitizedSubject = purify.sanitize(subject || '');
 

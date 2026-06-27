@@ -8,6 +8,7 @@ export enum WidgetType {
   TIMELINE = 'TIMELINE',
   TASKS = 'TASKS',
   NOTES = 'NOTES',
+  COMMENTS = 'COMMENTS',
   FILES = 'FILES',
   EMAILS = 'EMAILS',
   CALENDAR = 'CALENDAR',

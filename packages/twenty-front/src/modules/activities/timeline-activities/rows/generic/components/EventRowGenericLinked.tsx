@@ -1,4 +1,3 @@
-import { t } from '@lingui/core/macro';
 import { type KeyboardEvent } from 'react';
 
 import { type EventRowDynamicComponentProps } from '@/activities/timeline-activities/rows/components/EventRowDynamicComponent.types';
@@ -25,11 +24,11 @@ export const EventRowGenericLinked = ({
   const { openRecordInSidePanel } = useOpenRecordInSidePanel();
 
   const objectLabel =
-    linkedObjectMetadataItem?.labelSingular?.toLowerCase() ?? t`record`;
+    linkedObjectMetadataItem?.labelSingular?.toLowerCase() ?? 'record';
 
   const linkedRecordName = isNonEmptyString(event.linkedRecordCachedName)
     ? event.linkedRecordCachedName
-    : t`Untitled`;
+    : 'Untitled';
 
   const canOpen =
     isDefined(event.linkedRecordId) &&
@@ -58,7 +57,7 @@ export const EventRowGenericLinked = ({
       <StyledEventRowContent>
         <EventRowItem>{authorFullName}</EventRowItem>
         <EventRowItem variant="action">
-          {t`linked a ${objectLabel}`}
+          {`added a ${objectLabel}`}
         </EventRowItem>
         <StyledEventRowLinkedRecord
           role={canOpen ? 'button' : undefined}

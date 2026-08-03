@@ -1,5 +1,4 @@
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 import {
   AnimatedPlaceholderEmptyContainer,
   AnimatedPlaceholderEmptySubTitle,
@@ -50,10 +49,10 @@ export const CommentsCard = () => {
         <AnimatedPlaceholderEmptyContainer>
           <AnimatedPlaceholderEmptyTextContainer>
             <AnimatedPlaceholderEmptyTitle>
-              {t`No comments`}
+              No comments
             </AnimatedPlaceholderEmptyTitle>
             <AnimatedPlaceholderEmptySubTitle>
-              {t`There are no comments on this record yet.`}
+              There are no comments on this record yet.
             </AnimatedPlaceholderEmptySubTitle>
           </AnimatedPlaceholderEmptyTextContainer>
         </AnimatedPlaceholderEmptyContainer>

@@ -1,5 +1,4 @@
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 import { useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
 import { IconPlus } from 'twenty-ui/icon';
@@ -62,7 +61,7 @@ export const CommentComposer = ({
           />
           <StyledActions>
             <Button
-              title={t`Done`}
+              title="Done"
               variant="secondary"
               size="small"
               onClick={handleDone}
@@ -72,7 +71,7 @@ export const CommentComposer = ({
       ) : (
         <Button
           Icon={IconPlus}
-          title={t`Add comment`}
+          title="Add comment"
           variant="secondary"
           size="small"
           onClick={handleAddComment}

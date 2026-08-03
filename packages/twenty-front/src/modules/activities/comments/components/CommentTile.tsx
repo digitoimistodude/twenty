@@ -1,5 +1,4 @@
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 
 import { type Comment } from '@/activities/comments/types/Comment';
 import { getActivityPreview } from '@/activities/utils/getActivityPreview';
@@ -35,7 +34,7 @@ export const CommentTile = ({ comment }: { comment: Comment }) => {
   const { openRecordInSidePanel } = useOpenRecordInSidePanel();
 
   const body = getActivityPreview(comment.body?.blocknote ?? null);
-  const author = comment.createdBy?.name ?? t`Unknown`;
+  const author = comment.createdBy?.name ?? 'Unknown';
 
   return (
     <StyledCard

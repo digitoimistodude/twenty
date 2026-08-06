@@ -76,7 +76,7 @@ export const rules = [
           pretext: 'Kauppa voitettu! 🏆',
           title: r.name,
           title_link: ctx.link,
-          text: body([`*Arvo:* ${euro(r)}`, ctx.actor && `*Voitti:* ${ctx.actor}`]),
+          text: body([`*Arvo:* ${euro(r)}`, ctx.actor && `*Clousasi:* ${ctx.actor}`]),
         };
       if (stage === 'CLOSED_LOST')
         return {
@@ -86,7 +86,7 @@ export const rules = [
           title_link: ctx.link,
           text: body([
             r.lostReason && `*Syy:* ${r.lostReason}`,
-            ctx.actor && `*Hävisi:* ${ctx.actor}`,
+            ctx.actor && `*Merkitsi hävinneeksi:* ${ctx.actor}`,
           ]),
         };
       return {

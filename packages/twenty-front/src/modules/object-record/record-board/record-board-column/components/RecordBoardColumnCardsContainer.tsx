@@ -172,7 +172,8 @@ export const RecordBoardColumnCardsContainer = ({
                 );
               }),
       )}
-      {recordBoardShouldFetchMoreInColumn ? (
+      {recordBoardShouldFetchMoreInColumn &&
+      recordIndexRecordIdsByGroup.length === 0 ? (
         <RecordBoardColumnLoadingSkeletonCards />
       ) : null}
       <DragDropItemDropTarget

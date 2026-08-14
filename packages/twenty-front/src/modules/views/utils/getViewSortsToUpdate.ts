@@ -1,29 +1,30 @@
 import { areViewSortsEqual } from '@/views/utils/areViewSortsEqual';
 import { isDefined } from 'twenty-shared/utils';
 import { type ViewSort } from '@/views/types/ViewSort';
-import { compareStrictlyExceptForNullAndUndefined } from '~/utils/compareStrictlyExceptForNullAndUndefined';
+import { findCorrespondingViewSort } from '@/views/utils/findCorrespondingViewSort';
 
 export const getViewSortsToUpdate = (
   currentViewSorts: ViewSort[],
   newViewSorts: ViewSort[],
 ) => {
-  return newViewSorts.filter((newViewSort) => {
-    const correspondingViewSort = currentViewSorts.find((currentViewSort) =>
-      compareStrictlyExceptForNullAndUndefined(
-        currentViewSort.id,
-        newViewSort.id,
-      ),
-    );
+  return newViewSorts
+    .map((newViewSort) => {
+      const correspondingViewSort = findCorrespondingViewSort(
+        currentViewSorts,
+        newViewSort,
+      );
 
-    if (!isDefined(correspondingViewSort)) {
-      return false;
-    }
+      if (!isDefined(correspondingViewSort)) {
+        return undefined;
+      }
 
-    const shouldUpdateBecauseViewSortIsDifferent = !areViewSortsEqual(
-      newViewSort,
-      correspondingViewSort,
-    );
+      if (areViewSortsEqual(newViewSort, correspondingViewSort)) {
+        return undefined;
+      }
 
-    return shouldUpdateBecauseViewSortIsDifferent;
-  });
+      // Keep the persisted row rather than replacing it, so changing a
+      // direction does not move the sort to the end of the precedence order.
+      return { ...newViewSort, id: correspondingViewSort.id };
+    })
+    .filter(isDefined);
 };

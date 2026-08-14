@@ -1,9 +1,6 @@
+import { isDefined } from 'twenty-shared/utils';
 import { type ViewSort } from '@/views/types/ViewSort';
-import { compareStrictlyExceptForNullAndUndefined } from '~/utils/compareStrictlyExceptForNullAndUndefined';
-
-const isSameSortTarget = (sortA: ViewSort, sortB: ViewSort): boolean =>
-  sortA.fieldMetadataId === sortB.fieldMetadataId &&
-  sortA.direction === sortB.direction;
+import { findCorrespondingViewSort } from '@/views/utils/findCorrespondingViewSort';
 
 export const getViewSortsToDelete = (
   currentViewSorts: ViewSort[],
@@ -11,12 +8,6 @@ export const getViewSortsToDelete = (
 ) => {
   return currentViewSorts.filter(
     (currentViewSort) =>
-      !newViewSorts.some(
-        (newViewSort) =>
-          compareStrictlyExceptForNullAndUndefined(
-            currentViewSort.id,
-            newViewSort.id,
-          ) || isSameSortTarget(currentViewSort, newViewSort),
-      ),
+      !isDefined(findCorrespondingViewSort(newViewSorts, currentViewSort)),
   );
 };

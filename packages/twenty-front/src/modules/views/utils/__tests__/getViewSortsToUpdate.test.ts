@@ -63,4 +63,21 @@ describe('getViewSortsToUpdate', () => {
 
     expect(result).toEqual([]);
   });
+
+  it('should update the persisted row when a sorted field is re-picked with a new direction', () => {
+    const currentViewSorts: ViewSort[] = [baseSort];
+    const newViewSorts: ViewSort[] = [
+      {
+        ...baseSort,
+        id: 'sort-picked-again',
+        direction: ViewSortDirection.DESC,
+      },
+    ];
+
+    const result = getViewSortsToUpdate(currentViewSorts, newViewSorts);
+
+    expect(result).toEqual([
+      { ...baseSort, id: baseSort.id, direction: ViewSortDirection.DESC },
+    ]);
+  });
 });

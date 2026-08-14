@@ -79,6 +79,13 @@ export const useSaveRecordSortsToViewSorts = () => {
       },
     }));
 
+    // Destroy first: a view holds one sort per field, so a replacement can only
+    // be inserted once the row it replaces is gone.
+    const deleteResult = await performViewSortAPIDestroy(destroyViewSortInputs);
+    if (deleteResult.status === 'failed') {
+      return;
+    }
+
     const createResult = await performViewSortAPICreate(createViewSortInputs);
     if (createResult.status === 'failed') {
       return;
@@ -86,11 +93,6 @@ export const useSaveRecordSortsToViewSorts = () => {
 
     const updateResult = await performViewSortAPIUpdate(updateViewSortInputs);
     if (updateResult.status === 'failed') {
-      return;
-    }
-
-    const deleteResult = await performViewSortAPIDestroy(destroyViewSortInputs);
-    if (deleteResult.status === 'failed') {
       return;
     }
   }, [

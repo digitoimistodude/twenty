@@ -63,4 +63,19 @@ describe('getViewSortsToCreate', () => {
 
     expect(result).toEqual([]);
   });
+
+  it('should not create a sort for a field already sorted, even under a new id', () => {
+    const currentViewSorts: ViewSort[] = [baseSort];
+    const newViewSorts: ViewSort[] = [
+      {
+        ...baseSort,
+        id: 'sort-picked-again',
+        direction: ViewSortDirection.DESC,
+      },
+    ];
+
+    const result = getViewSortsToCreate(currentViewSorts, newViewSorts);
+
+    expect(result).toEqual([]);
+  });
 });

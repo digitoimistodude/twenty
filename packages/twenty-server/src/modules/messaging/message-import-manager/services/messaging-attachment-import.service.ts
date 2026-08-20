@@ -274,26 +274,24 @@ export class MessagingAttachmentImportService {
     const fileFieldMetadataId =
       await this.getAttachmentFileFieldMetadataId(workspaceId);
 
-    const uploadedFile = await this.filesFieldService.uploadFile({
-      file: fileBuffer,
-      filename,
-      workspaceId,
-      fieldMetadataId: fileFieldMetadataId,
-    });
+    const extension = filename.includes('.')
+      ? filename.slice(filename.lastIndexOf('.') + 1)
+      : '';
 
     for (const opportunityId of missingOpportunityIds) {
+      // A file may only belong to one files field, so a document sent to
+      // someone who is contact on several deals needs its own upload per deal.
+      const uploadedFile = await this.filesFieldService.uploadFile({
+        file: fileBuffer,
+        filename,
+        workspaceId,
+        fieldMetadataId: fileFieldMetadataId,
+      });
+
       await attachmentRepository.insert({
         name: filename,
         targetOpportunityId: opportunityId,
-        file: [
-          {
-            fileId: uploadedFile.id,
-            label: filename,
-            extension: filename.includes('.')
-              ? filename.slice(filename.lastIndexOf('.') + 1)
-              : '',
-          },
-        ],
+        file: [{ fileId: uploadedFile.id, label: filename, extension }],
       });
 
       result.createdAttachments++;

@@ -96,6 +96,9 @@ export class MessagingImportAttachmentsCommand extends CommandRunner {
               messageExternalId: true,
               messageChannelId: true,
             },
+            // Newest first, so a nightly run with a small --limit covers the
+            // day's mail instead of rescanning the whole mailbox.
+            order: { createdAt: 'DESC' },
             ...(options.limit ? { take: Number(options.limit) } : {}),
           });
         },

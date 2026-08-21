@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { isDefined } from 'twenty-shared/utils';
@@ -9,6 +9,7 @@ import { FeatureFlagService } from 'src/engine/core-modules/feature-flag/service
 import { ObjectMetadataEntity } from 'src/engine/metadata-modules/object-metadata/object-metadata.entity';
 import { InjectObjectMetadataRepository } from 'src/engine/object-metadata-repository/object-metadata-repository.decorator';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { CustomWorkspaceEventBatch } from 'src/engine/workspace-event-emitter/types/custom-workspace-batch-event.type';
 import { type MessageParticipantWorkspaceEntity } from 'src/modules/messaging/common/standard-objects/message-participant.workspace-entity';
 import { type OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-objects/opportunity.workspace-entity';
@@ -18,6 +19,8 @@ import { TimelineActivityWorkspaceEntity } from 'src/modules/timeline/standard-o
 
 @Injectable()
 export class MessageParticipantListener {
+  private readonly logger = new Logger(MessageParticipantListener.name);
+
   constructor(
     @InjectObjectMetadataRepository(TimelineActivityWorkspaceEntity)
     private readonly timelineActivityRepository: TimelineActivityRepository,
@@ -79,16 +82,24 @@ export class MessageParticipantListener {
 
     const personPayloads = timelineActivityPayloads.filter(isDefined);
 
-    await this.upsertOpportunityTimelineActivities({
-      workspaceId: batchEvent.workspaceId,
-      personPayloads,
-    });
-
     await this.timelineActivityRepository.upsertTimelineActivities({
       objectSingularName: 'person',
       workspaceId: batchEvent.workspaceId,
       payloads: personPayloads,
     });
+
+    // Mirroring onto opportunities is an extra: never let it take the person
+    // timeline down with it.
+    try {
+      await this.upsertOpportunityTimelineActivities({
+        workspaceId: batchEvent.workspaceId,
+        personPayloads,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Could not mirror message timeline onto opportunities: ${error.message}`,
+      );
+    }
   }
 
   // A message only ever links to a person, so an opportunity's timeline stays
@@ -109,16 +120,23 @@ export class MessageParticipantListener {
       return;
     }
 
-    const opportunityRepository =
-      await this.globalWorkspaceOrmManager.getRepository<OpportunityWorkspaceEntity>(
-        workspaceId,
-        'opportunity',
-      );
+    const opportunities =
+      await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+        async () => {
+          const opportunityRepository =
+            await this.globalWorkspaceOrmManager.getRepository<OpportunityWorkspaceEntity>(
+              workspaceId,
+              'opportunity',
+              { shouldBypassPermissionChecks: true },
+            );
 
-    const opportunities = await opportunityRepository.find({
-      where: { pointOfContactId: In(personIds) },
-      select: { id: true, pointOfContactId: true },
-    });
+          return opportunityRepository.find({
+            where: { pointOfContactId: In(personIds) },
+            select: { id: true, pointOfContactId: true },
+          });
+        },
+        buildSystemAuthContext(workspaceId),
+      );
 
     if (opportunities.length === 0) {
       return;

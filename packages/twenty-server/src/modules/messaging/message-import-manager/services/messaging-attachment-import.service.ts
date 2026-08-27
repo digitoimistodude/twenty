@@ -19,6 +19,10 @@ import {
   isRealMessageAttachment,
 } from 'src/modules/messaging/message-import-manager/utils/is-real-message-attachment.util';
 
+// Anchoring a file on one of us puts it on whatever deal that colleague
+// happens to be contact for, which is never what was meant.
+const INTERNAL_HANDLE = /@dude\.fi$/i;
+
 export type MessageAttachmentImportCandidate = {
   messageId: string;
   messageExternalId: string;
@@ -180,12 +184,17 @@ export class MessagingAttachmentImportService {
 
     const participants = await participantRepository.find({
       where: { messageId },
-      select: { id: true, personId: true },
+      select: { id: true, personId: true, handle: true },
     });
 
+    // A deal whose contact is a colleague would otherwise collect every file
+    // that colleague ever sent or received.
     const personIds = [
       ...new Set(
         participants
+          .filter(
+            (participant) => !INTERNAL_HANDLE.test(participant.handle ?? ''),
+          )
           .map((participant) => participant.personId)
           .filter(isDefined),
       ),

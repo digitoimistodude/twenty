@@ -17,6 +17,8 @@ import { TimelineActivityRepository } from 'src/modules/timeline/repositories/ti
 import { type TimelineActivityPayload } from 'src/modules/timeline/types/timeline-activity-payload';
 import { TimelineActivityWorkspaceEntity } from 'src/modules/timeline/standard-objects/timeline-activity.workspace-entity';
 
+const INTERNAL_HANDLE = /@dude\.fi$/i;
+
 @Injectable()
 export class MessageParticipantListener {
   private readonly logger = new Logger(MessageParticipantListener.name);
@@ -75,6 +77,9 @@ export class MessageParticipantListener {
             linkedObjectMetadataId: messageObjectMetadata.id,
             linkedRecordId: participant.messageId,
             linkedRecordCachedName: '',
+            isInternalParticipant: INTERNAL_HANDLE.test(
+              participant.handle ?? '',
+            ),
           };
         })
         .filter(isDefined);
@@ -110,10 +115,18 @@ export class MessageParticipantListener {
     personPayloads,
   }: {
     workspaceId: string;
-    personPayloads: TimelineActivityPayload[];
+    personPayloads: (TimelineActivityPayload & {
+      isInternalParticipant?: boolean;
+    })[];
   }): Promise<void> {
+    // Mirroring an email onto a deal whose contact is a colleague would put
+    // every internal thread on that deal.
     const personIds = [
-      ...new Set(personPayloads.map((payload) => payload.recordId)),
+      ...new Set(
+        personPayloads
+          .filter((payload) => payload.isInternalParticipant !== true)
+          .map((payload) => payload.recordId),
+      ),
     ];
 
     if (personIds.length === 0) {

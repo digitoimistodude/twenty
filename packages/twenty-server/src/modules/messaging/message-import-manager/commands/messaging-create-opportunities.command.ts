@@ -4,7 +4,10 @@ import { Command, CommandRunner, Option } from 'nest-commander';
 
 import { isDefined } from 'twenty-shared/utils';
 
-import { MessagingOpportunityCreationService } from 'src/modules/messaging/message-import-manager/services/messaging-opportunity-creation.service';
+import {
+  type ApprovedOpportunity,
+  MessagingOpportunityCreationService,
+} from 'src/modules/messaging/message-import-manager/services/messaging-opportunity-creation.service';
 
 type MessagingCreateOpportunitiesOptions = {
   workspaceId: string;

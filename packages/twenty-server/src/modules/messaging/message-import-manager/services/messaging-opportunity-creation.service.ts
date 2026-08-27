@@ -12,6 +12,13 @@ import { type CompanyWorkspaceEntity } from 'src/modules/company/standard-object
 import { type OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-objects/opportunity.workspace-entity';
 import { type PersonWorkspaceEntity } from 'src/modules/person/standard-objects/person.workspace-entity';
 
+export type ApprovedOpportunity = {
+  messageThreadId: string;
+  name?: string;
+  stage?: string;
+  closeDate?: string;
+};
+
 export type OpportunityCandidate = {
   messageThreadId: string;
   messageId: string;
@@ -22,6 +29,8 @@ export type OpportunityCandidate = {
   handle: string;
   bodyPreview: string;
   receivedAt: string;
+  stage?: string;
+  closeDate?: string;
 };
 
 export type OpportunityCreationResult = {

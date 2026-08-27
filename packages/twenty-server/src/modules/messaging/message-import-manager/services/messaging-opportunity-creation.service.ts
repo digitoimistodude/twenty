@@ -8,6 +8,7 @@ import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspac
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { type MessageParticipantWorkspaceEntity } from 'src/modules/messaging/common/standard-objects/message-participant.workspace-entity';
 import { type MessageWorkspaceEntity } from 'src/modules/messaging/common/standard-objects/message.workspace-entity';
+import { type CompanyWorkspaceEntity } from 'src/modules/company/standard-objects/company.workspace-entity';
 import { type OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-objects/opportunity.workspace-entity';
 import { type PersonWorkspaceEntity } from 'src/modules/person/standard-objects/person.workspace-entity';
 
@@ -16,6 +17,7 @@ export type OpportunityCandidate = {
   messageId: string;
   personId: string;
   companyId: string | null;
+  companyName: string | null;
   subject: string;
   handle: string;
   bodyPreview: string;
@@ -153,6 +155,8 @@ export class MessagingOpportunityCreationService {
             ? await opportunityRepository.find({
                 where: { pointOfContactId: In(everyPersonId) },
                 select: { id: true, pointOfContactId: true },
+                // Deleting a deal is a decision. Recreating it would undo it.
+                withDeleted: true,
               })
             : [];
 
@@ -178,11 +182,29 @@ export class MessagingOpportunityCreationService {
           ...new Set([...companyIdByPersonId.values()].filter(isDefined)),
         ];
 
+        const companies =
+          companyIds.length > 0
+            ? await (
+                await this.getRepository<CompanyWorkspaceEntity>(
+                  workspaceId,
+                  'company',
+                )
+              ).find({
+                where: { id: In(companyIds) },
+                select: { id: true, name: true },
+              })
+            : [];
+
+        const companyNameById = new Map(
+          companies.map((company) => [company.id, company.name ?? null]),
+        );
+
         const companyOpportunities =
           companyIds.length > 0
             ? await opportunityRepository.find({
                 where: { companyId: In(companyIds) },
                 select: { id: true, companyId: true, createdAt: true },
+                withDeleted: true,
               })
             : [];
 
@@ -252,6 +274,9 @@ export class MessagingOpportunityCreationService {
             messageId: firstMessage.id,
             personId: sender.personId,
             companyId,
+            companyName: isDefined(companyId)
+              ? (companyNameById.get(companyId) ?? null)
+              : null,
             subject,
             handle,
             bodyPreview: (firstMessage.text ?? '')

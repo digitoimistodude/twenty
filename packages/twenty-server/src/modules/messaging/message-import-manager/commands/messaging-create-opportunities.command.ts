@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+
 import { Command, CommandRunner, Option } from 'nest-commander';
 
 import { isDefined } from 'twenty-shared/utils';
@@ -9,6 +11,7 @@ type MessagingCreateOpportunitiesOptions = {
   internalDomain?: string;
   sinceDays?: number;
   threadIds?: string;
+  approvedFile?: string;
 };
 
 const DEFAULT_SINCE_DAYS = 7;
@@ -53,6 +56,15 @@ export class MessagingCreateOpportunitiesCommand extends CommandRunner {
   }
 
   @Option({
+    flags: '-a, --approved-file [path]',
+    description:
+      'JSON file of [{messageThreadId, name}] to create, so the caller can supply a proper deal name instead of the raw subject',
+  })
+  parseApprovedFile(value: string): string {
+    return value;
+  }
+
+  @Option({
     flags: '-t, --thread-ids [ids]',
     description:
       'Comma separated thread ids to create opportunities for. Without this nothing is created.',
@@ -71,6 +83,36 @@ export class MessagingCreateOpportunitiesCommand extends CommandRunner {
         internalDomain: options.internalDomain ?? '',
         sinceDays: Number(options.sinceDays ?? DEFAULT_SINCE_DAYS),
       });
+
+    if (isDefined(options.approvedFile)) {
+      const approvals: { messageThreadId: string; name?: string }[] =
+        JSON.parse(fs.readFileSync(options.approvedFile, 'utf8'));
+
+      const nameByThreadId = new Map(
+        approvals.map((approval) => [approval.messageThreadId, approval.name]),
+      );
+
+      const approvedCandidates = candidates
+        .filter((candidate) => nameByThreadId.has(candidate.messageThreadId))
+        .map((candidate) => {
+          const name = nameByThreadId.get(candidate.messageThreadId);
+
+          return isDefined(name) && name.trim() !== ''
+            ? { ...candidate, subject: name.trim() }
+            : candidate;
+        });
+
+      const fileResult =
+        await this.messagingOpportunityCreationService.createForCandidates({
+          workspaceId: options.workspaceId,
+          candidates: approvedCandidates,
+        });
+
+      // eslint-disable-next-line no-console
+      console.log(JSON.stringify(fileResult, null, 2));
+
+      return;
+    }
 
     if (!isDefined(options.threadIds)) {
       // eslint-disable-next-line no-console

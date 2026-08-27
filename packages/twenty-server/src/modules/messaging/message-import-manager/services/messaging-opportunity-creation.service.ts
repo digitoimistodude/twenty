@@ -171,6 +171,21 @@ export class MessagingOpportunityCreationService {
           people.map((person) => [person.id, person.companyId ?? null]),
         );
 
+        // A deal filed at the same company after the mail arrived means the
+        // enquiry was already handled, possibly under a different contact.
+        // Older deals do not count: a past customer may well come back.
+        const companyIds = [
+          ...new Set([...companyIdByPersonId.values()].filter(isDefined)),
+        ];
+
+        const companyOpportunities =
+          companyIds.length > 0
+            ? await opportunityRepository.find({
+                where: { companyId: In(companyIds) },
+                select: { id: true, companyId: true, createdAt: true },
+              })
+            : [];
+
         const candidates: OpportunityCandidate[] = [];
 
         for (const [threadId, firstMessage] of firstMessageByThreadId) {
@@ -191,6 +206,26 @@ export class MessagingOpportunityCreationService {
             continue;
           }
 
+          const alreadyFiledAtCompany = (companyId: string | null) => {
+            if (!isDefined(companyId)) {
+              return false;
+            }
+
+            const receivedAt = firstMessage.receivedAt;
+
+            if (!isDefined(receivedAt)) {
+              return false;
+            }
+
+            return companyOpportunities.some(
+              (opportunity) =>
+                opportunity.companyId === companyId &&
+                isDefined(opportunity.createdAt) &&
+                new Date(opportunity.createdAt).getTime() >
+                  receivedAt.getTime(),
+            );
+          };
+
           const sender = allParticipants.find(
             (participant) =>
               participant.messageId === firstMessage.id &&
@@ -206,11 +241,17 @@ export class MessagingOpportunityCreationService {
             continue;
           }
 
+          const companyId = companyIdByPersonId.get(sender.personId) ?? null;
+
+          if (alreadyFiledAtCompany(companyId)) {
+            continue;
+          }
+
           candidates.push({
             messageThreadId: threadId,
             messageId: firstMessage.id,
             personId: sender.personId,
-            companyId: companyIdByPersonId.get(sender.personId) ?? null,
+            companyId,
             subject,
             handle,
             bodyPreview: (firstMessage.text ?? '')

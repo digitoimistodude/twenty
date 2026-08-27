@@ -19,6 +19,7 @@ import { MessagingCommonModule } from 'src/modules/messaging/common/messaging-co
 import { MessagingMessageCleanerModule } from 'src/modules/messaging/message-cleaner/messaging-message-cleaner.module';
 import { MessagingFolderSyncManagerModule } from 'src/modules/messaging/message-folder-manager/messaging-folder-sync-manager.module';
 import { MessagingCompleteThreadsCommand } from 'src/modules/messaging/message-import-manager/commands/messaging-complete-threads.command';
+import { MessagingCreateOpportunitiesCommand } from 'src/modules/messaging/message-import-manager/commands/messaging-create-opportunities.command';
 import { MessagingImportAttachmentsCommand } from 'src/modules/messaging/message-import-manager/commands/messaging-import-attachments.command';
 import { MessagingTriggerMessageListFetchCommand } from 'src/modules/messaging/message-import-manager/commands/messaging-trigger-message-list-fetch.command';
 import { MessagingMessageListFetchCronCommand } from 'src/modules/messaging/message-import-manager/crons/commands/messaging-message-list-fetch.cron.command';
@@ -44,6 +45,7 @@ import { MessagingRelaunchFailedMessageChannelJob } from 'src/modules/messaging/
 import { FieldMetadataEntity } from 'src/engine/metadata-modules/field-metadata/field-metadata.entity';
 import { FilesFieldModule } from 'src/engine/core-modules/file/files-field/files-field.module';
 import { MessagingAttachmentImportService } from 'src/modules/messaging/message-import-manager/services/messaging-attachment-import.service';
+import { MessagingOpportunityCreationService } from 'src/modules/messaging/message-import-manager/services/messaging-opportunity-creation.service';
 import { MessagingThreadCompletionService } from 'src/modules/messaging/message-import-manager/services/messaging-thread-completion.service';
 import { MessagingCursorService } from 'src/modules/messaging/message-import-manager/services/messaging-cursor.service';
 import { MessagingDeleteFolderMessagesService } from 'src/modules/messaging/message-import-manager/services/messaging-delete-folder-messages.service';
@@ -103,6 +105,8 @@ import { MessagingMonitoringModule } from 'src/modules/messaging/monitoring/mess
     MessagingAttachmentImportService,
     MessagingCompleteThreadsCommand,
     MessagingThreadCompletionService,
+    MessagingCreateOpportunitiesCommand,
+    MessagingOpportunityCreationService,
     MessagingTriggerMessageListFetchCommand,
     MessagingMessageListFetchJob,
     MessagingMessagesImportJob,

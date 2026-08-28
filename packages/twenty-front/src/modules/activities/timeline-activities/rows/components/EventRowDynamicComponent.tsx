@@ -3,6 +3,7 @@ import { EventRowCalendarEvent } from '@/activities/timeline-activities/rows/cal
 import { type EventRowDynamicComponentProps } from '@/activities/timeline-activities/rows/components/EventRowDynamicComponent.types';
 import { EventRowGenericLinked } from '@/activities/timeline-activities/rows/generic/components/EventRowGenericLinked';
 import { EventRowMainObject } from '@/activities/timeline-activities/rows/main-object/components/EventRowMainObject';
+import { EventRowComment } from '@/activities/timeline-activities/rows/comment/components/EventRowComment';
 import { EventRowMessage } from '@/activities/timeline-activities/rows/message/components/EventRowMessage';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
@@ -29,6 +30,17 @@ export const EventRowDynamicComponent = (
     case CoreObjectNameSingular.Message:
       return (
         <EventRowMessage
+          labelIdentifierValue={props.labelIdentifierValue}
+          event={props.event}
+          mainObjectMetadataItem={props.mainObjectMetadataItem}
+          linkedObjectMetadataItem={props.linkedObjectMetadataItem}
+          authorFullName={props.authorFullName}
+        />
+      );
+    // Comments are not in CoreObjectNameSingular, so match the metadata name.
+    case 'recordComment':
+      return (
+        <EventRowComment
           labelIdentifierValue={props.labelIdentifierValue}
           event={props.event}
           mainObjectMetadataItem={props.mainObjectMetadataItem}

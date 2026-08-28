@@ -13,11 +13,14 @@ import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system
 import { CustomWorkspaceEventBatch } from 'src/engine/workspace-event-emitter/types/custom-workspace-batch-event.type';
 import { type MessageParticipantWorkspaceEntity } from 'src/modules/messaging/common/standard-objects/message-participant.workspace-entity';
 import { type OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-objects/opportunity.workspace-entity';
+import { type PersonWorkspaceEntity } from 'src/modules/person/standard-objects/person.workspace-entity';
 import { TimelineActivityRepository } from 'src/modules/timeline/repositories/timeline-activity.repository';
 import { type TimelineActivityPayload } from 'src/modules/timeline/types/timeline-activity-payload';
 import { TimelineActivityWorkspaceEntity } from 'src/modules/timeline/standard-objects/timeline-activity.workspace-entity';
 
-const INTERNAL_HANDLE = /@dude\.fi$/i;
+// Match on the person record, not the message handle: a colleague's contact can
+// carry personal or former-employer addresses that no domain test would catch.
+const INTERNAL_EMAIL = /@dude\.fi$/i;
 
 @Injectable()
 export class MessageParticipantListener {
@@ -77,9 +80,6 @@ export class MessageParticipantListener {
             linkedObjectMetadataId: messageObjectMetadata.id,
             linkedRecordId: participant.messageId,
             linkedRecordCachedName: '',
-            isInternalParticipant: INTERNAL_HANDLE.test(
-              participant.handle ?? '',
-            ),
           };
         })
         .filter(isDefined);
@@ -115,18 +115,10 @@ export class MessageParticipantListener {
     personPayloads,
   }: {
     workspaceId: string;
-    personPayloads: (TimelineActivityPayload & {
-      isInternalParticipant?: boolean;
-    })[];
+    personPayloads: TimelineActivityPayload[];
   }): Promise<void> {
-    // Mirroring an email onto a deal whose contact is a colleague would put
-    // every internal thread on that deal.
     const personIds = [
-      ...new Set(
-        personPayloads
-          .filter((payload) => payload.isInternalParticipant !== true)
-          .map((payload) => payload.recordId),
-      ),
+      ...new Set(personPayloads.map((payload) => payload.recordId)),
     ];
 
     if (personIds.length === 0) {
@@ -136,6 +128,30 @@ export class MessageParticipantListener {
     const opportunities =
       await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
         async () => {
+          // A deal whose contact is a colleague would otherwise collect every
+          // internal thread that colleague takes part in.
+          const personRepository =
+            await this.globalWorkspaceOrmManager.getRepository<PersonWorkspaceEntity>(
+              workspaceId,
+              'person',
+              { shouldBypassPermissionChecks: true },
+            );
+
+          const people = await personRepository.find({
+            where: { id: In(personIds) },
+          });
+
+          const externalPersonIds = people
+            .filter(
+              (person) =>
+                !INTERNAL_EMAIL.test(person.emails?.primaryEmail ?? ''),
+            )
+            .map((person) => person.id);
+
+          if (externalPersonIds.length === 0) {
+            return [];
+          }
+
           const opportunityRepository =
             await this.globalWorkspaceOrmManager.getRepository<OpportunityWorkspaceEntity>(
               workspaceId,
@@ -144,7 +160,7 @@ export class MessageParticipantListener {
             );
 
           return opportunityRepository.find({
-            where: { pointOfContactId: In(personIds) },
+            where: { pointOfContactId: In(externalPersonIds) },
             select: { id: true, pointOfContactId: true },
           });
         },

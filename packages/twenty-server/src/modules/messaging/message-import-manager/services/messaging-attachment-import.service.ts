@@ -14,14 +14,17 @@ import { ObjectMetadataEntity } from 'src/engine/metadata-modules/object-metadat
 import { GoogleOAuth2ClientProvider } from 'src/modules/connected-account/oauth2-client-manager/drivers/google/google-oauth2-client.provider';
 import { type AttachmentWorkspaceEntity } from 'src/modules/attachment/standard-objects/attachment.workspace-entity';
 import { type OpportunityWorkspaceEntity } from 'src/modules/opportunity/standard-objects/opportunity.workspace-entity';
+import { type PersonWorkspaceEntity } from 'src/modules/person/standard-objects/person.workspace-entity';
 import {
   collectMessageParts,
   isRealMessageAttachment,
 } from 'src/modules/messaging/message-import-manager/utils/is-real-message-attachment.util';
 
 // Anchoring a file on one of us puts it on whatever deal that colleague
-// happens to be contact for, which is never what was meant.
-const INTERNAL_HANDLE = /@dude\.fi$/i;
+// happens to be contact for, which is never what was meant. Match on the person
+// record, not the message handle: a colleague's contact can carry personal or
+// former-employer addresses that no domain test would catch.
+const INTERNAL_EMAIL = /@dude\.fi$/i;
 
 export type MessageAttachmentImportCandidate = {
   messageId: string;
@@ -187,20 +190,37 @@ export class MessagingAttachmentImportService {
       select: { id: true, personId: true, handle: true },
     });
 
-    // A deal whose contact is a colleague would otherwise collect every file
-    // that colleague ever sent or received.
     const personIds = [
       ...new Set(
         participants
-          .filter(
-            (participant) => !INTERNAL_HANDLE.test(participant.handle ?? ''),
-          )
           .map((participant) => participant.personId)
           .filter(isDefined),
       ),
     ];
 
     if (personIds.length === 0) {
+      return [];
+    }
+
+    const personRepository =
+      await this.globalWorkspaceOrmManager.getRepository<PersonWorkspaceEntity>(
+        workspaceId,
+        'person',
+        { shouldBypassPermissionChecks: true },
+      );
+
+    // No select: the email composite is not selectable column by column.
+    const people = await personRepository.find({
+      where: { id: In(personIds) },
+    });
+
+    const externalPersonIds = people
+      .filter(
+        (person) => !INTERNAL_EMAIL.test(person.emails?.primaryEmail ?? ''),
+      )
+      .map((person) => person.id);
+
+    if (externalPersonIds.length === 0) {
       return [];
     }
 
@@ -212,7 +232,7 @@ export class MessagingAttachmentImportService {
       );
 
     const opportunities = await opportunityRepository.find({
-      where: { pointOfContactId: In(personIds) },
+      where: { pointOfContactId: In(externalPersonIds) },
       select: { id: true },
     });
 

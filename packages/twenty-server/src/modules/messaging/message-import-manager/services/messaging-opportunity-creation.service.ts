@@ -346,6 +346,11 @@ export class MessagingOpportunityCreationService {
             name,
             stage: OPPORTUNITY_STAGE_FOR_NEW_LEAD,
             pointOfContactId: candidate.personId,
+            // The lead arrived when the mail did, not when this job first saw
+            // it, so a July enquiry filed in August reports under July.
+            ...(candidate.receivedAt !== ''
+              ? { createdAt: new Date(candidate.receivedAt) }
+              : {}),
             ...(isDefined(candidate.companyId)
               ? { companyId: candidate.companyId }
               : {}),

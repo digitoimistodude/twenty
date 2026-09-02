@@ -7,7 +7,7 @@ import { isDefined } from 'twenty-shared/utils';
 
 import { type ConnectedAccountEntity } from 'src/engine/metadata-modules/connected-account/entities/connected-account.entity';
 import { type MessageChannelEntity } from 'src/engine/metadata-modules/message-channel/entities/message-channel.entity';
-import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { GoogleOAuth2ClientProvider } from 'src/modules/connected-account/oauth2-client-manager/drivers/google/google-oauth2-client.provider';
 import { GmailGetMessagesService } from 'src/modules/messaging/message-import-manager/drivers/gmail/services/gmail-get-messages.service';
@@ -31,7 +31,7 @@ export class MessagingThreadCompletionService {
 
   constructor(
     private readonly googleOAuth2ClientProvider: GoogleOAuth2ClientProvider,
-    private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
+    private readonly workspaceOrmManager: WorkspaceOrmManager,
     private readonly gmailGetMessagesService: GmailGetMessagesService,
     private readonly saveMessagesService: MessagingSaveMessagesAndEnqueueContactCreationService,
   ) {}
@@ -146,11 +146,10 @@ export class MessagingThreadCompletionService {
     externalIds: string[];
   }): Promise<Set<string>> {
     const associations =
-      await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+      await this.workspaceOrmManager.executeInWorkspaceContext(
         async () => {
           const associationRepository =
-            await this.globalWorkspaceOrmManager.getRepository(
-              workspaceId,
+            await this.workspaceOrmManager.getRepository(
               'messageChannelMessageAssociation',
               { shouldBypassPermissionChecks: true },
             );

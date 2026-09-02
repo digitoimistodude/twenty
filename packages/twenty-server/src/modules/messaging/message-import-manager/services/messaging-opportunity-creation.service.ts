@@ -4,7 +4,7 @@ import { In, MoreThan, type ObjectLiteral } from 'typeorm';
 import { MessageParticipantRole } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
-import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { type MessageParticipantWorkspaceEntity } from 'src/modules/messaging/common/standard-objects/message-participant.workspace-entity';
 import { type MessageWorkspaceEntity } from 'src/modules/messaging/common/standard-objects/message.workspace-entity';
@@ -54,7 +54,7 @@ export class MessagingOpportunityCreationService {
   );
 
   constructor(
-    private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
+    private readonly workspaceOrmManager: WorkspaceOrmManager,
   ) {}
 
   // Deliberately only reports. Whether a mail is actually an inbound enquiry is
@@ -70,26 +70,22 @@ export class MessagingOpportunityCreationService {
   }): Promise<OpportunityCandidate[]> {
     const since = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000);
 
-    return this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+    return this.workspaceOrmManager.executeInWorkspaceContext(
       async () => {
         const messageRepository =
           await this.getRepository<MessageWorkspaceEntity>(
-            workspaceId,
             'message',
           );
         const participantRepository =
           await this.getRepository<MessageParticipantWorkspaceEntity>(
-            workspaceId,
             'messageParticipant',
           );
         const personRepository =
           await this.getRepository<PersonWorkspaceEntity>(
-            workspaceId,
             'person',
           );
         const opportunityRepository =
           await this.getRepository<OpportunityWorkspaceEntity>(
-            workspaceId,
             'opportunity',
           );
 
@@ -208,7 +204,6 @@ export class MessagingOpportunityCreationService {
           companyIds.length > 0
             ? await (
                 await this.getRepository<CompanyWorkspaceEntity>(
-                  workspaceId,
                   'company',
                 )
               ).find({
@@ -329,10 +324,9 @@ export class MessagingOpportunityCreationService {
       created: [],
     };
 
-    await this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+    await this.workspaceOrmManager.executeInWorkspaceContext(async () => {
       const opportunityRepository =
         await this.getRepository<OpportunityWorkspaceEntity>(
-          workspaceId,
           'opportunity',
         );
 
@@ -389,12 +383,8 @@ export class MessagingOpportunityCreationService {
     return result;
   }
 
-  private async getRepository<T extends ObjectLiteral>(
-    workspaceId: string,
-    objectName: string,
-  ) {
-    return this.globalWorkspaceOrmManager.getRepository<T>(
-      workspaceId,
+  private async getRepository<T extends ObjectLiteral>(objectName: string) {
+    return this.workspaceOrmManager.getRepository<T>(
       objectName,
       { shouldBypassPermissionChecks: true },
     );

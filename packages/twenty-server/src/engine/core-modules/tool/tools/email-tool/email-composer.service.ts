@@ -338,13 +338,13 @@ export class EmailComposerService {
     }
 
     try {
-      const fromField = await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+      const fromField = await this.workspaceOrmManager.executeInWorkspaceContext(
         async () => {
           const repository =
-            await this.globalWorkspaceOrmManager.getRepository<{
+            await this.workspaceOrmManager.getRepository<{
               userEmail: string;
               emailSignature: string | null;
-            }>(workspaceId, 'workspaceMember');
+            }>('workspaceMember');
 
           const member = await repository.findOne({
             where: { userEmail: handle },

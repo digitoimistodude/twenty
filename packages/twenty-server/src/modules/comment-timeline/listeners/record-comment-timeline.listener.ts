@@ -10,7 +10,7 @@ import { In } from 'typeorm';
 import { OnDatabaseBatchEvent } from 'src/engine/api/graphql/graphql-query-runner/decorators/on-database-batch-event.decorator';
 import { DatabaseEventAction } from 'src/engine/api/graphql/graphql-query-runner/enums/database-event-action';
 import { InjectObjectMetadataRepository } from 'src/engine/object-metadata-repository/object-metadata-repository.decorator';
-import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { WorkspaceEventBatch } from 'src/engine/workspace-event-emitter/types/workspace-event-batch.type';
 import { TimelineActivityRepository } from 'src/modules/timeline/repositories/timeline-activity.repository';
@@ -54,7 +54,7 @@ export class RecordCommentTimelineListener {
   constructor(
     @InjectObjectMetadataRepository(TimelineActivityWorkspaceEntity)
     private readonly timelineActivityRepository: TimelineActivityRepository,
-    private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
+    private readonly workspaceOrmManager: WorkspaceOrmManager,
   ) {}
 
   @OnDatabaseBatchEvent('recordComment', DatabaseEventAction.CREATED)
@@ -133,10 +133,9 @@ export class RecordCommentTimelineListener {
 
     const authContext = buildSystemAuthContext(workspaceId);
 
-    await this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+    await this.workspaceOrmManager.executeInWorkspaceContext(async () => {
       const timelineActivityRepository =
-        await this.globalWorkspaceOrmManager.getRepository(
-          workspaceId,
+        await this.workspaceOrmManager.getRepository(
           'timelineActivity',
           {
             shouldBypassPermissionChecks: true,
@@ -162,10 +161,9 @@ export class RecordCommentTimelineListener {
 
     const authContext = buildSystemAuthContext(workspaceId);
 
-    await this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+    await this.workspaceOrmManager.executeInWorkspaceContext(async () => {
       const workspaceMemberRepository =
-        await this.globalWorkspaceOrmManager.getRepository(
-          workspaceId,
+        await this.workspaceOrmManager.getRepository(
           WorkspaceMemberWorkspaceEntity,
           {
             shouldBypassPermissionChecks: true,

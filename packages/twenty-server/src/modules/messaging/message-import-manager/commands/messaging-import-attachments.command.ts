@@ -5,7 +5,7 @@ import { In, Repository } from 'typeorm';
 import { isDefined } from 'twenty-shared/utils';
 
 import { MessageChannelEntity } from 'src/engine/metadata-modules/message-channel/entities/message-channel.entity';
-import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import {
   type MessageAttachmentImportCandidate,
@@ -26,7 +26,7 @@ type MessagingImportAttachmentsOptions = {
 export class MessagingImportAttachmentsCommand extends CommandRunner {
   constructor(
     private readonly messagingAttachmentImportService: MessagingAttachmentImportService,
-    private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
+    private readonly workspaceOrmManager: WorkspaceOrmManager,
     @InjectRepository(MessageChannelEntity)
     private readonly messageChannelRepository: Repository<MessageChannelEntity>,
   ) {
@@ -77,10 +77,10 @@ export class MessagingImportAttachmentsCommand extends CommandRunner {
     );
 
     const associations =
-      await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+      await this.workspaceOrmManager.executeInWorkspaceContext(
         async () => {
           const associationRepository =
-            await this.globalWorkspaceOrmManager.getRepository(
+            await this.workspaceOrmManager.getRepository(
               options.workspaceId,
               'messageChannelMessageAssociation',
               { shouldBypassPermissionChecks: true },

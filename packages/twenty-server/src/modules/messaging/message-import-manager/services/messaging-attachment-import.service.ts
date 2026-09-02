@@ -7,7 +7,7 @@ import { isDefined } from 'twenty-shared/utils';
 
 import { FilesFieldService } from 'src/engine/core-modules/file/files-field/services/files-field.service';
 import { FieldMetadataType } from 'twenty-shared/types';
-import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { FieldMetadataEntity } from 'src/engine/metadata-modules/field-metadata/field-metadata.entity';
 import { ObjectMetadataEntity } from 'src/engine/metadata-modules/object-metadata/object-metadata.entity';
@@ -52,7 +52,7 @@ export class MessagingAttachmentImportService {
 
   constructor(
     private readonly googleOAuth2ClientProvider: GoogleOAuth2ClientProvider,
-    private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
+    private readonly workspaceOrmManager: WorkspaceOrmManager,
     private readonly filesFieldService: FilesFieldService,
     @InjectRepository(FieldMetadataEntity)
     private readonly fieldMetadataRepository: Repository<FieldMetadataEntity>,
@@ -84,7 +84,7 @@ export class MessagingAttachmentImportService {
     const gmailClientByAccount = new Map<string, gmailV1.Gmail>();
     const authContext = buildSystemAuthContext(workspaceId);
 
-    await this.globalWorkspaceOrmManager.executeInWorkspaceContext(async () => {
+    await this.workspaceOrmManager.executeInWorkspaceContext(async () => {
       for (const candidate of candidates) {
         try {
           const gmailClient = await this.getGmailClient(
@@ -179,8 +179,7 @@ export class MessagingAttachmentImportService {
     messageId: string;
   }): Promise<string[]> {
     const participantRepository =
-      await this.globalWorkspaceOrmManager.getRepository(
-        workspaceId,
+      await this.workspaceOrmManager.getRepository(
         'messageParticipant',
         { shouldBypassPermissionChecks: true },
       );
@@ -203,8 +202,7 @@ export class MessagingAttachmentImportService {
     }
 
     const personRepository =
-      await this.globalWorkspaceOrmManager.getRepository<PersonWorkspaceEntity>(
-        workspaceId,
+      await this.workspaceOrmManager.getRepository<PersonWorkspaceEntity>(
         'person',
         { shouldBypassPermissionChecks: true },
       );
@@ -225,8 +223,7 @@ export class MessagingAttachmentImportService {
     }
 
     const opportunityRepository =
-      await this.globalWorkspaceOrmManager.getRepository<OpportunityWorkspaceEntity>(
-        workspaceId,
+      await this.workspaceOrmManager.getRepository<OpportunityWorkspaceEntity>(
         'opportunity',
         { shouldBypassPermissionChecks: true },
       );
@@ -255,8 +252,7 @@ export class MessagingAttachmentImportService {
     result: MessageAttachmentImportResult;
   }): Promise<void> {
     const attachmentRepository =
-      await this.globalWorkspaceOrmManager.getRepository<AttachmentWorkspaceEntity>(
-        workspaceId,
+      await this.workspaceOrmManager.getRepository<AttachmentWorkspaceEntity>(
         'attachment',
         { shouldBypassPermissionChecks: true },
       );

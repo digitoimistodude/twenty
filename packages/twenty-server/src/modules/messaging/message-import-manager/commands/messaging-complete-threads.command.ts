@@ -6,7 +6,7 @@ import { isDefined } from 'twenty-shared/utils';
 
 import { ConnectedAccountEntity } from 'src/engine/metadata-modules/connected-account/entities/connected-account.entity';
 import { MessageChannelEntity } from 'src/engine/metadata-modules/message-channel/entities/message-channel.entity';
-import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import {
   type ThreadCompletionResult,
@@ -27,7 +27,7 @@ type MessagingCompleteThreadsOptions = {
 export class MessagingCompleteThreadsCommand extends CommandRunner {
   constructor(
     private readonly messagingThreadCompletionService: MessagingThreadCompletionService,
-    private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
+    private readonly workspaceOrmManager: WorkspaceOrmManager,
     @InjectRepository(MessageChannelEntity)
     private readonly messageChannelRepository: Repository<MessageChannelEntity>,
     @InjectRepository(ConnectedAccountEntity)
@@ -128,11 +128,10 @@ export class MessagingCompleteThreadsCommand extends CommandRunner {
     limit?: number;
   }): Promise<string[]> {
     const associations =
-      await this.globalWorkspaceOrmManager.executeInWorkspaceContext(
+      await this.workspaceOrmManager.executeInWorkspaceContext(
         async () => {
           const associationRepository =
-            await this.globalWorkspaceOrmManager.getRepository(
-              workspaceId,
+            await this.workspaceOrmManager.getRepository(
               'messageChannelMessageAssociation',
               { shouldBypassPermissionChecks: true },
             );

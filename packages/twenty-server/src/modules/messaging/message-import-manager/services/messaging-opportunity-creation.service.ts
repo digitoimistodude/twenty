@@ -94,7 +94,9 @@ export class MessagingOpportunityCreationService {
           );
 
         const messages = await messageRepository.find({
-          where: { receivedAt: MoreThan(since) },
+          // Labelling an old thread CRM imports it today, so a window on the
+          // arrival date alone would never see it. Match on either.
+          where: [{ receivedAt: MoreThan(since) }, { createdAt: MoreThan(since) }],
           select: {
             id: true,
             subject: true,
@@ -144,6 +146,17 @@ export class MessagingOpportunityCreationService {
           const threadId = threadIdByMessageId.get(participant.messageId ?? '');
 
           if (!isDefined(threadId) || !isDefined(participant.personId)) {
+            continue;
+          }
+
+          // Our own addresses have contact records too, and one of them being
+          // point of contact on any deal would otherwise mark every thread we
+          // take part in as already filed, which is every incoming lead.
+          if (
+            (participant.handle ?? '')
+              .toLowerCase()
+              .endsWith(`@${internalDomain}`)
+          ) {
             continue;
           }
 

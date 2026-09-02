@@ -3,10 +3,15 @@ import { useContext } from 'react';
 import { DragDropProvider } from '@dnd-kit/react';
 import { styled } from '@linaria/react';
 import { t } from '@lingui/core/macro';
+import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { getSendableEmailHandles, isDefined } from 'twenty-shared/utils';
+import { isNonEmptyString } from '@sniptt/guards';
 import { IconPaperclip } from 'twenty-ui/icon';
 import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
 
+import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
+import { useFindOneRecord } from '@/object-record/hooks/useFindOneRecord';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { ComposerFieldRow } from '@/activities/components/ComposerFieldRow';
 import { ComposerHeader } from '@/activities/components/ComposerHeader';
 import { StyledComposerTextInput } from '@/activities/components/ComposerTextInput';
@@ -98,6 +103,32 @@ const StyledRecipientLimitWarning = styled.div`
   padding: ${themeCssVariables.spacing[1]} ${themeCssVariables.spacing[3]};
 `;
 
+const StyledSignatureLabel = styled.div`
+  color: ${themeCssVariables.font.color.tertiary};
+  font-size: ${themeCssVariables.font.size.xs};
+  padding: 0 ${themeCssVariables.spacing[1]};
+`;
+
+const StyledSignaturePreview = styled.iframe`
+  background: transparent;
+  border: none;
+  height: 80px;
+  width: 100%;
+`;
+
+// Force signature text white in the compose preview when Twenty is in dark
+// mode; the signature HTML keeps its dark color in the actual email.
+const buildSignaturePreviewDocument = (
+  html: string,
+  isDark: boolean,
+): string => {
+  const baseStyle = `<style>html,body{margin:0;background:transparent;}${
+    isDark ? 'body,body *{color:#ffffff !important;}' : ''
+  }</style>`;
+
+  return `${baseStyle}${html}`;
+};
+
 type EmailComposerFieldsProps = {
   composerState: EmailComposerState;
   contextRecord?: EmailComposerContextRecord | null;
@@ -113,6 +144,18 @@ export const EmailComposerFields = ({
 }: EmailComposerFieldsProps) => {
   const { theme } = useContext(ThemeContext);
   const { uploadEmailImage } = useUploadEmailImage();
+
+  // The signature itself is appended server side; this only shows the sender
+  // what will be added.
+  const currentWorkspaceMember = useAtomStateValue(currentWorkspaceMemberState);
+  const { record: workspaceMemberRecord } = useFindOneRecord({
+    objectNameSingular: CoreObjectNameSingular.WorkspaceMember,
+    objectRecordId: currentWorkspaceMember?.id ?? '',
+    skip: !isDefined(currentWorkspaceMember?.id),
+  });
+  const signatureHtml =
+    (workspaceMemberRecord as { emailSignature?: string | null } | undefined)
+      ?.emailSignature ?? '';
   const { data: accountsData } = useQuery<{
     myConnectedAccounts: Pick<
       ConnectedAccount,
@@ -290,6 +333,20 @@ export const EmailComposerFields = ({
           onImageUpload={uploadEmailImage}
         />
       </StyledBody>
+      {isNonEmptyString(signatureHtml) && (
+        <>
+          <StyledSignatureLabel>
+            {t`Signature (added automatically)`}
+          </StyledSignatureLabel>
+          <StyledSignaturePreview
+            title="email-signature-preview"
+            srcDoc={buildSignaturePreviewDocument(
+              signatureHtml,
+              theme.name === 'dark',
+            )}
+          />
+        </>
+      )}
       {(composerState.files.length > 0 || isDefined(onAttachFiles)) && (
         <StyledAttachments>
           {isDefined(onAttachFiles) && (

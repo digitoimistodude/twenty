@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import {
   type ObjectRecordCreateEvent,
@@ -9,12 +9,11 @@ import { In } from 'typeorm';
 
 import { OnDatabaseBatchEvent } from 'src/engine/api/graphql/graphql-query-runner/decorators/on-database-batch-event.decorator';
 import { DatabaseEventAction } from 'src/engine/api/graphql/graphql-query-runner/enums/database-event-action';
-import { InjectObjectMetadataRepository } from 'src/engine/object-metadata-repository/object-metadata-repository.decorator';
 import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { WorkspaceEventBatch } from 'src/engine/workspace-event-emitter/types/workspace-event-batch.type';
 import { TimelineActivityRepository } from 'src/modules/timeline/repositories/timeline-activity.repository';
-import { TimelineActivityWorkspaceEntity } from 'src/modules/timeline/standard-objects/timeline-activity.workspace-entity';
+import { TimelineActivityTypeCacheService } from 'src/modules/timeline/services/timeline-activity-type-cache.service';
 import { type TimelineActivityPayload } from 'src/modules/timeline/types/timeline-activity-payload';
 import { WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
 
@@ -30,6 +29,11 @@ const RECORD_COMMENT_TARGETS = ['opportunity', 'person', 'company'] as const;
 
 const COMMENT_SNIPPET_MAX_LENGTH = 50;
 
+// recordComment is our own object, so its timeline type is registered per
+// workspace rather than shipped in the standard definitions.
+const RECORD_COMMENT_UNIVERSAL_IDENTIFIER =
+  '838025b2-a414-4269-a066-30cdd120e927';
+
 const buildCommentSnippet = (markdown?: string | null): string => {
   if (!isDefined(markdown)) {
     return 'Comment';
@@ -40,20 +44,22 @@ const buildCommentSnippet = (markdown?: string | null): string => {
     .replace(/\s+/g, ' ')
     .trim();
 
-  if (plainText.length === 0) {
+  if (plainText === '') {
     return 'Comment';
   }
 
   return plainText.length > COMMENT_SNIPPET_MAX_LENGTH
-    ? `${plainText.slice(0, COMMENT_SNIPPET_MAX_LENGTH)}...`
+    ? `${plainText.slice(0, COMMENT_SNIPPET_MAX_LENGTH).trimEnd()}...`
     : plainText;
 };
 
 @Injectable()
 export class RecordCommentTimelineListener {
+  private readonly logger = new Logger(RecordCommentTimelineListener.name);
+
   constructor(
-    @InjectObjectMetadataRepository(TimelineActivityWorkspaceEntity)
     private readonly timelineActivityRepository: TimelineActivityRepository,
+    private readonly timelineActivityTypeCacheService: TimelineActivityTypeCacheService,
     private readonly workspaceOrmManager: WorkspaceOrmManager,
   ) {}
 
@@ -64,6 +70,14 @@ export class RecordCommentTimelineListener {
     const { workspaceId, events, objectMetadata } = payload;
 
     if (!isDefined(workspaceId) || events.length === 0) {
+      return;
+    }
+
+    const timelineActivityType = await this.resolveCommentActivityType(
+      workspaceId,
+    );
+
+    if (!isDefined(timelineActivityType)) {
       return;
     }
 
@@ -91,8 +105,10 @@ export class RecordCommentTimelineListener {
         payloadsByTarget[target] = [
           ...(payloadsByTarget[target] ?? []),
           {
-            name: 'linked-recordComment.created',
-            properties: {},
+            happensAt: new Date(),
+            timelineActivityTypeId: timelineActivityType.id,
+            timelineActivityTypeSnapshot: timelineActivityType.snapshot,
+            properties: { diff: {} },
             objectSingularName: target,
             recordId: targetRecordId,
             workspaceMemberId,
@@ -131,22 +147,49 @@ export class RecordCommentTimelineListener {
       return;
     }
 
+    const timelineActivityType = await this.resolveCommentActivityType(
+      workspaceId,
+    );
+
+    if (!isDefined(timelineActivityType)) {
+      return;
+    }
+
     const authContext = buildSystemAuthContext(workspaceId);
 
     await this.workspaceOrmManager.executeInWorkspaceContext(async () => {
       const timelineActivityRepository =
-        await this.workspaceOrmManager.getRepository(
-          'timelineActivity',
-          {
-            shouldBypassPermissionChecks: true,
-          },
-        );
+        await this.workspaceOrmManager.getRepository('timelineActivity', {
+          shouldBypassPermissionChecks: true,
+        });
 
       await timelineActivityRepository.softDelete({
-        name: 'linked-recordComment.created',
+        timelineActivityTypeId: timelineActivityType.id,
         linkedRecordId: In(commentIds),
       });
     }, authContext);
+  }
+
+  // Returns undefined when the workspace has no comment activity type yet, so a
+  // workspace without it keeps working instead of throwing on every comment.
+  private async resolveCommentActivityType(workspaceId: string) {
+    const resolveTimelineActivityType =
+      await this.timelineActivityTypeCacheService.getTimelineActivityTypeResolver(
+        workspaceId,
+      );
+
+    const timelineActivityType = resolveTimelineActivityType({
+      action: 'linked',
+      objectUniversalIdentifier: RECORD_COMMENT_UNIVERSAL_IDENTIFIER,
+    });
+
+    if (!isDefined(timelineActivityType)) {
+      this.logger.warn(
+        `No active comment timeline activity type in workspace ${workspaceId}`,
+      );
+    }
+
+    return timelineActivityType;
   }
 
   private async resolveWorkspaceMemberIds(

@@ -7,6 +7,7 @@ export const isViewportFillingWidgetType = (
     case WidgetType.CALENDAR:
     case WidgetType.CALL_RECORDING_SUMMARY:
     case WidgetType.CALL_RECORDING_TRANSCRIPT:
+    case WidgetType.COMMENTS:
     case WidgetType.EMAILS:
     case WidgetType.EMAIL_THREAD:
     case WidgetType.FILES:

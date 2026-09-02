@@ -5,6 +5,7 @@ const expectedIsViewportFillingByWidgetType = {
   [WidgetType.CALENDAR]: true,
   [WidgetType.CALL_RECORDING_SUMMARY]: true,
   [WidgetType.CALL_RECORDING_TRANSCRIPT]: true,
+  [WidgetType.COMMENTS]: true,
   [WidgetType.EMAILS]: true,
   [WidgetType.EMAIL_THREAD]: true,
   [WidgetType.FIELD]: false,

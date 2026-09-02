@@ -81,7 +81,6 @@ export class MessagingImportAttachmentsCommand extends CommandRunner {
         async () => {
           const associationRepository =
             await this.workspaceOrmManager.getRepository(
-              options.workspaceId,
               'messageChannelMessageAssociation',
               { shouldBypassPermissionChecks: true },
             );

@@ -15,6 +15,12 @@ const EventCardCalendarEvent = lazy(() =>
   ),
 );
 
+const EventCardComment = lazy(() =>
+  import('@/activities/timeline-activities/rows/comment/components/EventCardComment').then(
+    (module) => ({ default: module.EventCardComment }),
+  ),
+);
+
 const EventCardMessage = lazy(() =>
   import('@/activities/timeline-activities/rows/message/components/EventCardMessage').then(
     (module) => ({ default: module.EventCardMessage }),
@@ -45,6 +51,20 @@ const CalendarEventTimelineActivityRenderer = ({
     <EventCardCalendarEvent calendarEventId={event.linkedRecordId} />
   ) : null;
 
+type CommentTimelineActivityRendererProps =
+  StandardTimelineActivityRendererProps;
+
+const CommentTimelineActivityRenderer = ({
+  event,
+  authorFullName,
+}: CommentTimelineActivityRendererProps) =>
+  isTimelineActivityWithLinkedRecord(event) ? (
+    <EventCardComment
+      recordCommentId={event.linkedRecordId}
+      authorFullName={authorFullName}
+    />
+  ) : null;
+
 const STANDARD_TIMELINE_ACTIVITY_RENDERERS: Record<
   StandardTimelineActivityRendererUniversalIdentifier,
   ComponentType<StandardTimelineActivityRendererProps>
@@ -53,6 +73,8 @@ const STANDARD_TIMELINE_ACTIVITY_RENDERERS: Record<
     MessageTimelineActivityRenderer,
   [STANDARD_TIMELINE_ACTIVITY_RENDERER_UNIVERSAL_IDENTIFIERS.calendarEvent]:
     CalendarEventTimelineActivityRenderer,
+  [STANDARD_TIMELINE_ACTIVITY_RENDERER_UNIVERSAL_IDENTIFIERS.comment]:
+    CommentTimelineActivityRenderer,
 };
 
 export const getStandardTimelineActivityRenderer = (

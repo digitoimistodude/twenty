@@ -17,6 +17,7 @@ import { TimelineActivityRepository } from 'src/modules/timeline/repositories/ti
     TimelineActivityTypeCacheService,
   ],
   exports: [
+    TimelineActivityRepository,
     TimelineActivityService,
     TimelineActivityTypeCacheService,
     TimelineActivityRoutingPlanService,

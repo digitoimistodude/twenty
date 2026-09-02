@@ -164,7 +164,6 @@ export const useRecordBoardDndKit = (): {
       pointer: position.current,
       defaultOrientation: 'horizontal',
       getDroppableItemCount,
-      resolveDroppableDropTargetIndex,
     });
 
     if (!isDefined(resolvedDrop)) {
@@ -194,7 +193,6 @@ export const useRecordBoardDndKit = (): {
       pointer: position.current,
       defaultOrientation: 'horizontal',
       getDroppableItemCount,
-      resolveDroppableDropTargetIndex,
     });
     if (!isDefined(resolvedDrop)) {
       resetDragState();

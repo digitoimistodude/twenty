@@ -12,7 +12,6 @@ import {
   type RestrictedFieldsPermissions,
 } from 'twenty-shared/types';
 import {
-  combineFilters,
   isDefined,
   isNonEmptyArray,
   isRecordGqlOperationSignature,
@@ -44,7 +43,6 @@ import {
 } from 'src/engine/subscriptions/types/event-stream-data.type';
 import { type EventStreamPayload } from 'src/engine/subscriptions/types/event-stream-payload.type';
 import { ObjectRecordSubscriptionEvent } from 'src/engine/subscriptions/types/object-record-subscription-event.type';
-import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { RolePermissionConfig } from 'src/engine/twenty-orm/types/role-permission-config';
 import { buildRowLevelPermissionRecordFilter } from 'src/engine/twenty-orm/utils/build-row-level-permission-record-filter.util';
 import { computePermissionIntersection } from 'src/engine/twenty-orm/utils/compute-permission-intersection.util';
@@ -73,7 +71,6 @@ export class ObjectRecordEventPublisher {
     private readonly workspaceCacheService: WorkspaceCacheService,
     private readonly processNestedRelationsHelper: ProcessNestedRelationsHelper,
     private readonly workspaceManyOrAllFlatEntityMapsCacheService: WorkspaceManyOrAllFlatEntityMapsCacheService,
-    private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
     private readonly commonSelectFieldsHelper: CommonSelectFieldsHelper,
   ) {}
 
@@ -314,9 +311,6 @@ export class ObjectRecordEventPublisher {
       intersectionOf: roleIds,
     };
 
-    const globalWorkspaceDataSource =
-      await this.globalWorkspaceOrmManager.getGlobalWorkspaceDataSourceReplica();
-
     const selectedFields = this.commonSelectFieldsHelper.computeFromDepth({
       depth: 1,
       flatObjectMetadata: objectMetadata,
@@ -344,7 +338,6 @@ export class ObjectRecordEventPublisher {
       authContext: streamData.authContext as unknown as WorkspaceAuthContext,
       limit: QUERY_MAX_RECORDS_FROM_RELATION,
       rolePermissionConfig,
-      workspaceDataSource: globalWorkspaceDataSource,
       relations: selectedFieldsResult.relations as Record<
         string,
         FindOptionsRelations<ObjectLiteral>
@@ -547,37 +540,50 @@ export class ObjectRecordEventPublisher {
       before?: object;
     };
 
-    const record = properties?.after ?? properties?.before;
+    const deliveredRecord = properties?.after ?? properties?.before;
 
-    if (!isDefined(record)) {
+    if (!isDefined(deliveredRecord)) {
       return false;
-    }
-
-    const queryFilter = operationSignature.variables?.filter ?? {};
-
-    const filtersToApply: RecordGqlOperationFilter[] = [queryFilter];
-
-    if (subscriberRLSFilter && Object.keys(subscriberRLSFilter).length > 0) {
-      filtersToApply.push(subscriberRLSFilter);
-    }
-
-    const combinedFilter = combineFilters(filtersToApply);
-
-    if (Object.keys(combinedFilter).length === 0) {
-      return true;
     }
 
     const shouldIgnoreSoftDeleteDefaultFilter =
       event.action === DatabaseEventAction.DELETED ||
       event.action === DatabaseEventAction.RESTORED;
 
-    return isRecordMatchingRLSRowLevelPermissionPredicate({
-      record,
-      filter: combinedFilter,
-      flatObjectMetadata: objectMetadata,
-      flatFieldMetadataMaps,
-      shouldIgnoreSoftDeleteDefaultFilter,
-    });
+    if (
+      isDefined(subscriberRLSFilter) &&
+      Object.keys(subscriberRLSFilter).length > 0 &&
+      !isRecordMatchingRLSRowLevelPermissionPredicate({
+        record: deliveredRecord,
+        filter: subscriberRLSFilter,
+        flatObjectMetadata: objectMetadata,
+        flatFieldMetadataMaps,
+        shouldIgnoreSoftDeleteDefaultFilter,
+      })
+    ) {
+      return false;
+    }
+
+    const queryFilter = operationSignature.variables?.filter ?? {};
+
+    if (Object.keys(queryFilter).length === 0) {
+      return true;
+    }
+
+    const candidateRecords =
+      event.action === DatabaseEventAction.UPDATED
+        ? [properties?.after, properties?.before].filter(isDefined)
+        : [deliveredRecord];
+
+    return candidateRecords.some((record) =>
+      isRecordMatchingRLSRowLevelPermissionPredicate({
+        record,
+        filter: queryFilter,
+        flatObjectMetadata: objectMetadata,
+        flatFieldMetadataMaps,
+        shouldIgnoreSoftDeleteDefaultFilter,
+      }),
+    );
   }
 
   private async fetchPermissionsContext(

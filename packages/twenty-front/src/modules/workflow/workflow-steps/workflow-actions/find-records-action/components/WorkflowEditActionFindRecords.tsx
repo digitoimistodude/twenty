@@ -22,7 +22,7 @@ import { type RecordFilter } from '@/object-record/record-filter/types/RecordFil
 import { RecordIndexContextProvider } from '@/object-record/record-index/contexts/RecordIndexContext';
 import { useRecordIndexFieldMetadataDerivedStates } from '@/object-record/record-index/hooks/useRecordIndexFieldMetadataDerivedStates';
 import { type RecordSort } from '@/object-record/record-sort/types/RecordSort';
-import { InputLabel } from '@/ui/input/components/InputLabel';
+import { InputLabel } from 'twenty-ui/input';
 import { SelectControl } from '@/ui/input/components/SelectControl';
 import { Dropdown } from '@/ui/layout/dropdown/components/Dropdown';
 import { useCloseDropdown } from '@/ui/layout/dropdown/hooks/useCloseDropdown';
@@ -33,7 +33,7 @@ import { WorkflowFindRecordsFilters } from '@/workflow/workflow-steps/workflow-a
 import { WorkflowFindRecordsFiltersEffect } from '@/workflow/workflow-steps/workflow-actions/find-records-action/components/WorkflowFindRecordsFiltersEffect';
 import { WorkflowFindRecordsSorts } from '@/workflow/workflow-steps/workflow-actions/find-records-action/components/WorkflowFindRecordsSorts';
 import { WorkflowObjectDropdownContent } from '@/workflow/workflow-steps/workflow-actions/find-records-action/components/WorkflowObjectDropdownContent';
-import { isStandaloneVariableString } from '@/workflow/utils/isStandaloneVariableString';
+import { isStandaloneVariableString } from 'twenty-shared/workflow';
 import { WorkflowVariablePicker } from '@/workflow/workflow-variables/components/WorkflowVariablePicker';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 

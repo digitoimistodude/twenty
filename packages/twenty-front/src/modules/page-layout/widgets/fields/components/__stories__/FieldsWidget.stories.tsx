@@ -25,11 +25,10 @@ import { type ViewWithRelations } from '@/views/types/ViewWithRelations';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { ComponentDecorator } from 'twenty-ui/testing';
 import {
-  ViewOpenRecordIn,
-  ViewType,
-  ViewVisibility,
   PageLayoutTabLayoutMode,
   PageLayoutType,
+  ViewType,
+  ViewVisibility,
   WidgetConfigurationType,
   WidgetType,
 } from '~/generated-metadata/graphql';
@@ -134,13 +133,17 @@ const createPageLayoutWithWidget = (
   widget: PageLayoutWidget,
   objectMetadataId: string,
 ): PageLayout => ({
+  applicationId: 'application-id-mock',
   id: PAGE_LAYOUT_TEST_INSTANCE_ID,
   name: 'Mock Page Layout',
   type: PageLayoutType.RECORD_PAGE,
+  isSystemSideEffect: true,
   objectMetadataId,
   universalIdentifier: '20202020-0000-0000-0000-000000000001',
   tabs: [
     {
+      isSystemSideEffect: false,
+      universalIdentifier: 'universal-identifier-mock',
       __typename: 'PageLayoutTab' as const,
       isActive: true,
       applicationId: '',
@@ -160,6 +163,8 @@ const createPageLayoutWithWidget = (
 });
 
 const createFieldsWidget = (viewId: string | null): PageLayoutWidget => ({
+  isSystemSideEffect: false,
+  universalIdentifier: 'universal-identifier-mock',
   __typename: 'PageLayoutWidget',
   applicationId: '',
   isActive: true,
@@ -168,8 +173,9 @@ const createFieldsWidget = (viewId: string | null): PageLayoutWidget => ({
   type: WidgetType.FIELDS,
   title: 'Fields',
   objectMetadataId: companyObjectMetadataItem.id,
-  gridPosition: {
-    __typename: 'GridPosition',
+  position: {
+    layoutMode: PageLayoutTabLayoutMode.GRID,
+    __typename: 'PageLayoutWidgetGridPosition',
     row: 0,
     column: 0,
     rowSpan: 4,
@@ -197,7 +203,6 @@ const createView = (
   shouldHideEmptyGroups: false,
   position: 0,
   isCompact: false,
-  openRecordIn: ViewOpenRecordIn.SIDE_PANEL,
   viewFields: [],
   viewGroups: [],
   viewFilters: [],

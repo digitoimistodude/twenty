@@ -21,7 +21,6 @@ import { type FlatObjectMetadata } from 'src/engine/metadata-modules/flat-object
 import { EventStreamService } from 'src/engine/subscriptions/event-stream.service';
 import { SubscriptionService } from 'src/engine/subscriptions/subscription.service';
 import { type EventStreamData } from 'src/engine/subscriptions/types/event-stream-data.type';
-import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
 import { type WorkspaceEventBatch } from 'src/engine/workspace-event-emitter/types/workspace-event-batch.type';
 import { ObjectRecordEventPublisher } from 'src/engine/subscriptions/object-record-event/object-record-event-publisher';
@@ -93,10 +92,6 @@ describe('ObjectRecordEventPublisher', () => {
       WorkspaceManyOrAllFlatEntityMapsCacheService,
       'getOrRecomputeManyOrAllFlatEntityMaps'
     >
-  >;
-
-  let mockGlobalWorkspaceOrmManager: jest.Mocked<
-    Pick<GlobalWorkspaceOrmManager, 'getGlobalWorkspaceDataSourceReplica'>
   >;
 
   const workspaceId = COMPANY_FLAT_OBJECT_MOCK.workspaceId;
@@ -271,12 +266,6 @@ describe('ObjectRecordEventPublisher', () => {
       } as never),
     };
 
-    mockGlobalWorkspaceOrmManager = {
-      getGlobalWorkspaceDataSourceReplica: jest.fn().mockResolvedValue({
-        getRepository: jest.fn(),
-      }),
-    };
-
     (buildRowLevelPermissionRecordFilter as jest.Mock).mockReturnValue({});
     (
       isRecordMatchingRLSRowLevelPermissionPredicate as jest.Mock
@@ -304,10 +293,6 @@ describe('ObjectRecordEventPublisher', () => {
         {
           provide: WorkspaceManyOrAllFlatEntityMapsCacheService,
           useValue: mockWorkspaceManyOrAllFlatEntityMapsCacheService,
-        },
-        {
-          provide: GlobalWorkspaceOrmManager,
-          useValue: mockGlobalWorkspaceOrmManager,
         },
         {
           provide: CommonSelectFieldsHelper,
@@ -466,6 +451,157 @@ describe('ObjectRecordEventPublisher', () => {
         workspaceId,
         objectMetadata: companyObjectMetadata,
         events: [createMockEvent()],
+      };
+
+      await service.publish(eventBatch as WorkspaceEventBatch<never>);
+
+      expect(
+        mockSubscriptionService.publishToEventStream,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('should publish update events when only the BEFORE state matches the filter (record leaving the view)', async () => {
+      (
+        isRecordMatchingRLSRowLevelPermissionPredicate as jest.Mock
+      ).mockImplementation(
+        ({ record }: { record: { name?: string } }) =>
+          record.name === 'Open Company',
+      );
+
+      const streamDataWithFilter: EventStreamData = {
+        ...mockStreamData,
+        queries: {
+          'query-1': {
+            objectNameSingular: 'company',
+            variables: {
+              filter: { name: { eq: 'Open Company' } },
+            },
+          },
+        },
+      };
+
+      mockEventStreamService.getStreamsData.mockResolvedValue(
+        new Map([[streamChannelId, streamDataWithFilter]]) as Map<
+          string,
+          EventStreamData | undefined
+        >,
+      );
+
+      const eventBatch: WorkspaceEventBatch<MockObjectRecordEvent> = {
+        name: 'company.updated',
+        workspaceId,
+        objectMetadata: companyObjectMetadata,
+        events: [
+          createMockEvent({
+            properties: {
+              before: { id: 'record-1', name: 'Open Company' },
+              after: { id: 'record-1', name: 'Done Company' },
+            } as MockObjectRecordEvent['properties'],
+          }),
+        ],
+      };
+
+      await service.publish(eventBatch as WorkspaceEventBatch<never>);
+
+      expect(
+        mockSubscriptionService.publishToEventStream,
+      ).toHaveBeenCalledTimes(1);
+      const publishCall = (
+        mockSubscriptionService.publishToEventStream as jest.Mock
+      ).mock.calls[0][0];
+
+      expect(publishCall.payload.objectRecordEventsWithQueryIds).toHaveLength(
+        1,
+      );
+      expect(
+        publishCall.payload.objectRecordEventsWithQueryIds[0].queryIds,
+      ).toEqual(['query-1']);
+    });
+
+    it('should not publish update events when the delivered state fails the RLS filter, even if the before state matched', async () => {
+      const rlsFilter: RecordGqlOperationFilter = { status: { eq: 'active' } };
+
+      (buildRowLevelPermissionRecordFilter as jest.Mock).mockReturnValue(
+        rlsFilter,
+      );
+
+      (
+        isRecordMatchingRLSRowLevelPermissionPredicate as jest.Mock
+      ).mockImplementation(
+        ({
+          record,
+          filter,
+        }: {
+          record: { status?: string };
+          filter: RecordGqlOperationFilter;
+        }) => ('status' in filter ? record.status === 'active' : true),
+      );
+
+      const eventBatch: WorkspaceEventBatch<MockObjectRecordEvent> = {
+        name: 'company.updated',
+        workspaceId,
+        objectMetadata: companyObjectMetadata,
+        events: [
+          createMockEvent({
+            properties: {
+              before: {
+                id: 'record-1',
+                name: 'Test Company',
+                status: 'active',
+              },
+              after: {
+                id: 'record-1',
+                name: 'Test Company',
+                status: 'archived',
+              },
+            } as MockObjectRecordEvent['properties'],
+          }),
+        ],
+      };
+
+      await service.publish(eventBatch as WorkspaceEventBatch<never>);
+
+      expect(
+        mockSubscriptionService.publishToEventStream,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('should not publish update events when neither state matches the filter', async () => {
+      (
+        isRecordMatchingRLSRowLevelPermissionPredicate as jest.Mock
+      ).mockReturnValue(false);
+
+      const streamDataWithFilter: EventStreamData = {
+        ...mockStreamData,
+        queries: {
+          'query-1': {
+            objectNameSingular: 'company',
+            variables: {
+              filter: { name: { eq: 'Open Company' } },
+            },
+          },
+        },
+      };
+
+      mockEventStreamService.getStreamsData.mockResolvedValue(
+        new Map([[streamChannelId, streamDataWithFilter]]) as Map<
+          string,
+          EventStreamData | undefined
+        >,
+      );
+
+      const eventBatch: WorkspaceEventBatch<MockObjectRecordEvent> = {
+        name: 'company.updated',
+        workspaceId,
+        objectMetadata: companyObjectMetadata,
+        events: [
+          createMockEvent({
+            properties: {
+              before: { id: 'record-1', name: 'Unrelated A' },
+              after: { id: 'record-1', name: 'Unrelated B' },
+            } as MockObjectRecordEvent['properties'],
+          }),
+        ],
       };
 
       await service.publish(eventBatch as WorkspaceEventBatch<never>);
@@ -915,7 +1051,7 @@ describe('ObjectRecordEventPublisher', () => {
       });
     });
 
-    it('should combine query filter with RLS filter', async () => {
+    it('should check the RLS filter and the query filter separately', async () => {
       const rlsFilter: RecordGqlOperationFilter = { status: { eq: 'active' } };
 
       (buildRowLevelPermissionRecordFilter as jest.Mock).mockReturnValue(
@@ -968,12 +1104,18 @@ describe('ObjectRecordEventPublisher', () => {
             name: 'Test Company',
             status: 'active',
           }),
-          filter: expect.objectContaining({
-            and: expect.arrayContaining([
-              { name: { eq: 'Test Company' } },
-              { status: { eq: 'active' } },
-            ]),
+          filter: { status: { eq: 'active' } },
+        }),
+      );
+      expect(
+        isRecordMatchingRLSRowLevelPermissionPredicate,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          record: expect.objectContaining({
+            name: 'Test Company',
+            status: 'active',
           }),
+          filter: { name: { eq: 'Test Company' } },
         }),
       );
     });
@@ -1408,10 +1550,6 @@ describe('ObjectRecordEventPublisher', () => {
         });
 
         expect(
-          mockGlobalWorkspaceOrmManager.getGlobalWorkspaceDataSourceReplica,
-        ).toHaveBeenCalled();
-
-        expect(
           mockProcessNestedRelationsHelper.processNestedRelations,
         ).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -1420,9 +1558,6 @@ describe('ObjectRecordEventPublisher', () => {
             authContext: expect.objectContaining({
               userWorkspaceId,
               userId: 'test-user-id',
-            }),
-            workspaceDataSource: expect.objectContaining({
-              getRepository: expect.any(Function),
             }),
             rolePermissionConfig: expect.objectContaining({
               intersectionOf: [roleId],

@@ -4,6 +4,7 @@ import {
   AggregateOperations,
   BarChartLayout,
   GraphOrderBy,
+  PageLayoutTabLayoutMode,
   PageLayoutType,
   WidgetConfigurationType,
   WidgetType,
@@ -87,6 +88,8 @@ describe('usePageLayoutDraftState', () => {
         objectMetadataId: null,
         tabs: [
           {
+            isSystemSideEffect: false,
+            universalIdentifier: 'universal-identifier-mock',
             id: 'tab-1',
             applicationId: '',
             title: 'Tab 1',
@@ -98,13 +101,22 @@ describe('usePageLayoutDraftState', () => {
             deletedAt: null,
             widgets: [
               {
+                isSystemSideEffect: false,
+                universalIdentifier: 'universal-identifier-mock',
                 id: 'widget-1',
                 applicationId: '',
                 pageLayoutTabId: 'tab-1',
                 title: 'New Widget',
                 isActive: true,
                 type: WidgetType.GRAPH,
-                gridPosition: { row: 2, column: 2, rowSpan: 2, columnSpan: 2 },
+                position: {
+                  __typename: 'PageLayoutWidgetGridPosition' as const,
+                  layoutMode: PageLayoutTabLayoutMode.GRID,
+                  row: 2,
+                  column: 2,
+                  rowSpan: 2,
+                  columnSpan: 2,
+                },
                 configuration: {
                   configurationType: WidgetConfigurationType.BAR_CHART,
                   layout: BarChartLayout.VERTICAL,

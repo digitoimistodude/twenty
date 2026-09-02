@@ -279,6 +279,8 @@ export const SidePanelPageLayoutRecordPageWidgetTypeSelect = () => {
         __typename: 'PageLayoutWidget',
         id: widgetId,
         applicationId: '',
+        universalIdentifier: widgetId,
+        isSystemSideEffect: false,
         isActive: true,
         pageLayoutTabId: tabId,
         title: frontComponent.name,
@@ -287,13 +289,6 @@ export const SidePanelPageLayoutRecordPageWidgetTypeSelect = () => {
           __typename: 'FrontComponentConfiguration',
           configurationType: WidgetConfigurationType.FRONT_COMPONENT,
           frontComponentId: frontComponent.id,
-        },
-        gridPosition: {
-          __typename: 'GridPosition',
-          row: 0,
-          column: 0,
-          rowSpan: 1,
-          columnSpan: 12,
         },
         position: {
           __typename: 'PageLayoutWidgetVerticalListPosition',

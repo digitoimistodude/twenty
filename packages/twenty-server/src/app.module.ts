@@ -13,6 +13,7 @@ import { join } from 'path';
 
 import { YogaDriver, type YogaDriverConfig } from '@graphql-yoga/nestjs';
 import { SentryModule } from '@sentry/nestjs/setup';
+import { ApiPath } from 'twenty-shared/types';
 
 import { AdminPanelGraphQLApiModule } from 'src/engine/api/graphql/admin-panel-graphql-api.module';
 import { CoreGraphQLApiModule } from 'src/engine/api/graphql/core-graphql-api.module';
@@ -32,13 +33,12 @@ import { MiddlewareModule } from 'src/engine/middlewares/middleware.module';
 import { JwtModule } from 'src/engine/core-modules/jwt/jwt.module';
 import { UserSessionModule } from 'src/engine/core-modules/user-session/user-session.module';
 import { RestCoreMiddleware } from 'src/engine/middlewares/rest-core.middleware';
-import { GlobalWorkspaceDataSourceModule } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-datasource.module';
-import { TwentyORMModule } from 'src/engine/twenty-orm/twenty-orm.module';
+import { TwentyOrmModule } from 'src/engine/twenty-orm/twenty-orm.module';
 import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
 import { UnhandledExceptionFilter } from 'src/filters/unhandled-exception.filter';
 import { ModulesModule } from 'src/modules/modules.module';
 
-import { ClickHouseModule } from './database/clickHouse/clickHouse.module';
+import { ClickHouseModule } from './database/clickhouse/clickhouse.module';
 import { CoreEngineModule } from './engine/core-modules/core-engine.module';
 import { I18nModule } from './engine/core-modules/i18n/i18n.module';
 
@@ -59,16 +59,12 @@ const MIGRATED_REST_METHODS = [
       imports: [GraphQLConfigModule, MetricsModule, DataloaderModule],
       useClass: GraphQLConfigService,
     }),
-    TwentyORMModule,
-    GlobalWorkspaceDataSourceModule,
+    TwentyOrmModule,
     ClickHouseModule,
-    // Core engine module, contains all the core modules
     CoreEngineModule,
-    // Modules module, contains all business logic modules
     ModulesModule,
     // Needed for the user workspace middleware
     WorkspaceCacheStorageModule,
-    // Api modules
     CoreGraphQLApiModule,
     MetadataGraphQLApiModule,
     AdminPanelGraphQLApiModule,
@@ -78,9 +74,7 @@ const MIGRATED_REST_METHODS = [
     JwtModule,
     UserSessionModule,
     WorkspaceMetadataVersionModule,
-    // I18n module for translations
     I18nModule,
-    // Conditional modules
     ...AppModule.getConditionalModules(),
   ],
   providers: [
@@ -95,15 +89,6 @@ export class AppModule {
     const modules: DynamicModule[] = [];
     const frontPath = join(__dirname, 'front');
 
-    // NestJS DevTools - can be useful for debugging and profiling
-    /* if (process.env.NODE_ENV === NodeEnvironment.DEVELOPMENT) {
-      modules.push(
-        DevtoolsModule.register({
-          http: true,
-        }),
-      );
-    } */
-
     if (existsSync(frontPath)) {
       modules.push(
         ServeStaticModule.forRoot({
@@ -115,11 +100,6 @@ export class AppModule {
     // Messaque Queue explorer only for sync driver
     // Maybe we don't need to conditionaly register the explorer, because we're creating a jobs module
     // that will expose classes that are only used in the queue worker
-    /*
-    if (process.env.MESSAGE_QUEUE_TYPE === MessageQueueDriverType.Sync) {
-      modules.push(MessageQueueModule.registerExplorer());
-    }
-    */
 
     return modules;
   }
@@ -131,7 +111,7 @@ export class AppModule {
       // A cross-origin form post from the identity provider, authenticated on the
       // assertion rather than the cookie.
       .exclude({
-        path: 'auth/saml/callback/:identityProviderId',
+        path: `${ApiPath.Auth}/saml/callback/:identityProviderId`,
         method: RequestMethod.POST,
       })
       .forRoutes({ path: '*path', method: RequestMethod.ALL });
@@ -141,30 +121,30 @@ export class AppModule {
         GraphQLHydrateRequestFromTokenMiddleware,
         WorkspaceAuthContextMiddleware,
       )
-      .forRoutes({ path: 'graphql', method: RequestMethod.ALL });
+      .forRoutes({ path: ApiPath.GraphQL, method: RequestMethod.ALL });
 
     consumer
       .apply(
         GraphQLHydrateRequestFromTokenMiddleware,
         WorkspaceAuthContextMiddleware,
       )
-      .forRoutes({ path: 'metadata', method: RequestMethod.ALL });
+      .forRoutes({ path: ApiPath.Metadata, method: RequestMethod.ALL });
 
     consumer
       .apply(
         GraphQLHydrateRequestFromTokenMiddleware,
         WorkspaceAuthContextMiddleware,
       )
-      .forRoutes({ path: 'admin-panel', method: RequestMethod.ALL });
+      .forRoutes({ path: ApiPath.AdminPanel, method: RequestMethod.ALL });
 
     consumer
       .apply(McpMethodGuardMiddleware)
-      .forRoutes({ path: 'mcp', method: RequestMethod.ALL });
+      .forRoutes({ path: ApiPath.Mcp, method: RequestMethod.ALL });
 
     for (const method of MIGRATED_REST_METHODS) {
       consumer
         .apply(RestCoreMiddleware, WorkspaceAuthContextMiddleware)
-        .forRoutes({ path: 'rest/*path', method });
+        .forRoutes({ path: `${ApiPath.Rest}/*path`, method });
     }
   }
 }

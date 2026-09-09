@@ -12,21 +12,27 @@ export const isRealMessageAttachment = (
   }
 
   const headers = part.headers ?? [];
-  const disposition =
-    headers.find((header) => header.name?.toLowerCase() === 'content-disposition')
-      ?.value ?? '';
+  const header = (name: string) =>
+    headers.find((h) => h.name?.toLowerCase() === name)?.value ?? '';
 
-  const isReferencedInTheBody = headers.some(
-    (header) => header.name?.toLowerCase() === 'content-id',
-  );
+  // Outlook stamps a Content-ID on real attachments too, so an explicit
+  // attachment disposition has to win over that header. A 2 MB offer PDF was
+  // being dropped as a "signature image" because of it.
+  if (/^\s*attachment/i.test(header('content-disposition'))) {
+    return true;
+  }
 
-  if (/inline/i.test(disposition) || isReferencedInTheBody) {
-    return false;
+  const isImage = /^image\//.test(part.mimeType ?? '');
+  const isEmbedded =
+    /inline/i.test(header('content-disposition')) ||
+    header('content-id') !== '';
+
+  if (isEmbedded) {
+    return !isImage;
   }
 
   const isSmallImage =
-    /^image\//.test(part.mimeType ?? '') &&
-    (part.body.size ?? 0) < INLINE_IMAGE_MAX_SIZE_IN_BYTES;
+    isImage && (part.body.size ?? 0) < INLINE_IMAGE_MAX_SIZE_IN_BYTES;
 
   return !isSmallImage;
 };

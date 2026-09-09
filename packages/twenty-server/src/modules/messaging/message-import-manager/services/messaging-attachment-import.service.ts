@@ -64,10 +64,12 @@ export class MessagingAttachmentImportService {
     workspaceId,
     candidates,
     dryRun,
+    debug = false,
   }: {
     workspaceId: string;
     candidates: MessageAttachmentImportCandidate[];
     dryRun: boolean;
+    debug?: boolean;
   }): Promise<MessageAttachmentImportResult> {
     const result: MessageAttachmentImportResult = {
       scannedMessages: 0,
@@ -100,9 +102,24 @@ export class MessagingAttachmentImportService {
 
           result.scannedMessages++;
 
-          const attachmentParts = collectMessageParts(
+          const allParts = collectMessageParts(
             message.data.payload ?? undefined,
-          ).filter(isRealMessageAttachment);
+          );
+
+          // Ground truth for "the attachment is there but nothing imported":
+          // shows what Gmail actually sent before any of our rules apply.
+          if (debug) {
+            for (const part of allParts) {
+              const header = (name: string) =>
+                part.headers?.find((h) => h.name?.toLowerCase() === name)?.value ?? '';
+
+              this.logger.warn(
+                `[debug] ${candidate.messageExternalId} mime=${part.mimeType} filename=${JSON.stringify(part.filename ?? '')} size=${part.body?.size ?? 0} attachmentId=${part.body?.attachmentId ? 'yes' : 'no'} disposition=${JSON.stringify(header('content-disposition'))} contentId=${header('content-id') ? 'yes' : 'no'}`,
+              );
+            }
+          }
+
+          const attachmentParts = allParts.filter(isRealMessageAttachment);
 
           if (attachmentParts.length === 0) {
             continue;

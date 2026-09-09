@@ -15,6 +15,7 @@ import {
 type MessagingImportAttachmentsOptions = {
   workspaceId: string;
   dryRun?: boolean;
+  debug?: boolean;
   limit?: number;
 };
 
@@ -51,6 +52,14 @@ export class MessagingImportAttachmentsCommand extends CommandRunner {
   }
 
   @Option({
+    flags: '--debug',
+    description: 'Log every MIME part of each scanned message before filtering',
+  })
+  parseDebug(): boolean {
+    return true;
+  }
+
+  @Option({
     flags: '-l, --limit [limit]',
     description: 'Maximum number of messages to scan',
   })
@@ -63,6 +72,7 @@ export class MessagingImportAttachmentsCommand extends CommandRunner {
     options: MessagingImportAttachmentsOptions,
   ): Promise<void> {
     const dryRun = options.dryRun === true;
+    const debug = options.debug === true;
 
     const messageChannels = await this.messageChannelRepository.find({
       select: ['id', 'connectedAccountId'],
@@ -130,6 +140,7 @@ export class MessagingImportAttachmentsCommand extends CommandRunner {
         workspaceId: options.workspaceId,
         candidates,
         dryRun,
+        debug,
       });
 
     // eslint-disable-next-line no-console

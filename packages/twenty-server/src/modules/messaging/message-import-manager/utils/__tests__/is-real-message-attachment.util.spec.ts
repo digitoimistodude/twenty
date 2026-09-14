@@ -40,6 +40,29 @@ describe('isRealMessageAttachment', () => {
     expect(isRealMessageAttachment(pdf)).toBe(true);
   });
 
+  it('should drop a signature logo even when Outlook marks it as an attachment', () => {
+    const logo = part({
+      filename: 'Duden logo',
+      mimeType: 'image/png',
+      body: { attachmentId: 'att', size: 1511 },
+      disposition: 'attachment; filename="Duden logo"',
+      contentId: true,
+    });
+
+    expect(isRealMessageAttachment(logo)).toBe(false);
+  });
+
+  it('should keep a large image someone genuinely attached', () => {
+    const photo = part({
+      filename: 'pohjapiirros.png',
+      mimeType: 'image/png',
+      body: { attachmentId: 'att', size: 4920449 },
+      disposition: 'attachment; filename="pohjapiirros.png"',
+    });
+
+    expect(isRealMessageAttachment(photo)).toBe(true);
+  });
+
   it('should drop an inline signature image referenced from the body', () => {
     const logo = part({
       filename: 'image001.png',

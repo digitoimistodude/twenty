@@ -13,7 +13,8 @@ import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager
 import { buildSystemAuthContext } from 'src/engine/twenty-orm/utils/build-system-auth-context.util';
 import { WorkspaceEventBatch } from 'src/engine/workspace-event-emitter/types/workspace-event-batch.type';
 import { TimelineActivityRepository } from 'src/modules/timeline/repositories/timeline-activity.repository';
-import { TimelineActivityTypeCacheService } from 'src/modules/timeline/services/timeline-activity-type-cache.service';
+import { findFlatEntityByUniversalIdentifier } from 'src/engine/metadata-modules/flat-entity/utils/find-flat-entity-by-universal-identifier.util';
+import { WorkspaceManyOrAllFlatEntityMapsCacheService } from 'src/engine/metadata-modules/flat-entity/services/workspace-many-or-all-flat-entity-maps-cache.service';
 import { type TimelineActivityPayload } from 'src/modules/timeline/types/timeline-activity-payload';
 import { WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
 
@@ -31,8 +32,8 @@ const COMMENT_SNIPPET_MAX_LENGTH = 50;
 
 // recordComment is our own object, so its timeline type is registered per
 // workspace rather than shipped in the standard definitions.
-const RECORD_COMMENT_UNIVERSAL_IDENTIFIER =
-  '838025b2-a414-4269-a066-30cdd120e927';
+const COMMENT_TIMELINE_TYPE_UNIVERSAL_IDENTIFIER =
+  'c4f8a2d1-9b37-4e56-8a0c-5d1e7f3b62a9';
 
 const buildCommentSnippet = (markdown?: string | null): string => {
   if (!isDefined(markdown)) {
@@ -59,7 +60,7 @@ export class RecordCommentTimelineListener {
 
   constructor(
     private readonly timelineActivityRepository: TimelineActivityRepository,
-    private readonly timelineActivityTypeCacheService: TimelineActivityTypeCacheService,
+    private readonly flatEntityMapsCacheService: WorkspaceManyOrAllFlatEntityMapsCacheService,
     private readonly workspaceOrmManager: WorkspaceOrmManager,
   ) {}
 
@@ -170,26 +171,43 @@ export class RecordCommentTimelineListener {
     }, authContext);
   }
 
-  // Returns undefined when the workspace has no comment activity type yet, so a
-  // workspace without it keeps working instead of throwing on every comment.
+  // Read the type straight from the flat maps instead of the shared resolver:
+  // the resolver drops a type whose owning application differs from the
+  // object's, which is always true for a custom object like recordComment.
   private async resolveCommentActivityType(workspaceId: string) {
-    const resolveTimelineActivityType =
-      await this.timelineActivityTypeCacheService.getTimelineActivityTypeResolver(
-        workspaceId,
+    const { flatTimelineActivityTypeMaps } =
+      await this.flatEntityMapsCacheService.getOrRecomputeManyOrAllFlatEntityMaps(
+        { workspaceId, flatMapsKeys: ['flatTimelineActivityTypeMaps'] },
       );
 
-    const timelineActivityType = resolveTimelineActivityType({
-      action: 'linked',
-      objectUniversalIdentifier: RECORD_COMMENT_UNIVERSAL_IDENTIFIER,
+    const timelineActivityType = findFlatEntityByUniversalIdentifier({
+      flatEntityMaps: flatTimelineActivityTypeMaps,
+      universalIdentifier: COMMENT_TIMELINE_TYPE_UNIVERSAL_IDENTIFIER,
     });
 
-    if (!isDefined(timelineActivityType)) {
+    if (!isDefined(timelineActivityType) || !timelineActivityType.isActive) {
       this.logger.warn(
         `No active comment timeline activity type in workspace ${workspaceId}`,
       );
+
+      return undefined;
     }
 
-    return timelineActivityType;
+    return {
+      id: timelineActivityType.id,
+      snapshot: {
+        id: timelineActivityType.id,
+        icon: timelineActivityType.icon,
+        name: timelineActivityType.name,
+        label: timelineActivityType.label,
+        action: timelineActivityType.action,
+        universalIdentifier: timelineActivityType.universalIdentifier,
+        objectUniversalIdentifier:
+          timelineActivityType.objectUniversalIdentifier,
+        frontComponentUniversalIdentifier:
+          timelineActivityType.frontComponentUniversalIdentifier,
+      },
+    };
   }
 
   private async resolveWorkspaceMemberIds(

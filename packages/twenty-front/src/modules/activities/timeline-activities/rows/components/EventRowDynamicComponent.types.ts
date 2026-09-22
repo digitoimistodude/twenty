@@ -20,4 +20,5 @@ export type EventRowDynamicComponentProps = Omit<
   'hasRenderer'
 > & {
   renderer: TimelineActivityRenderer | null;
+  isRendererOpenByDefault?: boolean;
 };

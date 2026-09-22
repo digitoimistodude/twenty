@@ -7,6 +7,7 @@ import { TimelineActivityContext } from '@/activities/timeline-activities/contex
 import { EventIconDynamicComponent } from '@/activities/timeline-activities/rows/components/EventIconDynamicComponent';
 import { EventRowDynamicComponent } from '@/activities/timeline-activities/rows/components/EventRowDynamicComponent';
 import { getStandardTimelineActivityRenderer } from '@/activities/timeline-activities/rows/components/StandardTimelineActivityRenderer';
+import { STANDARD_TIMELINE_ACTIVITY_RENDERER_UNIVERSAL_IDENTIFIERS } from 'twenty-shared/timeline';
 import { type TimelineActivityRenderer } from '@/activities/timeline-activities/rows/components/TimelineActivityRenderer';
 import { type TimelineActivity } from '@/activities/timeline-activities/types/TimelineActivity';
 import { useTimelineActivityTypes } from '@/activities/timeline-activities/hooks/useTimelineActivityTypes';
@@ -145,6 +146,12 @@ export const EventRow = ({
     frontComponentId,
   });
 
+  // A comment is the timeline entry, not an attachment to it: hiding its text
+  // behind a toggle leaves the row saying only that someone commented.
+  const isCommentRenderer =
+    rendererUniversalIdentifier ===
+    STANDARD_TIMELINE_ACTIVITY_RENDERER_UNIVERSAL_IDENTIFIERS.comment;
+
   const timelineActivityAction = getTimelineActivityAction(
     event,
     timelineActivityTypeMaps,
@@ -203,6 +210,7 @@ export const EventRow = ({
             eventAction={timelineActivityAction}
             eventTypeLabel={timelineActivityType?.label}
             renderer={renderer}
+            isRendererOpenByDefault={isCommentRenderer}
             mainObjectMetadataItem={mainObjectMetadataItem}
             linkedObjectMetadataItem={linkedObjectMetadataItem}
             happensAt={event.happensAt}

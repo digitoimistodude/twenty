@@ -43,8 +43,11 @@ export const EventRowDynamicComponent = ({
   linkedObjectMetadataItem,
   authorFullName,
   happensAt,
+  isRendererOpenByDefault = false,
 }: EventRowDynamicComponentProps) => {
-  const [isRendererOpen, setIsRendererOpen] = useState(false);
+  const [isRendererOpen, setIsRendererOpen] = useState(
+    isRendererOpenByDefault,
+  );
   const EventRowComponent = isDefined(event.linkedRecordId)
     ? EventRowGenericLinked
     : EventRowMainObject;

@@ -109,7 +109,10 @@ export class RecordCommentTimelineListener {
             happensAt: new Date(),
             timelineActivityTypeId: timelineActivityType.id,
             timelineActivityTypeSnapshot: timelineActivityType.snapshot,
-            properties: { diff: {} },
+            // An empty but present diff makes the frontend treat this as a
+            // field change with nothing readable and drop the row. Linked
+            // events (messages, notes) carry no diff key at all.
+            properties: {},
             objectSingularName: target,
             recordId: targetRecordId,
             workspaceMemberId,

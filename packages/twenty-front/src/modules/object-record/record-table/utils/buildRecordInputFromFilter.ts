@@ -30,6 +30,13 @@ export const buildRecordInputFromFilter = ({
       return;
     }
 
+    // A view filtered on "created after X" would otherwise stamp every new
+    // record with X as its creation date. Fields the user cannot edit are
+    // set by the server, never by a filter.
+    if (fieldMetadataItem.isUIEditable === false) {
+      return;
+    }
+
     // A relation-traversal filter constrains a field of the related record,
     // not a column of the record being created, so it cannot be prefilled.
     if (isDefined(filter.relationTargetFieldMetadataId)) {

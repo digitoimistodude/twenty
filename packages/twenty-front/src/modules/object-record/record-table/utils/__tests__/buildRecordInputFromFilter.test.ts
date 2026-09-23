@@ -9,6 +9,8 @@ const FIELD_ID_ADDRESS = 'field-address-id';
 const FIELD_ID_NUMBER = 'field-number-id';
 const FIELD_ID_RELATION = 'field-relation-id';
 const FIELD_ID_UNKNOWN = 'field-unknown-id';
+const FIELD_ID_SYSTEM_DATE_TIME = 'field-system-date-time-id';
+const FIELD_ID_USER_DATE_TIME = 'field-user-date-time-id';
 
 const mockObjectMetadataItem = {
   fields: [
@@ -42,6 +44,20 @@ const mockObjectMetadataItem = {
       name: 'revenue',
       type: 'NUMBER',
       options: null,
+    },
+    {
+      id: FIELD_ID_SYSTEM_DATE_TIME,
+      name: 'updatedAt',
+      type: 'DATE_TIME',
+      options: null,
+      isUIEditable: false,
+    },
+    {
+      id: FIELD_ID_USER_DATE_TIME,
+      name: 'closeDate',
+      type: 'DATE_TIME',
+      options: null,
+      isUIEditable: true,
     },
   ],
 } as unknown as EnrichedObjectMetadataItem;
@@ -279,5 +295,38 @@ describe('buildRecordInputFromFilter', () => {
     });
 
     expect(result).toEqual({});
+  });
+  it('should not prefill a system-managed field from a view filter', () => {
+    const result = buildRecordInputFromFilter({
+      currentRecordFilters: [
+        createFilter({
+          fieldMetadataId: FIELD_ID_SYSTEM_DATE_TIME,
+          type: 'DATE_TIME',
+          operand: ViewFilterOperand.IS_AFTER,
+          value: '2025-02-27T22:00:00Z',
+        }),
+      ],
+      objectMetadataItem: mockObjectMetadataItem,
+      timeZone: 'Europe/Helsinki',
+    });
+
+    expect(result).not.toHaveProperty('updatedAt');
+  });
+
+  it('should still prefill a user-editable date field from a view filter', () => {
+    const result = buildRecordInputFromFilter({
+      currentRecordFilters: [
+        createFilter({
+          fieldMetadataId: FIELD_ID_USER_DATE_TIME,
+          type: 'DATE_TIME',
+          operand: ViewFilterOperand.IS,
+          value: '2026-10-12T09:00:00Z',
+        }),
+      ],
+      objectMetadataItem: mockObjectMetadataItem,
+      timeZone: 'Europe/Helsinki',
+    });
+
+    expect(result).toHaveProperty('closeDate');
   });
 });

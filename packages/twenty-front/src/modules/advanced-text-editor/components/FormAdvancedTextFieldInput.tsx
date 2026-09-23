@@ -17,7 +17,7 @@ import { type Editor } from '@tiptap/core';
 import { type ComponentType, useEffect, useId, useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
 import { IconMaximize } from 'twenty-ui/icon';
-import { Field, LightIconButton } from 'twenty-ui/input';
+import { Field, LightIconButton } from 'twenty-ui/primitives/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 import { useIsMobile } from 'twenty-ui/utilities';
 
@@ -138,35 +138,32 @@ export const FormAdvancedTextFieldInput = ({
   const { removeFocusItemFromFocusStackById } =
     useRemoveFocusItemFromFocusStackById();
 
-  const editor = useAdvancedTextEditor(
-    {
-      profile,
-      placeholder: placeholder,
-      readonly,
-      defaultValue,
-      onUpdate: (editor) => {
-        onChange?.(serializeAdvancedTextEditorDocument(editor));
-      },
-      onFocus: () => {
-        pushFocusItemToFocusStack({
-          focusId: instanceId,
-          component: {
-            type: FocusComponentType.FORM_FIELD_INPUT,
-            instanceId: instanceId,
-          },
-          globalHotkeysConfig: {
-            enableGlobalHotkeysConflictingWithKeyboard: false,
-          },
-        });
-      },
-      onBlur: () => {
-        removeFocusItemFromFocusStackById({ focusId: instanceId });
-      },
-      onImageUpload,
-      onImageUploadError,
+  const editor = useAdvancedTextEditor({
+    profile,
+    placeholder: placeholder,
+    readonly,
+    defaultValue,
+    onUpdate: (editor) => {
+      onChange?.(serializeAdvancedTextEditorDocument(editor));
     },
-    [isFullScreen],
-  );
+    onFocus: () => {
+      pushFocusItemToFocusStack({
+        focusId: instanceId,
+        component: {
+          type: FocusComponentType.FORM_FIELD_INPUT,
+          instanceId: instanceId,
+        },
+        globalHotkeysConfig: {
+          enableGlobalHotkeysConflictingWithKeyboard: false,
+        },
+      });
+    },
+    onBlur: () => {
+      removeFocusItemFromFocusStackById({ focusId: instanceId });
+    },
+    onImageUpload,
+    onImageUploadError,
+  });
 
   useEffect(() => {
     onEditorReady?.(editor);

@@ -88,4 +88,8 @@ export class EmailDriverFactory extends DriverFactoryBase<EmailDriverInterface> 
         throw new Error(`Invalid email driver: ${driver}`);
     }
   }
+
+  protected disposeDriver(driver: EmailDriverInterface): void {
+    driver.close?.();
+  }
 }

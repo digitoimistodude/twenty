@@ -1,13 +1,11 @@
 import { defineFrontComponent } from 'twenty-sdk/define';
+import { LightButton, MainButton } from 'twenty-ui/components';
 import { IconPlus, IconSearch, IconStar, IconTrash } from 'twenty-ui/icon';
 import {
-  AdvancedSettingsToggle,
   AnimatedButton,
   AnimatedLightIconButton,
   Button,
   ButtonGroup,
-  CardPicker,
-  Checkbox,
   ColorPickerButton,
   ColorSchemeCard,
   ColorSchemePicker,
@@ -20,21 +18,21 @@ import {
   IconButtonGroup,
   IconListViewGrip,
   InsideButton,
-  LightButton,
   LightIconButton,
   LightIconButtonGroup,
-  MainButton,
-  Radio,
-  RadioGroup,
   RoundedIconButton,
   SearchInput,
   SegmentedControl,
-  Slider,
   StyledTabContainer,
   TabButton,
   TabContent,
-  Toggle,
-} from 'twenty-ui/input';
+  CardPicker,
+  Checkbox,
+  Radio,
+  RadioGroup,
+  Slider,
+  Switch,
+} from 'twenty-ui/primitives/input';
 import { ThemeProvider } from 'twenty-ui/theme-constants';
 
 import {
@@ -43,15 +41,6 @@ import {
 } from '../shared/front-components/component-gallery';
 
 const INPUT_ENTRIES: GalleryEntry[] = [
-  {
-    name: 'AdvancedSettingsToggle',
-    node: (
-      <AdvancedSettingsToggle
-        isAdvancedModeEnabled={false}
-        setIsAdvancedModeEnabled={() => {}}
-      />
-    ),
-  },
   {
     name: 'AnimatedButton',
     node: (
@@ -67,27 +56,33 @@ const INPUT_ENTRIES: GalleryEntry[] = [
   },
   {
     name: 'Button',
-    node: <Button title="Button" onClick={() => {}} />,
+    node: <Button onClick={() => {}}>{'Button'}</Button>,
   },
   {
     name: 'ButtonGroup',
     node: (
       <ButtonGroup>
-        {[<Button key="a" title="A" />, <Button key="b" title="B" />]}
+        {[<Button key="a">{'A'}</Button>, <Button key="b">{'B'}</Button>]}
       </ButtonGroup>
     ),
   },
   {
     name: 'CardPicker',
     node: (
-      <CardPicker checked={false} handleChange={() => {}}>
-        Card
-      </CardPicker>
+      <RadioGroup defaultValue="card" aria-label="Card selection">
+        <CardPicker value="card">Card</CardPicker>
+      </RadioGroup>
     ),
   },
   {
     name: 'Checkbox',
-    node: <Checkbox checked={false} onChange={() => {}} />,
+    node: (
+      <Checkbox
+        aria-label="Checkbox"
+        checked={false}
+        onCheckedChange={() => {}}
+      />
+    ),
   },
   {
     name: 'CoreEditorHeader',
@@ -162,7 +157,7 @@ const INPUT_ENTRIES: GalleryEntry[] = [
   },
   {
     name: 'LightButton',
-    node: <LightButton title="Light" />,
+    node: <LightButton>{'Light'}</LightButton>,
   },
   {
     name: 'LightIconButton',
@@ -178,18 +173,22 @@ const INPUT_ENTRIES: GalleryEntry[] = [
   },
   {
     name: 'MainButton',
-    node: <MainButton title="Main" />,
+    node: <MainButton>{'Main'}</MainButton>,
   },
   {
     name: 'Radio',
-    node: <Radio checked={false} label="Radio" />,
+    node: (
+      <RadioGroup aria-label="Radio example">
+        <Radio value="radio">Radio</Radio>
+      </RadioGroup>
+    ),
   },
   {
     name: 'RadioGroup',
     node: (
-      <RadioGroup value="a">
-        <Radio value="a" label="A" />
-        <Radio value="b" label="B" />
+      <RadioGroup defaultValue="a" aria-label="Letter">
+        <Radio value="a">A</Radio>
+        <Radio value="b">B</Radio>
       </RadioGroup>
     ),
   },
@@ -217,7 +216,16 @@ const INPUT_ENTRIES: GalleryEntry[] = [
   },
   {
     name: 'Slider',
-    node: <Slider max={100} value={50} onChange={() => {}} />,
+    node: (
+      <Slider.Root defaultValue={50}>
+        <Slider.Control>
+          <Slider.Track>
+            <Slider.Indicator />
+            <Slider.Thumb aria-label="Volume" />
+          </Slider.Track>
+        </Slider.Control>
+      </Slider.Root>
+    ),
   },
   {
     name: 'StyledTabContainer',
@@ -236,14 +244,23 @@ const INPUT_ENTRIES: GalleryEntry[] = [
     node: <TabContent id="tc1" title="Content" />,
   },
   {
-    name: 'Toggle',
-    node: <Toggle value={false} onChange={() => {}} />,
+    name: 'Switch',
+    node: (
+      <Switch
+        aria-label="Example switch"
+        checked={false}
+        onCheckedChange={() => {}}
+      />
+    ),
   },
 ];
 
 const InputGallery = () => (
   <ThemeProvider colorScheme="light">
-    <ComponentGallery title="twenty-ui/input" entries={INPUT_ENTRIES} />
+    <ComponentGallery
+      title="twenty-ui/primitives/input + twenty-ui/components"
+      entries={INPUT_ENTRIES}
+    />
   </ThemeProvider>
 );
 
@@ -251,6 +268,6 @@ export default defineFrontComponent({
   universalIdentifier: 'test-20ui0-0000-0000-0000-000000000107',
   name: 'twenty-ui-input-gallery',
   description:
-    'Renders every twenty-ui/input component (except monaco CodeEditor) in the sandbox',
+    'Renders input primitives and shared button presets in the sandbox',
   component: InputGallery,
 });

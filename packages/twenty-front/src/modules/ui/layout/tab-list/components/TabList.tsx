@@ -9,13 +9,14 @@ import { activeTabIdComponentState } from '@/ui/layout/tab-list/states/activeTab
 import { TabListComponentInstanceContext } from '@/ui/layout/tab-list/states/contexts/TabListComponentInstanceContext';
 import { type TabListProps } from '@/ui/layout/tab-list/types/TabListProps';
 import { NodeDimension } from '@/ui/utilities/dimensions/components/NodeDimension';
+import { useWorkspaceSurface } from '@/ui/layout/hooks/useWorkspaceSurface';
 import { useIsMobile } from '@/ui/utilities/responsive/hooks/useIsMobile';
 import { useAtomComponentState } from '@/ui/utilities/state/jotai/hooks/useAtomComponentState';
 import { styled } from '@linaria/react';
 import { useCallback, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { isDefined } from 'twenty-shared/utils';
-import { TabButton } from 'twenty-ui/input';
+import { TabButton } from 'twenty-ui/primitives/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 import { TabListDropdown } from './TabListDropdown';
 import { TabListFromUrlOptionalEffect } from './TabListFromUrlOptionalEffect';
@@ -77,7 +78,6 @@ export const TabList = ({
   tabs,
   loading,
   behaveAsLinks = true,
-  isInSidePanel,
   className,
   componentInstanceId,
   onChangeTab,
@@ -85,7 +85,9 @@ export const TabList = ({
   centerTabs = false,
 }: TabListProps) => {
   const visibleTabs = tabs.filter((tab) => !tab.hide);
+  const location = useLocation();
   const navigate = useNavigate();
+  const workspaceSurface = useWorkspaceSurface();
   const isMobile = useIsMobile();
 
   const [activeTabId, setActiveTabId] = useAtomComponentState(
@@ -144,13 +146,27 @@ export const TabList = ({
   const handleTabSelectFromDropdown = useCallback(
     (tabId: string) => {
       if (behaveAsLinks) {
-        navigate(`#${tabId}`);
+        navigate(
+          { search: location.search, hash: `#${tabId}` },
+          {
+            replace: workspaceSurface.type === 'side-panel',
+            state: location.state,
+          },
+        );
         onChangeTab?.(tabId);
       } else {
         handleTabSelect(tabId);
       }
     },
-    [behaveAsLinks, handleTabSelect, navigate, onChangeTab],
+    [
+      behaveAsLinks,
+      handleTabSelect,
+      location.search,
+      location.state,
+      navigate,
+      onChangeTab,
+      workspaceSurface.type,
+    ],
   );
 
   if (visibleTabs.length === 0) {
@@ -162,10 +178,7 @@ export const TabList = ({
       value={{ instanceId: componentInstanceId }}
     >
       <>
-        <TabListFromUrlOptionalEffect
-          isInSidePanel={!!isInSidePanel}
-          tabListIds={tabs.map((tab) => tab.id)}
-        />
+        <TabListFromUrlOptionalEffect tabListIds={tabs.map((tab) => tab.id)} />
 
         {visibleTabs.length > 1 && !shouldScrollTabs && (
           <TabListHiddenMeasurements
@@ -194,7 +207,15 @@ export const TabList = ({
                     active={tab.id === activeTabId}
                     disabled={tab.disabled ?? loading}
                     pill={tab.pill}
-                    to={behaveAsLinks ? `#${tab.id}` : undefined}
+                    to={
+                      behaveAsLinks
+                        ? { search: location.search, hash: `#${tab.id}` }
+                        : undefined
+                    }
+                    state={behaveAsLinks ? location.state : undefined}
+                    replace={
+                      behaveAsLinks && workspaceSurface.type === 'side-panel'
+                    }
                     tooltipContent={tab.tooltipContent}
                     onClick={
                       behaveAsLinks

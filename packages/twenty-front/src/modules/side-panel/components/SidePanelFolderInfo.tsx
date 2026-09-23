@@ -1,8 +1,9 @@
+import { ColoredIcon } from '@/ui/icon/components/ColoredIcon';
+import { DEFAULT_NAVIGATION_MENU_ITEM_COLOR_FOLDER } from '@/navigation-menu-item/common/constants/NavigationMenuItemDefaultColorFolder';
 import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
 import { NavigationMenuItemType } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
-import { TintedIconTile } from 'twenty-ui/data-display';
 import { useIcons } from 'twenty-ui/icon';
 
 import { FOLDER_ICON_DEFAULT } from '@/navigation-menu-item/common/constants/FolderIconDefault';
@@ -10,8 +11,8 @@ import { selectedNavigationMenuItemIdInEditModeState } from '@/navigation-menu-i
 import { useNavigationMenuItemEditController } from '@/navigation-menu-item/edit/hooks/useNavigationMenuItemEditController';
 import { useNavigationMenuItemEditSectionItems } from '@/navigation-menu-item/edit/hooks/useNavigationMenuItemEditSectionItems';
 import { useNavigationMenuItemTitleEdit } from '@/navigation-menu-item/edit/hooks/useNavigationMenuItemTitleEdit';
-import { SidePanelPageInfoLayout } from '@/side-panel/components/SidePanelPageInfoLayout';
-import { sidePanelPageInfoState } from '@/side-panel/states/sidePanelPageInfoState';
+import { HeaderIdentifier } from '@/ui/layout/page/components/HeaderIdentifier';
+import { sidePanelPageInfoSelector } from '@/side-panel/states/sidePanelPageInfoSelector';
 import { sidePanelShouldFocusTitleInputComponentState } from '@/side-panel/states/sidePanelShouldFocusTitleInputComponentState';
 import { IconPicker } from '@/ui/input/components/IconPicker';
 import { TitleInput } from '@/ui/input/components/TitleInput';
@@ -25,7 +26,7 @@ const StyledClickableIconWrapper = styled.div`
 export const SidePanelFolderInfo = () => {
   const { t } = useLingui();
   const { getIcon } = useIcons();
-  const sidePanelPageInfo = useAtomStateValue(sidePanelPageInfoState);
+  const sidePanelPageInfo = useAtomStateValue(sidePanelPageInfoSelector);
   const [sidePanelShouldFocusTitleInput, setSidePanelShouldFocusTitleInput] =
     useAtomComponentState(
       sidePanelShouldFocusTitleInputComponentState,
@@ -65,7 +66,7 @@ export const SidePanelFolderInfo = () => {
   const FolderIconComponent = getIcon(selectedIconKey);
 
   return (
-    <SidePanelPageInfoLayout
+    <HeaderIdentifier
       icon={
         <IconPicker
           dropdownId="side-panel-folder-icon-picker"
@@ -75,9 +76,12 @@ export const SidePanelFolderInfo = () => {
           }
           clickableComponent={
             <StyledClickableIconWrapper>
-              <TintedIconTile
+              <ColoredIcon
                 Icon={FolderIconComponent}
-                color={selectedItem.color}
+                color={
+                  selectedItem.color ??
+                  DEFAULT_NAVIGATION_MENU_ITEM_COLOR_FOLDER
+                }
               />
             </StyledClickableIconWrapper>
           }

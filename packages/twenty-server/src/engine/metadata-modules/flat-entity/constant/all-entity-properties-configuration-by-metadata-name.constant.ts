@@ -72,6 +72,7 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       isOverridable: true,
     },
     isActive: {
+      isOverridable: true,
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
@@ -88,6 +89,16 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
     // runner drops it before issuing the SQL UPDATE — the actual state
     // change rides on the side-effect index create/delete.
     isUnique: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: undefined,
+    },
+    isSearchable: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: undefined,
+    },
+    isAuditLogged: {
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
@@ -201,6 +212,7 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       isOverridable: true,
     },
     isActive: {
+      isOverridable: true,
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
@@ -261,6 +273,16 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
     writability: {
       toCompare: true,
       toStringify: false,
+      universalProperty: undefined,
+    },
+    readability: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: undefined,
+    },
+    readabilityParentFieldUniversalIdentifiers: {
+      toCompare: true,
+      toStringify: true,
       universalProperty: undefined,
     },
     isUICreatable: {
@@ -426,10 +448,10 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       isOverridable: true,
     },
     isActive: {
+      isOverridable: true,
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
-      isOverridable: false,
     },
     overrides: {
       toCompare: true,
@@ -482,10 +504,10 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       isOverridable: true,
     },
     isActive: {
+      isOverridable: true,
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
-      isOverridable: false,
     },
     deletedAt: {
       toStringify: false,
@@ -575,10 +597,10 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       universalProperty: 'viewUniversalIdentifier',
     },
     isActive: {
+      isOverridable: true,
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
-      isOverridable: false,
     },
     overrides: {
       toCompare: true,
@@ -995,6 +1017,11 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       universalProperty:
         'defaultTabToFocusOnMobileAndSidePanelUniversalIdentifier',
     },
+    isFirstTabPinned: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: undefined,
+    },
     deletedAt: {
       toCompare: true,
       toStringify: false,
@@ -1079,10 +1106,10 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       isOverridable: true,
     },
     isActive: {
+      isOverridable: true,
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
-      isOverridable: false,
     },
     overrides: {
       toCompare: true,
@@ -1140,10 +1167,10 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       universalProperty: undefined,
     },
     isActive: {
+      isOverridable: true,
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
-      isOverridable: false,
     },
     overrides: {
       toCompare: true,
@@ -1170,6 +1197,11 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       universalProperty: undefined,
     },
     isActive: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: undefined,
+    },
+    isSystem: {
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
@@ -1237,6 +1269,11 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       toStringify: false,
       universalProperty: undefined,
     },
+    conditionalPinnedExpression: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: undefined,
+    },
     availabilityObjectMetadataId: {
       toCompare: true,
       toStringify: false,
@@ -1285,6 +1322,11 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       toStringify: false,
       universalProperty: undefined,
     },
+    coreWorkflowVersionId: {
+      toCompare: false,
+      toStringify: false,
+      universalProperty: undefined,
+    },
     pageLayoutId: {
       toCompare: false,
       toStringify: false,
@@ -1292,10 +1334,10 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       isOverridable: true,
     },
     isActive: {
+      isOverridable: true,
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
-      isOverridable: false,
     },
     overrides: {
       toCompare: true,
@@ -1834,6 +1876,7 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       toStringify: false,
       universalProperty: undefined,
     },
+    logo: { toCompare: true, toStringify: false, universalProperty: undefined },
     type: { toCompare: true, toStringify: false, universalProperty: undefined },
     oauthConfig: {
       toCompare: true,
@@ -1937,16 +1980,21 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       toStringify: false,
       universalProperty: undefined,
     },
+    happensAtFieldUniversalIdentifier: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: undefined,
+    },
     replacesTimelineActivityTypeUniversalIdentifier: {
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
     },
     isActive: {
+      isOverridable: true,
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,
-      isOverridable: false,
     },
     overrides: {
       toCompare: true,

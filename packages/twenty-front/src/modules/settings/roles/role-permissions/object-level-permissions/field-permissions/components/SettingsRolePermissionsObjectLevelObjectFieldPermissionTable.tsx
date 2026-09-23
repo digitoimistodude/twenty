@@ -14,14 +14,15 @@ import { Table } from '@/ui/layout/table/components/Table';
 import { TableHeader } from '@/ui/layout/table/components/TableHeader';
 import { TableHeaderText } from '@/ui/layout/table/components/TableHeaderText';
 import { sortedFieldByTableFamilyState } from '@/ui/layout/table/states/sortedFieldByTableFamilyState';
+import { useWorkspaceSurfaceScopedComponentInstanceId } from '@/ui/layout/hooks/useWorkspaceSurfaceScopedComponentInstanceId';
 import { useAtomFamilyStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomFamilyStateValue';
 import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
 import { useState } from 'react';
 import { isNonEmptyArray } from 'twenty-shared/utils';
 import { IconSearch } from 'twenty-ui/icon';
-import { H2Title } from 'twenty-ui/typography';
-import { Section } from 'twenty-ui/layout';
+import { H2Title } from 'twenty-ui/primitives/typography';
+import { Section } from 'twenty-ui/primitives/layout';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 import { sortByProperty } from '~/utils/array/sortByProperty';
 
@@ -45,11 +46,14 @@ export const SettingsRolePermissionsObjectLevelObjectFieldPermissionTable = ({
 }: SettingsRolePermissionsObjectLevelObjectFieldPermissionTableProps) => {
   const { t } = useLingui();
   const [searchTerm, setSearchTerm] = useState('');
+  const tableId = useWorkspaceSurfaceScopedComponentInstanceId(
+    SETTINGS_ROLE_PERMISSION_OBJECT_LEVEL_FIELD_PERMISSION_TABLE_ID,
+  );
 
   const sortedFieldByTable = useAtomFamilyStateValue(
     sortedFieldByTableFamilyState,
     {
-      tableId: SETTINGS_ROLE_PERMISSION_OBJECT_LEVEL_FIELD_PERMISSION_TABLE_ID,
+      tableId,
     },
   );
 
@@ -108,9 +112,7 @@ export const SettingsRolePermissionsObjectLevelObjectFieldPermissionTable = ({
           <SortableTableHeader
             fieldName="label"
             label={t`Name`}
-            tableId={
-              SETTINGS_ROLE_PERMISSION_OBJECT_LEVEL_FIELD_PERMISSION_TABLE_ID
-            }
+            tableId={tableId}
             initialSort={{ fieldName: 'label', direction: 'asc' }}
           />
           <TableHeader>

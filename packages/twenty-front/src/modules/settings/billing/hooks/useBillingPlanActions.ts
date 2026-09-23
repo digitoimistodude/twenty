@@ -7,6 +7,7 @@ import { type SettingsBillingPlanAction } from '@/settings/billing/types/setting
 import { usePermissionFlagMap } from '@/settings/roles/hooks/usePermissionFlagMap';
 import { useModal } from '@/ui/layout/modal/hooks/useModal';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { isSubscriptionPaymentOverdue } from '@/settings/billing/utils/isSubscriptionPaymentOverdue';
 import { useSubscriptionStatus } from '@/workspace/hooks/useSubscriptionStatus';
 import { useLingui } from '@lingui/react/macro';
 import { SettingsPath } from 'twenty-shared/types';
@@ -42,9 +43,7 @@ export const useBillingPlanActions = ({
   const hasPermissionToManageBilling =
     permissionMap[PermissionFlagType.BILLING] ?? false;
 
-  const shouldUpdatePayment =
-    subscriptionStatus === SubscriptionStatus.PastDue ||
-    subscriptionStatus === SubscriptionStatus.Unpaid;
+  const shouldUpdatePayment = isSubscriptionPaymentOverdue(subscriptionStatus);
   const isSubscriptionCanceled =
     currentBillingSubscription?.status === SubscriptionStatus.Canceled ||
     subscriptionStatus === SubscriptionStatus.Canceled;
@@ -64,7 +63,7 @@ export const useBillingPlanActions = ({
     disabled: isBillingPortalSessionDisabled,
     onClick: openBillingPortal,
     title,
-    variant: 'secondary',
+    variant: 'outline',
   });
 
   const getPlanAction = (
@@ -79,7 +78,7 @@ export const useBillingPlanActions = ({
         disabled: true,
         Icon: IconCheck,
         title: t`Current`,
-        variant: 'secondary',
+        variant: 'outline',
       };
     }
 
@@ -87,7 +86,7 @@ export const useBillingPlanActions = ({
       return {
         disabled: true,
         title: t`Scheduled`,
-        variant: 'secondary',
+        variant: 'outline',
       };
     }
 
@@ -103,7 +102,7 @@ export const useBillingPlanActions = ({
       return {
         disabled: true,
         title: hasPermissionToManageBilling ? t`Unavailable` : t`Contact admin`,
-        variant: 'secondary',
+        variant: 'outline',
       };
     }
 
@@ -120,8 +119,8 @@ export const useBillingPlanActions = ({
             : BILLING_MODAL_IDS.switchBillingPlanToPro,
         ),
       title: isSwitchingToOrganizationPlan ? t`Upgrade` : t`Switch to Pro`,
-      variant: isSwitchingToOrganizationPlan ? 'primary' : 'secondary',
-      accent: isSwitchingToOrganizationPlan ? 'blue' : 'default',
+      variant: isSwitchingToOrganizationPlan ? 'solid' : 'outline',
+      color: isSwitchingToOrganizationPlan ? 'accent' : 'neutral',
     };
   };
 

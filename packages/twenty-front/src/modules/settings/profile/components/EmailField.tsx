@@ -8,8 +8,8 @@ import { useUpdateEmail } from '@/settings/profile/hooks/useUpdateEmail';
 import { SettingsTextInput } from '@/ui/input/components/SettingsTextInput';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { IconCheck, IconPencil, IconX } from 'twenty-ui/icon';
-import { AppTooltip, TooltipDelay } from 'twenty-ui/surfaces';
-import { Button } from 'twenty-ui/input';
+import { AppTooltip, TooltipDelay } from 'twenty-ui/primitives/surfaces';
+import { Button, ButtonGroup } from 'twenty-ui/primitives/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 const StyledContainer = styled.div`
@@ -104,29 +104,26 @@ export const EmailField = () => {
           onInputEnter={handleSave}
         />
         {isEditing ? (
-          <StyledActionWrapper key="editing">
-            <StyledActionButtonContainer>
-              <Button
-                Icon={IconCheck}
-                variant="secondary"
-                position="left"
-                size="medium"
-                onClick={handleSave}
-                disabled={isSaveDisabled}
-                type="button"
-              />
-            </StyledActionButtonContainer>
-            <StyledActionButtonContainer>
-              <Button
-                Icon={IconX}
-                variant="secondary"
-                position="right"
-                size="medium"
-                onClick={handleCancelEditing}
-                type="button"
-              />
-            </StyledActionButtonContainer>
-          </StyledActionWrapper>
+          <ButtonGroup key="editing" aria-label={t`Edit email`}>
+            <Button
+              startIcon={<IconCheck />}
+              aria-label={t`Save`}
+              size="md"
+              onClick={handleSave}
+              disabled={isSaveDisabled}
+              type="button"
+              variant="outline"
+            />
+
+            <Button
+              startIcon={<IconX />}
+              aria-label={t`Cancel`}
+              size="md"
+              onClick={handleCancelEditing}
+              type="button"
+              variant="outline"
+            />
+          </ButtonGroup>
         ) : (
           <StyledActionWrapper key="view">
             <StyledActionButtonContainer
@@ -137,18 +134,19 @@ export const EmailField = () => {
               }
             >
               <Button
-                Icon={IconPencil}
-                variant="secondary"
-                size="medium"
+                startIcon={<IconPencil />}
+                aria-label={t`Edit`}
+                size="md"
                 onClick={handleStartEditing}
                 disabled={!canEdit}
                 type="button"
+                variant="outline"
               />
             </StyledActionButtonContainer>
             {shouldShowWorkspaceLimitTooltip && (
               <AppTooltip
                 anchorSelect={`#${EMAIL_EDIT_DISABLED_TOOLTIP_ANCHOR_ID}`}
-                content={t`You can't change your email because you belong to 2 or more workspaces.`}
+                title={t`You can't change your email because you belong to 2 or more workspaces.`}
                 delay={TooltipDelay.noDelay}
                 place="top"
               />

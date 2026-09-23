@@ -1,15 +1,16 @@
+import { WorkspaceRouteUnavailable } from '@/app/routing/components/WorkspaceRouteUnavailable';
 import { isDDLLockedState } from '@/client-config/states/isDDLLockedState';
 import { useFieldMetadataItem } from '@/object-metadata/hooks/useFieldMetadataItem';
 import { useFilteredObjectMetadataItems } from '@/object-metadata/hooks/useFilteredObjectMetadataItems';
 import { SettingsPageContainer } from '@/settings/components/SettingsPageContainer';
+import { SettingsPageLayout } from '@/settings/components/layout/SettingsPageLayout';
 import { SettingsWizardStepBar } from '@/settings/components/layout/SettingsWizardStepBar';
 import { FIELD_NAME_MAXIMUM_LENGTH } from '@/settings/data-model/constants/FieldNameMaximumLength';
 import { SettingsObjectNewFieldHeaderIcon } from '@/settings/data-model/fields/components/SettingsObjectNewFieldHeaderIcon';
 import { SettingsDataModelFieldIconLabelForm } from '@/settings/data-model/fields/forms/components/SettingsDataModelFieldIconLabelForm';
 import { SettingsDataModelFieldSettingsFormCard } from '@/settings/data-model/fields/forms/components/SettingsDataModelFieldSettingsFormCard';
 import { settingsFieldFormSchema } from '@/settings/data-model/fields/forms/validation-schemas/settingsFieldFormSchema';
-import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
-import { SettingsPageLayout } from '@/settings/components/layout/SettingsPageLayout';
+import { useWorkspaceSurface } from '@/ui/layout/hooks/useWorkspaceSurface';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLingui } from '@lingui/react/macro';
@@ -22,9 +23,10 @@ import {
   SettingsPath,
 } from 'twenty-shared/types';
 import { getSettingsPath, isDefined } from 'twenty-shared/utils';
-import { H2Title } from 'twenty-ui/typography';
-import { Button } from 'twenty-ui/input';
-import { Section } from 'twenty-ui/layout';
+import { useToast } from 'twenty-ui/primitives/feedback';
+import { Button } from 'twenty-ui/primitives/input';
+import { Section } from 'twenty-ui/primitives/layout';
+import { H2Title } from 'twenty-ui/primitives/typography';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 import { type z } from 'zod';
 import { FieldMetadataType } from '~/generated-metadata/graphql';
@@ -44,13 +46,14 @@ export const SettingsObjectNewFieldConfigure = () => {
 
   const navigateApp = useNavigateApp();
   const navigate = useNavigateSettings();
+  const workspaceSurface = useWorkspaceSurface();
 
   const { objectNamePlural = '' } = useParams();
   const [searchParams] = useSearchParams();
   const fieldType =
     (searchParams.get('fieldType') as FieldMetadataType) ||
     FieldMetadataType.TEXT;
-  const { enqueueErrorSnackBar } = useSnackBar();
+  const { enqueueToast } = useToast();
 
   const { findObjectMetadataItemByNamePlural } =
     useFilteredObjectMetadataItems();
@@ -87,14 +90,21 @@ export const SettingsObjectNewFieldConfigure = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!isDefined(activeObjectMetadataItem)) {
+    if (
+      workspaceSurface.type === 'main' &&
+      !isDefined(activeObjectMetadataItem)
+    ) {
       navigateApp(AppPath.NotFound);
     }
-  }, [activeObjectMetadataItem, navigateApp]);
+  }, [activeObjectMetadataItem, navigateApp, workspaceSurface.type]);
 
   const isDDLLocked = useAtomStateValue(isDDLLockedState);
 
-  if (!isDefined(activeObjectMetadataItem)) return null;
+  if (!isDefined(activeObjectMetadataItem)) {
+    return workspaceSurface.type === 'side-panel' ? (
+      <WorkspaceRouteUnavailable />
+    ) : null;
+  }
 
   const { isValid, isSubmitting } = formConfig.formState;
 
@@ -168,15 +178,14 @@ export const SettingsObjectNewFieldConfigure = () => {
         return createCleanUp(creationResult);
       }
       default: {
-        enqueueErrorSnackBar({
-          message: t`Please select at least one destination object for this relation.`,
+        enqueueToast({
+          variant: 'error',
+          children: t`Please select at least one destination object for this relation.`,
         });
         return setIsSaving(false);
       }
     }
   };
-
-  if (!isDefined(activeObjectMetadataItem)) return null;
 
   return (
     <FormProvider // oxlint-disable-next-line react/jsx-props-no-spreading
@@ -219,13 +228,12 @@ export const SettingsObjectNewFieldConfigure = () => {
             }
             trailing={
               <Button
-                title={t`Save`}
-                variant="primary"
-                size="small"
-                accent="blue"
+                size="sm"
                 onClick={formConfig.handleSubmit(handleSave)}
                 disabled={!canSave || isSaving}
-              />
+                variant="solid"
+                color="accent"
+              >{t`Save`}</Button>
             }
           />
         }

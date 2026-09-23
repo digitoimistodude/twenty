@@ -1,3 +1,4 @@
+import { WorkspaceRouteUnavailable } from '@/app/routing/components/WorkspaceRouteUnavailable';
 import { isDDLLockedState } from '@/client-config/states/isDDLLockedState';
 import { useCreateOneIndexMetadataItem } from '@/object-metadata/hooks/useCreateOneIndexMetadataItem';
 import { useFilteredObjectMetadataItems } from '@/object-metadata/hooks/useFilteredObjectMetadataItems';
@@ -5,26 +6,26 @@ import { type FieldMetadataItem } from '@/object-metadata/types/FieldMetadataIte
 import { SEARCH_VECTOR_FIELD_NAME } from '@/object-record/constants/SearchVectorFieldName';
 import { SaveAndCancelButtons } from '@/settings/components/SaveAndCancelButtons/SaveAndCancelButtons';
 import { SettingsPageContainer } from '@/settings/components/SettingsPageContainer';
+import { SettingsPageLayout } from '@/settings/components/layout/SettingsPageLayout';
 import { SettingsObjectIndexFieldsForm } from '@/settings/data-model/indexes/forms/components/SettingsObjectIndexFieldsForm';
 import { SettingsObjectIndexOptionsForm } from '@/settings/data-model/indexes/forms/components/SettingsObjectIndexOptionsForm';
-import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
-import { SettingsPageLayout } from '@/settings/components/layout/SettingsPageLayout';
+import { useWorkspaceSurface } from '@/ui/layout/hooks/useWorkspaceSurface';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLingui } from '@lingui/react/macro';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
+import { MAX_CUSTOM_INDEXES_PER_OBJECT } from 'twenty-shared/constants';
 import { AppPath, RelationType, SettingsPath } from 'twenty-shared/types';
 import { getSettingsPath, isDefined } from 'twenty-shared/utils';
-import { Callout } from 'twenty-ui/feedback';
 import { IconAlertTriangle } from 'twenty-ui/icon';
-import { H2Title } from 'twenty-ui/typography';
-import { Section } from 'twenty-ui/layout';
+import { Callout, useToast } from 'twenty-ui/primitives/feedback';
+import { Section } from 'twenty-ui/primitives/layout';
+import { H2Title } from 'twenty-ui/primitives/typography';
 import { IndexType } from '~/generated-metadata/graphql';
 import { useNavigateApp } from '~/hooks/useNavigateApp';
 import { useNavigateSettings } from '~/hooks/useNavigateSettings';
-import { MAX_CUSTOM_INDEXES_PER_OBJECT } from 'twenty-shared/constants';
 import {
   settingsObjectNewIndexFormSchema,
   type SettingsObjectNewIndexFormValues,
@@ -51,8 +52,9 @@ export const SettingsObjectNewIndex = () => {
   const { t } = useLingui();
   const navigateApp = useNavigateApp();
   const navigate = useNavigateSettings();
+  const workspaceSurface = useWorkspaceSurface();
   const { objectNamePlural = '' } = useParams();
-  const { enqueueSuccessSnackBar } = useSnackBar();
+  const { enqueueToast } = useToast();
 
   const { findObjectMetadataItemByNamePlural } =
     useFilteredObjectMetadataItems();
@@ -71,10 +73,13 @@ export const SettingsObjectNewIndex = () => {
   });
 
   useEffect(() => {
-    if (!isDefined(activeObjectMetadataItem)) {
+    if (
+      workspaceSurface.type === 'main' &&
+      !isDefined(activeObjectMetadataItem)
+    ) {
       navigateApp(AppPath.NotFound);
     }
-  }, [activeObjectMetadataItem, navigateApp]);
+  }, [activeObjectMetadataItem, navigateApp, workspaceSurface.type]);
 
   const isDDLLocked = useAtomStateValue(isDDLLockedState);
 
@@ -86,7 +91,11 @@ export const SettingsObjectNewIndex = () => {
     [activeObjectMetadataItem?.fields],
   );
 
-  if (!isDefined(activeObjectMetadataItem)) return null;
+  if (!isDefined(activeObjectMetadataItem)) {
+    return workspaceSurface.type === 'side-panel' ? (
+      <WorkspaceRouteUnavailable />
+    ) : null;
+  }
 
   const customIndexCount = activeObjectMetadataItem.indexMetadatas.filter(
     (indexMetadata) => indexMetadata.isCustom,
@@ -107,7 +116,7 @@ export const SettingsObjectNewIndex = () => {
     });
 
     if (result.status === 'successful') {
-      enqueueSuccessSnackBar({ message: t`Index created` });
+      enqueueToast({ variant: 'success', children: t`Index created` });
       navigate(SettingsPath.ObjectDetail, { objectNamePlural });
     }
   };

@@ -91,12 +91,12 @@ FROM node:24.19.0-alpine3.23@sha256:244cc2b53f46f9e876304391d17682b0ddae9ac33491
 # OpenSSL, but psql/curl link these system libs, so the upgrade hardens
 # runtime TLS and clears the scanner.
 RUN apk add --no-cache \
-    'curl>=8.20.0-r0' \
+    'curl>=8.22.0-r0' \
     'nghttp2-libs>=1.69.0-r0' \
     'libcrypto3>=3.5.8-r0' \
     'libssl3>=3.5.8-r0' \
     'postgresql18-client>=18.5-r0' \
-    jq
+    'jq>=1.8.2-r0'
 
 COPY ./packages/twenty-docker/twenty/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
@@ -116,11 +116,11 @@ COPY --chown=1000 --from=twenty-server-build /app/node_modules /app/node_modules
 COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-server/package.json /app/packages/twenty-server/
 COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-server/dist /app/packages/twenty-server/dist
 COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-server/patches /app/packages/twenty-server/patches
-# Shell entrypoints referenced by package.json scripts (upgrade:background*)
+# Shell entrypoints referenced by package.json scripts (command:prod:background*)
 COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-server/scripts /app/packages/twenty-server/scripts
 # COPY preserves the committed mode, but the scripts are also invoked directly
 # and not only through yarn, so do not let a dropped exec bit reach the pod
-RUN chmod +x /app/packages/twenty-server/scripts/upgrade-background.sh
+RUN chmod +x /app/packages/twenty-server/scripts/command-background.sh
 
 # Workspace packages (dist + package.json; node_modules symlinks resolve to these)
 COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-shared/package.json /app/packages/twenty-shared/
@@ -240,7 +240,7 @@ RUN apk add --no-cache \
     redis \
     'libcrypto3>=3.5.8-r0' \
     'libssl3>=3.5.8-r0' \
-    'curl>=8.20.0-r0' jq su-exec
+    'curl>=8.22.0-r0' 'jq>=1.8.2-r0' su-exec
 
 # Workspace root config
 COPY --from=twenty-server-build /app/package.json /app/yarn.lock /app/.yarnrc.yml /app/

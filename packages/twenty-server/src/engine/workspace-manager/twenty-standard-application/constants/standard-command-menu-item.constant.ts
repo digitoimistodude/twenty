@@ -1,9 +1,9 @@
 import { msg } from '@lingui/core/macro';
 import { STANDARD_OBJECTS } from 'twenty-shared/metadata';
 
-import { CommandMenuItemAvailabilityType } from 'twenty-shared/types';
 import { EngineComponentKey } from 'src/engine/metadata-modules/command-menu-item/enums/engine-component-key.enum';
 import { i18nLabel } from 'src/engine/workspace-manager/twenty-standard-application/utils/i18n-label.util';
+import { CommandMenuItemAvailabilityType } from 'twenty-shared/types';
 
 export const STANDARD_COMMAND_MENU_ITEMS = {
   navigateToNextRecord: {
@@ -376,9 +376,9 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
     shortLabel: i18nLabel(
       msg({ message: `Edit Layout`, context: 'commandMenuItem.shortLabel' }),
     ),
-    availabilityType: CommandMenuItemAvailabilityType.RECORD_SELECTION,
+    availabilityType: CommandMenuItemAvailabilityType.GLOBAL,
     conditionalAvailabilityExpression:
-      'pageType == "RECORD_PAGE" and not isLayoutCustomizationModeEnabled and noneDefined(selectedRecords, "deletedAt") and objectPermissions.canUpdateObjectRecords and objectMetadataItem.nameSingular != "dashboard"',
+      'pageType != "SETTINGS_PAGE" and not isLayoutCustomizationModeEnabled and permissionFlags.LAYOUTS',
     availabilityObjectMetadataUniversalIdentifier: null,
     frontComponentUniversalIdentifier: null,
     engineComponentKey: EngineComponentKey.EDIT_RECORD_PAGE_LAYOUT,
@@ -542,29 +542,6 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
       STANDARD_OBJECTS.workflow.universalIdentifier,
     frontComponentUniversalIdentifier: null,
     engineComponentKey: EngineComponentKey.TEST_WORKFLOW,
-    hotKeys: null,
-  },
-  seeActiveVersionWorkflow: {
-    universalIdentifier: '31790508-75ff-4e4c-a768-83bd1b0718e0',
-    label: i18nLabel(
-      msg({ message: `See Active Version`, context: 'commandMenuItem.label' }),
-    ),
-    icon: 'IconVersions',
-    isPinned: false,
-    position: 27,
-    shortLabel: i18nLabel(
-      msg({
-        message: `See Active Version`,
-        context: 'commandMenuItem.shortLabel',
-      }),
-    ),
-    availabilityType: CommandMenuItemAvailabilityType.RECORD_SELECTION,
-    conditionalAvailabilityExpression:
-      'includesEvery(selectedRecords, "statuses", "ACTIVE") and includesEvery(selectedRecords, "statuses", "DRAFT") and noneDefined(selectedRecords, "deletedAt")',
-    availabilityObjectMetadataUniversalIdentifier:
-      STANDARD_OBJECTS.workflow.universalIdentifier,
-    frontComponentUniversalIdentifier: null,
-    engineComponentKey: EngineComponentKey.SEE_ACTIVE_VERSION_WORKFLOW,
     hotKeys: null,
   },
   seeRunsWorkflow: {
@@ -872,14 +849,13 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
     label: i18nLabel(
       msg({ message: `Ask AI`, context: 'commandMenuItem.label' }),
     ),
-    icon: 'IconSparkles',
-    isPinned: false,
+    icon: 'IconMessageCirclePlus',
+    isPinned: true,
     position: 43,
-    shortLabel: i18nLabel(
-      msg({ message: `Ask AI`, context: 'commandMenuItem.shortLabel' }),
-    ),
+    shortLabel: null,
     availabilityType: CommandMenuItemAvailabilityType.GLOBAL,
-    conditionalAvailabilityExpression: 'permissionFlags.AI',
+    conditionalAvailabilityExpression:
+      'permissionFlags.AI and not isInSidePanel',
     availabilityObjectMetadataUniversalIdentifier: null,
     frontComponentUniversalIdentifier: null,
     engineComponentKey: EngineComponentKey.ASK_AI,
@@ -958,7 +934,8 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
       msg({ message: `Campaign`, context: 'commandMenuItem.shortLabel' }),
     ),
     availabilityType: CommandMenuItemAvailabilityType.GLOBAL,
-    conditionalAvailabilityExpression: 'featureFlags.IS_EMAIL_GROUP_ENABLED',
+    conditionalAvailabilityExpression:
+      'featureFlags.IS_MESSAGE_CAMPAIGN_ENABLED',
     availabilityObjectMetadataUniversalIdentifier: null,
     frontComponentUniversalIdentifier: null,
     engineComponentKey: EngineComponentKey.COMPOSE_CAMPAIGN,
@@ -977,7 +954,7 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
     ),
     availabilityType: CommandMenuItemAvailabilityType.GLOBAL_OBJECT_CONTEXT,
     conditionalAvailabilityExpression:
-      'pageType == "INDEX_PAGE" and featureFlags.IS_EMAIL_GROUP_ENABLED',
+      'pageType == "INDEX_PAGE" and featureFlags.IS_MESSAGE_CAMPAIGN_ENABLED',
     availabilityObjectMetadataUniversalIdentifier:
       STANDARD_OBJECTS.messageCampaign.universalIdentifier,
     frontComponentUniversalIdentifier: null,
@@ -997,7 +974,7 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
     ),
     availabilityType: CommandMenuItemAvailabilityType.RECORD_SELECTION,
     conditionalAvailabilityExpression:
-      'numberOfSelectedRecords >= 1 and everyEquals(selectedRecords, "status", "DRAFT") and noneDefined(selectedRecords, "deletedAt")',
+      'numberOfSelectedRecords == 1 and (everyEquals(selectedRecords, "status", "DRAFT") or everyEquals(selectedRecords, "status", "SCHEDULED")) and noneDefined(selectedRecords, "deletedAt") and featureFlags.IS_MESSAGE_CAMPAIGN_ENABLED',
     availabilityObjectMetadataUniversalIdentifier:
       STANDARD_OBJECTS.messageCampaign.universalIdentifier,
     frontComponentUniversalIdentifier: null,
@@ -1017,11 +994,55 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
     ),
     availabilityType: CommandMenuItemAvailabilityType.RECORD_SELECTION,
     conditionalAvailabilityExpression:
-      'numberOfSelectedRecords >= 1 and everyEquals(selectedRecords, "status", "DRAFT") and noneDefined(selectedRecords, "deletedAt")',
+      'numberOfSelectedRecords == 1 and (everyEquals(selectedRecords, "status", "DRAFT") or everyEquals(selectedRecords, "status", "SCHEDULED")) and noneDefined(selectedRecords, "deletedAt") and featureFlags.IS_MESSAGE_CAMPAIGN_ENABLED',
     availabilityObjectMetadataUniversalIdentifier:
       STANDARD_OBJECTS.messageCampaign.universalIdentifier,
     frontComponentUniversalIdentifier: null,
     engineComponentKey: EngineComponentKey.SEND_MESSAGE_CAMPAIGN_TEST,
+    hotKeys: null,
+  },
+  cancelMessageCampaign: {
+    universalIdentifier: 'b266ca2d-f6bb-4c45-aace-a44d5099f6af',
+    label: i18nLabel(
+      msg({ message: `Cancel Campaign`, context: 'commandMenuItem.label' }),
+    ),
+    icon: 'IconX',
+    isPinned: true,
+    position: 71,
+    shortLabel: i18nLabel(
+      msg({ message: `Cancel`, context: 'commandMenuItem.shortLabel' }),
+    ),
+    availabilityType: CommandMenuItemAvailabilityType.RECORD_SELECTION,
+    conditionalAvailabilityExpression:
+      'numberOfSelectedRecords == 1 and (everyEquals(selectedRecords, "status", "SCHEDULED") or everyEquals(selectedRecords, "status", "SENDING")) and noneDefined(selectedRecords, "deletedAt") and featureFlags.IS_MESSAGE_CAMPAIGN_ENABLED',
+    availabilityObjectMetadataUniversalIdentifier:
+      STANDARD_OBJECTS.messageCampaign.universalIdentifier,
+    frontComponentUniversalIdentifier: null,
+    engineComponentKey: EngineComponentKey.CANCEL_MESSAGE_CAMPAIGN,
+    hotKeys: null,
+  },
+  duplicateMessageCampaign: {
+    universalIdentifier: 'b85e34bd-abfa-40b5-91c0-e5d64b586341',
+    label: i18nLabel(
+      msg({ message: `Duplicate Campaign`, context: 'commandMenuItem.label' }),
+    ),
+    icon: 'IconCopy',
+    isPinned: true,
+    position: 72,
+    shortLabel: i18nLabel(
+      msg({ message: `Duplicate`, context: 'commandMenuItem.shortLabel' }),
+    ),
+    availabilityType: CommandMenuItemAvailabilityType.RECORD_SELECTION,
+    conditionalAvailabilityExpression:
+      'numberOfSelectedRecords == 1 and noneDefined(selectedRecords, "deletedAt") and objectPermissions.canUpdateObjectRecords and featureFlags.IS_MESSAGE_CAMPAIGN_ENABLED',
+    // A sent campaign is the one people re-run, so the button is only pinned
+    // there; drafts keep it in the menu.
+    conditionalPinnedExpression:
+      'everyEquals(selectedRecords, "status", "SENT")',
+    availabilityObjectMetadataUniversalIdentifier:
+      STANDARD_OBJECTS.messageCampaign.universalIdentifier,
+    frontComponentUniversalIdentifier: null,
+    engineComponentKey: EngineComponentKey.DUPLICATE_MESSAGE_CAMPAIGN,
     hotKeys: null,
   },
   emailBlockSettings: {
@@ -1181,7 +1202,7 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
         context: 'commandMenuItem.label',
       }),
     ),
-    icon: 'IconHierarchy2',
+    icon: 'IconHierarchy',
     isPinned: false,
     position: 53,
     shortLabel: i18nLabel(
@@ -1269,7 +1290,7 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
         context: 'commandMenuItem.label',
       }),
     ),
-    icon: 'IconCurrencyDollar',
+    icon: 'IconCreditCard',
     isPinned: false,
     position: 57,
     shortLabel: i18nLabel(
@@ -1468,6 +1489,26 @@ export const STANDARD_COMMAND_MENU_ITEMS = {
       STANDARD_OBJECTS.opportunity.universalIdentifier,
     frontComponentUniversalIdentifier: null,
     engineComponentKey: EngineComponentKey.COMPOSE_EMAIL,
+    hotKeys: null,
+  },
+  duplicateMessageList: {
+    universalIdentifier: '19b519d4-a871-4fc2-980c-f5d6c92c6962',
+    label: i18nLabel(
+      msg({ message: `Duplicate List`, context: 'commandMenuItem.label' }),
+    ),
+    icon: 'IconCopyPlus',
+    isPinned: true,
+    position: 71,
+    shortLabel: i18nLabel(
+      msg({ message: `Duplicate`, context: 'commandMenuItem.shortLabel' }),
+    ),
+    availabilityType: CommandMenuItemAvailabilityType.RECORD_SELECTION,
+    conditionalAvailabilityExpression:
+      'featureFlags.IS_MESSAGE_CAMPAIGN_ENABLED and numberOfSelectedRecords == 1 and noneDefined(selectedRecords, "deletedAt") and objectPermissions.canUpdateObjectRecords',
+    availabilityObjectMetadataUniversalIdentifier:
+      STANDARD_OBJECTS.messageList.universalIdentifier,
+    frontComponentUniversalIdentifier: null,
+    engineComponentKey: EngineComponentKey.DUPLICATE_MESSAGE_LIST,
     hotKeys: null,
   },
 } as const;

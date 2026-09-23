@@ -1,6 +1,11 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { UUIDScalarType } from 'src/engine/api/graphql/workspace-schema-builder/graphql-types/scalars';
+import { WorkflowStatus } from 'src/modules/workflow/common/standard-objects/workflow.workspace-entity';
+
+registerEnumType(WorkflowStatus, {
+  name: 'CoreWorkflowStatus',
+});
 
 @ObjectType('CoreWorkflowDTO')
 export class CoreWorkflowDTO {
@@ -10,14 +15,20 @@ export class CoreWorkflowDTO {
   @Field(() => String, { nullable: true })
   name: string | null;
 
-  @Field(() => [String])
-  statuses: string[];
+  @Field(() => [WorkflowStatus])
+  statuses: WorkflowStatus[];
+
+  @Field(() => UUIDScalarType, { nullable: true })
+  lastPublishedVersionId: string | null;
 
   @Field(() => UUIDScalarType, { nullable: true })
   applicationId: string | null;
 
   @Field(() => UUIDScalarType, { nullable: true })
   workspaceWorkflowId: string | null;
+
+  @Field(() => String)
+  createdAt: string;
 
   @Field(() => String)
   updatedAt: string;

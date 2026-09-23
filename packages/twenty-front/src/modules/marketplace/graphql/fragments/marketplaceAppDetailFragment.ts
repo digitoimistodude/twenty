@@ -16,10 +16,12 @@ export const MARKETPLACE_APP_DETAIL_FRAGMENT = gql`
     logoUrl
     websiteUrl
     aboutDescription
+    pricingDescription
     termsUrl
     emailSupport
     issueReportUrl
     galleryImages
+    installCount
     defaultRoleUniversalIdentifier
     roles {
       universalIdentifier

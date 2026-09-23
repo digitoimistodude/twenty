@@ -53,6 +53,7 @@ import { PublicEndpointGuard } from 'src/engine/guards/public-endpoint.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
+import { StreamSizeExceededError } from 'src/utils/stream-size-exceeded-error';
 import { streamToBuffer } from 'src/utils/stream-to-buffer';
 import { ApplicationRegistrationVariableDTO } from 'src/engine/core-modules/application/application-registration-variable/dtos/application-registration-variable.dto';
 import {
@@ -91,7 +92,7 @@ export class ApplicationRegistrationResolver {
   async findApplicationRegistrationByUniversalIdentifier(
     @Args('universalIdentifier') universalIdentifier: string,
   ): Promise<ApplicationRegistrationEntity | null> {
-    return this.applicationRegistrationService.findOneByUniversalIdentifier(
+    return this.applicationRegistrationService.findOneByUniversalIdentifierGlobal(
       universalIdentifier,
     );
   }
@@ -258,8 +259,13 @@ export class ApplicationRegistrationResolver {
   async uploadAppTarball(
     @Args({ name: 'file', type: () => GraphQLUpload })
     { createReadStream }: FileUpload,
-    @Args('universalIdentifier', { type: () => String, nullable: true })
-    universalIdentifier: string | undefined,
+    @Args('universalIdentifier', {
+      type: () => String,
+      nullable: true,
+      deprecationReason:
+        'Ignored: the application universalIdentifier is read from the tarball manifest.',
+    })
+    _universalIdentifier: string | undefined,
     @AuthWorkspace() { id: workspaceId }: WorkspaceEntity,
   ): Promise<ApplicationRegistrationEntity> {
     const maxSize = this.twentyConfigService.get(
@@ -273,14 +279,10 @@ export class ApplicationRegistrationResolver {
 
       return this.applicationTarballService.uploadTarball({
         tarballBuffer,
-        universalIdentifier,
         ownerWorkspaceId: workspaceId,
       });
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.includes('maximum allowed size')
-      ) {
+      if (error instanceof StreamSizeExceededError) {
         throw new ApplicationRegistrationException(
           `Tarball exceeds maximum size of ${maxSize} bytes`,
           ApplicationRegistrationExceptionCode.INVALID_INPUT,

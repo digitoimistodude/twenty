@@ -5,10 +5,12 @@ import { expect, userEvent, within } from 'storybook/test';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
 
 import { type TargetRecordIdentifier } from '@/ui/layout/contexts/TargetRecordIdentifier';
+import { WorkspaceSurfaceContext } from '@/ui/layout/contexts/WorkspaceSurfaceContext';
 
 import { useUpdateMetadataStoreDraft } from '@/metadata-store/hooks/useUpdateMetadataStoreDraft';
 import { isMinimalMetadataReadyState } from '@/metadata-store/states/isMinimalMetadataReadyState';
 import { PageLayoutRecordPageRenderer } from '@/object-record/record-show/components/PageLayoutRecordPageRenderer';
+import { RecordShowResourceLoader } from '@/object-record/record-show/components/RecordShowResourceLoader';
 import { CommandMenuComponentInstanceContext } from '@/command-menu/states/contexts/CommandMenuComponentInstanceContext';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import {
@@ -32,6 +34,21 @@ const PARTICIPANT_ID = '20202020-0000-4000-8000-00000000par1';
 const ASSOCIATION_ID = '20202020-0000-4000-8000-00000000ass1';
 const MESSAGE_CHANNEL_ID = '20202020-0000-4000-8000-00000000cha1';
 const CONNECTED_ACCOUNT_ID = '20202020-0000-4000-8000-00000000acc1';
+const SHARED_CONNECTED_ACCOUNT_ID = '20202020-0000-4000-8000-00000000acc2';
+
+const ownConnectedAccount = {
+  __typename: 'ConnectedAccount',
+  id: CONNECTED_ACCOUNT_ID,
+  handle: 'me@example.com',
+  provider: 'google',
+};
+
+const workspaceSharedConnectedAccount = {
+  __typename: 'ConnectedAccount',
+  id: SHARED_CONNECTED_ACCOUNT_ID,
+  handle: 'support@example.com',
+  provider: 'email_group',
+};
 
 const PAGE_LAYOUT_ID = 'email-thread-record-layout';
 const PAGE_LAYOUT_TAB_ID = 'email-thread-record-tab';
@@ -84,6 +101,7 @@ const emailThreadPageLayout = {
   id: PAGE_LAYOUT_ID,
   name: 'Message Thread',
   type: PageLayoutType.RECORD_PAGE,
+  isFirstTabPinned: true,
   objectMetadataId: messageThreadObjectMetadataItem.id,
   isSystemSideEffect: false,
   applicationId: '',
@@ -136,6 +154,72 @@ const emailThreadPageLayoutWidget = {
   deletedAt: null,
 };
 
+const threadContentHandlers = [
+  graphql.query('FindOneMessageThread', () =>
+    HttpResponse.json({
+      data: { messageThread: { __typename: 'MessageThread', id: THREAD_ID } },
+    }),
+  ),
+  graphql.query('FindManyMessages', () =>
+    HttpResponse.json({
+      data: { messages: buildConnection('Message', [threadMessage]) },
+    }),
+  ),
+  graphql.query('FindManyMessageParticipants', () =>
+    HttpResponse.json({
+      data: {
+        messageParticipants: buildConnection('MessageParticipant', [
+          senderParticipant,
+        ]),
+      },
+    }),
+  ),
+  graphql.query('FindManyMessageChannelMessageAssociations', () =>
+    HttpResponse.json({
+      data: {
+        messageChannelMessageAssociations: buildConnection(
+          'MessageChannelMessageAssociation',
+          [
+            {
+              __typename: 'MessageChannelMessageAssociation',
+              id: ASSOCIATION_ID,
+              messageId: MESSAGE_ID,
+              messageChannelId: MESSAGE_CHANNEL_ID,
+              messageThreadExternalId: 'thread-external-id',
+              messageExternalId: 'message-external-id',
+            },
+          ],
+        ),
+      },
+    }),
+  ),
+];
+
+const buildThreadConnectedAccountHandlers = (connectedAccount: {
+  id: string;
+  handle: string;
+  provider: string;
+}) => [
+  graphql.query('MyConnectedAccounts', () =>
+    HttpResponse.json({
+      data: { myConnectedAccounts: [connectedAccount] },
+    }),
+  ),
+  graphql.query('MyMessageChannels', () =>
+    HttpResponse.json({
+      data: {
+        myMessageChannels: [
+          {
+            __typename: 'MessageChannel',
+            id: MESSAGE_CHANNEL_ID,
+            connectedAccountId: connectedAccount.id,
+          },
+        ],
+      },
+    }),
+  ),
+];
+
 // The mocked minimal metadata ships no page layouts, so the record page has no
 // layout to render until this seeds one holding the email thread widget.
 const SeedEmailThreadPageLayoutEffect = () => {
@@ -158,7 +242,6 @@ const SeedEmailThreadPageLayoutEffect = () => {
 
 type EmailThreadStoryArgs = PageDecoratorArgs & {
   targetRecordIdentifier: TargetRecordIdentifier;
-  isInSidePanel: boolean;
 };
 
 const meta: Meta<EmailThreadStoryArgs> = {
@@ -167,12 +250,24 @@ const meta: Meta<EmailThreadStoryArgs> = {
   component: PageLayoutRecordPageRenderer,
   decorators: [
     (Story) => (
-      <CommandMenuComponentInstanceContext.Provider
-        value={{ instanceId: 'story-command-menu' }}
+      <WorkspaceSurfaceContext.Provider
+        value={{
+          type: 'side-panel',
+          instanceId: 'story-side-panel',
+          ownsRouteLocation: true,
+        }}
       >
-        <SeedEmailThreadPageLayoutEffect />
-        <Story />
-      </CommandMenuComponentInstanceContext.Provider>
+        <CommandMenuComponentInstanceContext.Provider
+          value={{ instanceId: 'story-command-menu' }}
+        >
+          <SeedEmailThreadPageLayoutEffect />
+          <RecordShowResourceLoader
+            objectNameSingular={CoreObjectNameSingular.MessageThread}
+            recordId={THREAD_ID}
+          />
+          <Story />
+        </CommandMenuComponentInstanceContext.Provider>
+      </WorkspaceSurfaceContext.Provider>
     ),
     FileUploadDecorator,
     ContextStoreDecorator,
@@ -188,81 +283,13 @@ const meta: Meta<EmailThreadStoryArgs> = {
       id: THREAD_ID,
       targetObjectNameSingular: CoreObjectNameSingular.MessageThread,
     },
-    isInSidePanel: true,
   },
   parameters: {
     layout: 'fullscreen',
     msw: {
       handlers: [
-        graphql.query('FindOneMessageThread', () =>
-          HttpResponse.json({
-            data: {
-              messageThread: { __typename: 'MessageThread', id: THREAD_ID },
-            },
-          }),
-        ),
-        graphql.query('FindManyMessages', () =>
-          HttpResponse.json({
-            data: {
-              messages: buildConnection('Message', [threadMessage]),
-            },
-          }),
-        ),
-        graphql.query('FindManyMessageParticipants', () =>
-          HttpResponse.json({
-            data: {
-              messageParticipants: buildConnection('MessageParticipant', [
-                senderParticipant,
-              ]),
-            },
-          }),
-        ),
-        graphql.query('FindManyMessageChannelMessageAssociations', () =>
-          HttpResponse.json({
-            data: {
-              messageChannelMessageAssociations: buildConnection(
-                'MessageChannelMessageAssociation',
-                [
-                  {
-                    __typename: 'MessageChannelMessageAssociation',
-                    id: ASSOCIATION_ID,
-                    messageId: MESSAGE_ID,
-                    messageChannelId: MESSAGE_CHANNEL_ID,
-                    messageThreadExternalId: 'thread-external-id',
-                    messageExternalId: 'message-external-id',
-                  },
-                ],
-              ),
-            },
-          }),
-        ),
-        graphql.query('MyConnectedAccounts', () =>
-          HttpResponse.json({
-            data: {
-              myConnectedAccounts: [
-                {
-                  __typename: 'ConnectedAccount',
-                  id: CONNECTED_ACCOUNT_ID,
-                  handle: 'me@example.com',
-                  provider: 'google',
-                },
-              ],
-            },
-          }),
-        ),
-        graphql.query('MyMessageChannels', () =>
-          HttpResponse.json({
-            data: {
-              myMessageChannels: [
-                {
-                  __typename: 'MessageChannel',
-                  id: MESSAGE_CHANNEL_ID,
-                  connectedAccountId: CONNECTED_ACCOUNT_ID,
-                },
-              ],
-            },
-          }),
-        ),
+        ...threadContentHandlers,
+        ...buildThreadConnectedAccountHandlers(ownConnectedAccount),
         graphqlMocks.handlers,
       ],
     },
@@ -292,5 +319,32 @@ export const ReplyOpensComposerInSidePanel: Story = {
     ).toBeVisible();
 
     expect(canvas.queryByText(/invalid configuration/i)).toBeNull();
+  },
+};
+
+export const ReplyIsOfferedOnAWorkspaceSharedMailbox: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        ...threadContentHandlers,
+        ...buildThreadConnectedAccountHandlers(workspaceSharedConnectedAccount),
+        graphqlMocks.handlers,
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    const replyButton = await canvas.findByRole(
+      'button',
+      { name: /reply/i },
+      { timeout: 20000 },
+    );
+
+    await userEvent.click(replyButton);
+
+    await expect(
+      await canvas.findByRole('button', { name: /send/i }, { timeout: 20000 }),
+    ).toBeVisible();
   },
 };

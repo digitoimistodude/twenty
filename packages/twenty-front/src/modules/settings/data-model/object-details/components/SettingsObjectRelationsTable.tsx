@@ -22,8 +22,8 @@ import { useLingui } from '@lingui/react/macro';
 import { useMemo, useState } from 'react';
 import { FieldMetadataType } from 'twenty-shared/types';
 import { IconArchive, IconFilter, IconSearch } from 'twenty-ui/icon';
-import { Button } from 'twenty-ui/input';
-import { MenuItemToggle } from 'twenty-ui/navigation';
+import { Button } from 'twenty-ui/primitives/input';
+import { MenuItemSwitch } from 'twenty-ui/primitives/navigation';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 import { isDefined } from 'twenty-shared/utils';
 import { normalizeSearchText } from '~/utils/normalizeSearchText';
@@ -207,22 +207,21 @@ export const SettingsObjectRelationsTable = ({
           dropdownOffset={{ x: 0, y: 8 }}
           clickableComponent={
             <Button
-              Icon={IconFilter}
-              size="medium"
-              variant="secondary"
-              accent="default"
-              ariaLabel={t`Filter`}
+              startIcon={<IconFilter />}
+              size="md"
+              aria-label={t`Filter`}
+              variant="outline"
             />
           }
           dropdownComponents={
             <DropdownContent>
               <DropdownMenuItemsContainer>
-                <MenuItemToggle
+                <MenuItemSwitch
                   LeftIcon={IconArchive}
-                  onToggleChange={() => setShowInactive(!showInactive)}
-                  toggled={showInactive}
+                  onCheckedChange={() => setShowInactive(!showInactive)}
+                  checked={showInactive}
                   text={t`Inactive`}
-                  toggleSize="small"
+                  size="sm"
                 />
               </DropdownMenuItemsContainer>
             </DropdownContent>

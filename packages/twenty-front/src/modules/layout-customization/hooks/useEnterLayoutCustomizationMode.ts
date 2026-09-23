@@ -18,15 +18,15 @@ import { isDashboardInEditModeComponentState } from '@/page-layout/states/isDash
 import { useHasPermissionFlag } from '@/settings/roles/hooks/useHasPermissionFlag';
 import { useNavigateSidePanel } from '@/side-panel/hooks/useNavigateSidePanel';
 import { isSidePanelOpenedState } from '@/side-panel/states/isSidePanelOpenedState';
-import { sidePanelPageState } from '@/side-panel/states/sidePanelPageState';
-import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
+import { sidePanelPageInfoSelector } from '@/side-panel/states/sidePanelPageInfoSelector';
+import { useToast } from 'twenty-ui/primitives/feedback';
 
 import { PermissionFlagType } from '~/generated-metadata/graphql';
 
 export const useEnterLayoutCustomizationMode = () => {
   const store = useStore();
   const { navigateSidePanel } = useNavigateSidePanel();
-  const { enqueueWarningSnackBar } = useSnackBar();
+  const { enqueueToast } = useToast();
   const hasLayoutsPermission = useHasPermissionFlag(PermissionFlagType.LAYOUTS);
 
   const enterLayoutCustomizationMode = useCallback((): boolean => {
@@ -54,8 +54,9 @@ export const useEnterLayoutCustomizationMode = () => {
       );
 
       if (isDashboardInEditMode) {
-        enqueueWarningSnackBar({
-          message: t`Save or cancel dashboard changes before editing the layout.`,
+        enqueueToast({
+          variant: 'warning',
+          children: t`Save or cancel dashboard changes before editing the layout.`,
         });
 
         return false;
@@ -79,7 +80,7 @@ export const useEnterLayoutCustomizationMode = () => {
     store.set(isLayoutCustomizationModeEnabledState.atom, true);
 
     const isSidePanelOpened = store.get(isSidePanelOpenedState.atom);
-    const currentSidePanelPage = store.get(sidePanelPageState.atom);
+    const currentSidePanelPage = store.get(sidePanelPageInfoSelector.atom).page;
 
     if (
       isSidePanelOpened &&
@@ -94,7 +95,7 @@ export const useEnterLayoutCustomizationMode = () => {
     }
 
     return true;
-  }, [enqueueWarningSnackBar, hasLayoutsPermission, navigateSidePanel, store]);
+  }, [enqueueToast, hasLayoutsPermission, navigateSidePanel, store]);
 
   return { enterLayoutCustomizationMode };
 };

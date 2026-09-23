@@ -10,6 +10,7 @@ import { Like, type QueryRunner } from 'typeorm';
 import { ApplicationEntity } from 'src/engine/core-modules/application/application.entity';
 import { findActiveFlatApplicationById } from 'src/engine/core-modules/application/utils/find-active-flat-application-by-id.util';
 import { findActiveFlatApplicationByUniversalIdentifier } from 'src/engine/core-modules/application/utils/find-active-flat-application-by-universal-identifier.util';
+import { type FileStorageMetadata } from 'src/engine/core-modules/file-storage/types/file-storage-metadata.type';
 import { FileStorageDriverFactory } from 'src/engine/core-modules/file-storage/file-storage-driver.factory';
 import { type ByteRange } from 'src/engine/core-modules/file-storage/types/byte-range.type';
 import {
@@ -42,6 +43,27 @@ export class FileStorageService {
     private readonly fileRepository: WorkspaceScopedRepository<FileEntity>,
     private readonly workspaceCacheService: WorkspaceCacheService,
   ) {}
+
+  private async resolveFileIdKeepingExistingRow({
+    fileRepository,
+    workspaceId,
+    filePath,
+    applicationId,
+    fileId,
+  }: {
+    fileRepository: WorkspaceScopedRepository<FileEntity>;
+    workspaceId: string;
+    filePath: string;
+    applicationId: string;
+    fileId: string | undefined;
+  }): Promise<string | undefined> {
+    const existingFile = await fileRepository.findOne(workspaceId, {
+      where: { path: filePath, applicationId },
+      withDeleted: true,
+    });
+
+    return existingFile?.id ?? fileId;
+  }
 
   private async resolveApplicationIdOrThrow({
     applicationUniversalIdentifier,
@@ -250,7 +272,13 @@ export class FileStorageService {
       {
         path: filePath,
         applicationId: resolvedApplicationId,
-        id: fileId,
+        id: await this.resolveFileIdKeepingExistingRow({
+          fileRepository,
+          workspaceId,
+          filePath,
+          applicationId: resolvedApplicationId,
+          fileId,
+        }),
         mimeType,
         size:
           typeof persistedSourceFile === 'string'
@@ -301,7 +329,13 @@ export class FileStorageService {
       {
         path: filePath,
         applicationId: resolvedApplicationId,
-        id: fileId,
+        id: await this.resolveFileIdKeepingExistingRow({
+          fileRepository: this.fileRepository,
+          workspaceId,
+          filePath,
+          applicationId: resolvedApplicationId,
+          fileId,
+        }),
         mimeType,
         size,
         settings,
@@ -330,7 +364,7 @@ export class FileStorageService {
 
   async getFileMetadata(
     params: ResourceIdentifier,
-  ): Promise<{ size: number } | null> {
+  ): Promise<FileStorageMetadata | null> {
     const driver = this.fileStorageDriverFactory.getCurrentDriver();
     const { onStorageFilePath } =
       this.validateAndBuildFileStoragePathOrThrow(params);
@@ -389,6 +423,20 @@ export class FileStorageService {
     return driver.readFile({
       filePath: onStorageFilePath,
       byteRange: params.byteRange,
+    });
+  }
+
+  readFilePrefix(
+    params: ResourceIdentifier & { byteCount: number },
+  ): Promise<Buffer> {
+    const driver = this.fileStorageDriverFactory.getCurrentDriver();
+
+    const { onStorageFilePath } =
+      this.validateAndBuildFileStoragePathOrThrow(params);
+
+    return driver.readFilePrefix({
+      filePath: onStorageFilePath,
+      byteCount: params.byteCount,
     });
   }
 
@@ -457,6 +505,20 @@ export class FileStorageService {
     await this.fileRepository.delete(params.workspaceId, {
       path: filePath,
       applicationId,
+    });
+  }
+
+  // Removes only the stored object. deleteFile also drops any row sitting at
+  // that path, which is wrong once the row is gone or belongs to a later
+  // upload that reused the same resource path.
+  async deleteFileObject(params: ResourceIdentifier): Promise<void> {
+    const driver = this.fileStorageDriverFactory.getCurrentDriver();
+    const { onStorageFilePath } =
+      this.validateAndBuildFileStoragePathOrThrow(params);
+
+    await driver.delete({
+      folderPath: dirname(onStorageFilePath),
+      filename: basename(onStorageFilePath),
     });
   }
 
@@ -571,6 +633,29 @@ export class FileStorageService {
     return driver.copy({
       from: { folderPath: fromPath },
       to: { folderPath: toPath },
+    });
+  }
+
+  async move({
+    from,
+    to,
+    ifMatchChecksum,
+  }: {
+    from: ResourceIdentifier;
+    to: ResourceIdentifier;
+    ifMatchChecksum?: string;
+  }): Promise<void> {
+    const driver = this.fileStorageDriverFactory.getCurrentDriver();
+
+    const { onStorageFilePath: fromPath } =
+      this.validateAndBuildFileStoragePathOrThrow(from);
+    const { onStorageFilePath: toPath } =
+      this.validateAndBuildFileStoragePathOrThrow(to);
+
+    return driver.move({
+      from: { folderPath: dirname(fromPath), filename: basename(fromPath) },
+      to: { folderPath: dirname(toPath), filename: basename(toPath) },
+      ifMatchChecksum,
     });
   }
 

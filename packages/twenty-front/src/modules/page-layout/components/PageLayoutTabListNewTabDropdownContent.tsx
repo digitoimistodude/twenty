@@ -17,7 +17,7 @@ import { useCallback } from 'react';
 import { SidePanelPages } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 import { IconPlus, useIcons } from 'twenty-ui/icon';
-import { MenuItem } from 'twenty-ui/navigation';
+import { MenuItem } from 'twenty-ui/primitives/navigation';
 
 type PageLayoutTabListNewTabDropdownContentProps = {
   onCreate: () => void;
@@ -54,11 +54,11 @@ export const PageLayoutTabListNewTabDropdownContent = ({
     (tabId: string) => {
       updatePageLayoutTab(tabId, { isActive: true });
       setActiveTabId(tabId);
-      setPageLayoutTabSettingsOpenTabId(tabId);
       navigatePageLayoutSidePanel({
         sidePanelPage: SidePanelPages.PageLayoutTabSettings,
         resetNavigationStack: true,
       });
+      setPageLayoutTabSettingsOpenTabId(tabId);
       closeDropdown(dropdownId);
     },
     [

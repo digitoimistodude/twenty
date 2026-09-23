@@ -2,15 +2,22 @@ import { useState } from 'react';
 
 import { useQuery } from '@apollo/client/react';
 
+import { getToastOptionsFromError } from '@/error-handler/utils/getToastOptionsFromError';
+import { coreWorkflowsFilterSettingsState } from '@/object-core/workflows/states/coreWorkflowsFilterSettingsState';
+import { buildCoreWorkflowFilterInput } from '@/object-core/workflows/utils/buildCoreWorkflowFilterInput';
 import { useApolloCoreClient } from '@/object-metadata/hooks/useApolloCoreClient';
+import { useUserTimezone } from '@/ui/input/components/internal/date/hooks/useUserTimezone';
 import { sortedFieldByTableFamilyState } from '@/ui/layout/table/states/sortedFieldByTableFamilyState';
 import { type TableSortValue } from '@/ui/layout/table/types/TableSortValue';
 import { useAtomFamilyStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomFamilyStateValue';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { useToast } from 'twenty-ui/primitives/feedback';
 import {
   CoreWorkflowOrderByDirection,
   CoreWorkflowOrderByField,
   GetCoreWorkflowsDocument,
 } from '~/generated/graphql';
+import { logError } from '~/utils/logError';
 
 export const CORE_WORKFLOWS_TABLE_ID = 'workflowCore';
 export const CORE_WORKFLOWS_PAGE_SIZE = 60;
@@ -25,12 +32,16 @@ const ORDER_BY_FIELD_BY_FIELD_NAME: Record<string, CoreWorkflowOrderByField> = {
   updatedAt: CoreWorkflowOrderByField.UPDATED_AT,
 };
 
-export const useCoreWorkflows = () => {
+export const useCoreWorkflows = ({
+  tableId = CORE_WORKFLOWS_TABLE_ID,
+}: {
+  tableId?: string;
+} = {}) => {
   const apolloCoreClient = useApolloCoreClient();
 
   const sortedFieldByTable = useAtomFamilyStateValue(
     sortedFieldByTableFamilyState,
-    { tableId: CORE_WORKFLOWS_TABLE_ID },
+    { tableId: tableId },
   );
 
   const sortValue = sortedFieldByTable ?? CORE_WORKFLOWS_INITIAL_SORT;
@@ -43,9 +54,19 @@ export const useCoreWorkflows = () => {
       ? CoreWorkflowOrderByDirection.ASC
       : CoreWorkflowOrderByDirection.DESC;
 
+  const coreWorkflowsFilterSettings = useAtomStateValue(
+    coreWorkflowsFilterSettingsState,
+  );
+
+  const { userTimezone } = useUserTimezone();
+  const filter = buildCoreWorkflowFilterInput({
+    filterSettings: coreWorkflowsFilterSettings,
+    timezone: userTimezone,
+  });
+
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  const { data, loading, error, fetchMore } = useQuery(
+  const { data, previousData, loading, error, fetchMore } = useQuery(
     GetCoreWorkflowsDocument,
     {
       client: apolloCoreClient,
@@ -55,11 +76,13 @@ export const useCoreWorkflows = () => {
         first: CORE_WORKFLOWS_PAGE_SIZE,
         orderBy,
         orderByDirection,
+        filter,
       },
     },
   );
+  const connection = (data ?? previousData)?.coreWorkflows;
 
-  const connection = data?.coreWorkflows;
+  const { enqueueToast } = useToast();
 
   const fetchNextPage = async () => {
     if (connection?.pageInfo.hasNextPage !== true || isFetchingMore) {
@@ -68,21 +91,26 @@ export const useCoreWorkflows = () => {
 
     setIsFetchingMore(true);
 
-    await fetchMore({
-      variables: { after: connection.pageInfo.endCursor },
-      updateQuery: (previousResult, { fetchMoreResult }) => ({
-        ...fetchMoreResult,
-        coreWorkflows: {
-          ...fetchMoreResult.coreWorkflows,
-          edges: [
-            ...previousResult.coreWorkflows.edges,
-            ...fetchMoreResult.coreWorkflows.edges,
-          ],
-        },
-      }),
-    }).finally(() => {
+    try {
+      await fetchMore({
+        variables: { after: connection.pageInfo.endCursor },
+        updateQuery: (previousResult, { fetchMoreResult }) => ({
+          ...fetchMoreResult,
+          coreWorkflows: {
+            ...fetchMoreResult.coreWorkflows,
+            edges: [
+              ...previousResult.coreWorkflows.edges,
+              ...fetchMoreResult.coreWorkflows.edges,
+            ],
+          },
+        }),
+      });
+    } catch (fetchMoreError) {
+      logError(`useCoreWorkflows fetchMore error : ${fetchMoreError}`);
+      enqueueToast(getToastOptionsFromError({ error: fetchMoreError }));
+    } finally {
       setIsFetchingMore(false);
-    });
+    }
   };
 
   return {

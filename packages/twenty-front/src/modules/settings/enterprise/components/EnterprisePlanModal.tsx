@@ -2,17 +2,21 @@ import { SubTitle } from '@/auth/components/SubTitle';
 import { Title } from '@/auth/components/Title';
 import { SubscriptionBenefit } from '@/settings/billing/components/SubscriptionBenefit';
 import { ENTERPRISE_CHECKOUT_SESSION } from '@/settings/enterprise/graphql/queries/enterpriseCheckoutSession';
-import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { ModalStatefulWrapper } from '@/ui/layout/modal/components/ModalStatefulWrapper';
 import { useModal } from '@/ui/layout/modal/hooks/useModal';
 import { useApolloClient } from '@apollo/client/react';
 import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
 import { useState } from 'react';
-import { Loader } from 'twenty-ui/feedback';
-import { CardPicker, MainButton } from 'twenty-ui/input';
-import { ModalContent } from 'twenty-ui/surfaces';
+import { Loader, useToast } from 'twenty-ui/primitives/feedback';
+import { MainButton } from 'twenty-ui/components';
+import { CardPicker, RadioGroup } from 'twenty-ui/primitives/input';
+import { ModalContent } from 'twenty-ui/primitives/surfaces';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
+
+const StyledCheckoutButton = styled(MainButton)`
+  width: 200px;
+`;
 
 export const ENTERPRISE_PLAN_MODAL_ID = 'enterprise-plan-modal';
 
@@ -90,7 +94,7 @@ const StyledIntervalSubtitle = styled.div`
 export const EnterprisePlanModal = () => {
   const { t } = useLingui();
   const { closeModal } = useModal();
-  const { enqueueErrorSnackBar } = useSnackBar();
+  const { enqueueToast } = useToast();
   const [selectedInterval, setSelectedInterval] =
     useState<BillingInterval>('monthly');
   const [isLoading, setIsLoading] = useState(false);
@@ -127,14 +131,13 @@ export const EnterprisePlanModal = () => {
         window.open(checkoutUrl, '_blank', 'noopener');
         closeModal(ENTERPRISE_PLAN_MODAL_ID);
       } else {
-        enqueueErrorSnackBar({
-          message: t`Could not open Stripe. Please contact support.`,
+        enqueueToast({
+          variant: 'error',
+          children: t`Could not open Stripe. Please contact support.`,
         });
       }
     } catch {
-      enqueueErrorSnackBar({
-        message: t`Error opening Stripe`,
-      });
+      enqueueToast({ variant: 'error', children: t`Error opening Stripe` });
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +151,7 @@ export const EnterprisePlanModal = () => {
       isClosable
     >
       <ModalContent isVerticallyCentered>
-        <Title noMarginTop>{t`Get Enterprise`}</Title>
+        <Title noMarginTop>{t`Get Organization`}</Title>
         <SubTitle>{t`Enjoy a 30-day free trial`}</SubTitle>
 
         <StyledSubscriptionContainer>
@@ -163,34 +166,31 @@ export const EnterprisePlanModal = () => {
           </StyledBenefitsContainer>
         </StyledSubscriptionContainer>
 
-        <StyledIntervalContainer>
-          <CardPicker
-            checked={selectedInterval === 'monthly'}
-            handleChange={() => setSelectedInterval('monthly')}
-          >
+        <RadioGroup
+          render={<StyledIntervalContainer />}
+          aria-label={t`Billing interval`}
+          value={selectedInterval}
+          onValueChange={setSelectedInterval}
+        >
+          <CardPicker value="monthly">
             <StyledIntervalCardContent>
               <StyledIntervalTitle>{t`Monthly`}</StyledIntervalTitle>
               <StyledIntervalSubtitle>{`$${MONTHLY_PRICE} / ${t`seat / month`}`}</StyledIntervalSubtitle>
             </StyledIntervalCardContent>
           </CardPicker>
-          <CardPicker
-            checked={selectedInterval === 'yearly'}
-            handleChange={() => setSelectedInterval('yearly')}
-          >
+          <CardPicker value="yearly">
             <StyledIntervalCardContent>
               <StyledIntervalTitle>{t`Yearly`}</StyledIntervalTitle>
               <StyledIntervalSubtitle>{`$${YEARLY_PRICE} / ${t`seat / month`}`}</StyledIntervalSubtitle>
             </StyledIntervalCardContent>
           </CardPicker>
-        </StyledIntervalContainer>
+        </RadioGroup>
 
-        <MainButton
-          title={t`Continue`}
+        <StyledCheckoutButton
           onClick={handleContinue}
-          width={200}
-          Icon={() => isLoading && <Loader />}
+          startIcon={isLoading && <Loader />}
           disabled={isLoading}
-        />
+        >{t`Continue`}</StyledCheckoutButton>
       </ModalContent>
     </ModalStatefulWrapper>
   );

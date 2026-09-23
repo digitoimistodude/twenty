@@ -1,5 +1,6 @@
 import {
   FieldMetadataType,
+  MetadataReadability,
   MetadataWritability,
   ObjectOpenRecordIn,
 } from 'twenty-shared/types';
@@ -46,6 +47,8 @@ describe('getColumnNameToFieldMetadataIdMap', () => {
     isUIEditable: true,
     isUICreatable: true,
     writability: MetadataWritability.OPEN,
+    readability: MetadataReadability.OPEN,
+    readabilityParentFieldUniversalIdentifiers: null,
     openRecordIn: ObjectOpenRecordIn.USER_CHOICE,
     labelIdentifierFieldMetadataId: null,
     imageIdentifierFieldMetadataId: null,

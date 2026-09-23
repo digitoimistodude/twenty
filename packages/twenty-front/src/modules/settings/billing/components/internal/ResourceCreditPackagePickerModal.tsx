@@ -4,7 +4,7 @@ import { ModalStatefulWrapper } from '@/ui/layout/modal/components/ModalStateful
 import { styled } from '@linaria/react';
 import { t } from '@lingui/core/macro';
 import { AnimatePresence, motion } from 'framer-motion';
-import { type ChangeEvent, type ElementType, type ReactNode } from 'react';
+import { type ElementType, type ReactNode } from 'react';
 import { isDefined } from 'twenty-shared/utils';
 import {
   IconCoins,
@@ -12,11 +12,15 @@ import {
   IconRefreshDot,
   IconSparkles,
 } from 'twenty-ui/icon';
-import { Button, Slider } from 'twenty-ui/input';
-import { Section, SectionAlignment, SectionFontColor } from 'twenty-ui/layout';
-import { OverflowingTextWithTooltip } from 'twenty-ui/surfaces';
+import { Button, Slider } from 'twenty-ui/primitives/input';
+import {
+  Section,
+  SectionAlignment,
+  SectionFontColor,
+} from 'twenty-ui/primitives/layout';
+import { OverflowingTextWithTooltip } from 'twenty-ui/primitives/surfaces';
 import { themeCssVariables, useTheme } from 'twenty-ui/theme-constants';
-import { H1Title, H1TitleFontColor } from 'twenty-ui/typography';
+import { H1Title, H1TitleFontColor } from 'twenty-ui/primitives/typography';
 
 const PACKAGE_SUMMARY_ROW_HEIGHT = 24;
 const PACKAGE_SUMMARY_ROW_GAP = 4;
@@ -197,7 +201,7 @@ type ResourceCreditPackagePickerModalProps = {
   newRolloverLimitValue: number;
   onCancel: () => void;
   onConfirm: () => void;
-  onSliderChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onSliderValueChange: (value: number) => void;
   priceCount: number;
   selectedCreditAmountValue: number;
   selectedPriceAmountValue: number;
@@ -219,7 +223,7 @@ export const ResourceCreditPackagePickerModal = ({
   newRolloverLimitValue,
   onCancel,
   onConfirm,
-  onSliderChange,
+  onSliderValueChange,
   priceCount,
   selectedCreditAmountValue,
   selectedPriceAmountValue,
@@ -301,16 +305,22 @@ export const ResourceCreditPackagePickerModal = ({
               /{intervalLabel}
             </StyledPackagePrice>
           </StyledPackageHeaderRow>
-          <Slider
-            aria-label={t`Credit package`}
+          <Slider.Root
             min={0}
-            max={priceCount - 1}
+            max={Math.max(1, priceCount - 1)}
             step={1}
             value={selectedPriceIndex}
-            onChange={onSliderChange}
-            disabled={isUpdating}
-            color="green"
-          />
+            onValueChange={onSliderValueChange}
+            disabled={isUpdating || priceCount < 2}
+            color="success"
+          >
+            <Slider.Control>
+              <Slider.Track>
+                <Slider.Indicator />
+                <Slider.Thumb aria-label={t`Credit package`} />
+              </Slider.Track>
+            </Slider.Control>
+          </Slider.Root>
         </StyledPackageHeader>
         <StyledPackageDetails>
           <StyledPackageDivider />
@@ -403,20 +413,16 @@ export const ResourceCreditPackagePickerModal = ({
       <StyledModalActions>
         <Button
           onClick={onCancel}
-          variant="secondary"
-          title={t`Cancel`}
           fullWidth
-          justify="center"
-        />
+          variant="outline"
+        >{t`Cancel`}</Button>
         <Button
           onClick={onConfirm}
-          variant="primary"
-          accent="blue"
-          title={t`Confirm`}
           fullWidth
-          justify="center"
           disabled={isConfirmDisabled}
-        />
+          variant="solid"
+          color="accent"
+        >{t`Confirm`}</Button>
       </StyledModalActions>
     </ModalStatefulWrapper>
   );

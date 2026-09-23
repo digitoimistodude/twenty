@@ -8,7 +8,7 @@ import { useColorScheme } from '@/ui/theme/hooks/useColorScheme';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
-import { Button } from 'twenty-ui/input';
+import { Button } from 'twenty-ui/primitives/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 const StyledContainer = styled.div`
@@ -117,12 +117,13 @@ export const EmailSignatureField = () => {
       />
       <StyledActions>
         <Button
-          title="Save"
-          variant="primary"
+          variant="solid"
           onClick={handleSave}
           disabled={draft === null}
           type="button"
-        />
+        >
+          Save
+        </Button>
       </StyledActions>
     </StyledContainer>
   );

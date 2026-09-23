@@ -2,7 +2,7 @@ import { styled } from '@linaria/react';
 import { useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
 import { IconPlus } from 'twenty-ui/icon';
-import { Button } from 'twenty-ui/input';
+import { Button } from 'twenty-ui/primitives/input';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import { type Comment } from '@/activities/comments/types/Comment';
@@ -60,22 +60,20 @@ export const CommentComposer = ({
             fieldName="body"
           />
           <StyledActions>
-            <Button
-              title="Done"
-              variant="secondary"
-              size="small"
-              onClick={handleDone}
-            />
+            <Button variant="outline" size="sm" onClick={handleDone}>
+              Done
+            </Button>
           </StyledActions>
         </>
       ) : (
         <Button
-          Icon={IconPlus}
-          title="Add comment"
-          variant="secondary"
-          size="small"
+          startIcon={<IconPlus />}
+          variant="outline"
+          size="sm"
           onClick={handleAddComment}
-        />
+        >
+          Add comment
+        </Button>
       )}
     </StyledComposer>
   );

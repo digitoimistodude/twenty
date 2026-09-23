@@ -4,7 +4,7 @@ import {
   AnimatedPlaceholderEmptySubTitle,
   AnimatedPlaceholderEmptyTextContainer,
   AnimatedPlaceholderEmptyTitle,
-} from 'twenty-ui/feedback';
+} from 'twenty-ui/primitives/feedback';
 
 import { CommentComposer } from '@/activities/comments/components/CommentComposer';
 import { CommentList } from '@/activities/comments/components/CommentList';

@@ -1,13 +1,14 @@
-import { type SelectSizeVariant } from '@/ui/input/components/Select';
 import { type FormFieldInputVariant } from '@/ui/input/types/FormFieldInputVariant';
+import { type SelectSizeVariant } from '@/ui/input/types/SelectSizeVariant';
 import { styled } from '@linaria/react';
-import { type ReactNode, useContext } from 'react';
+import { type ReactNode } from 'react';
 import { isDefined } from 'twenty-shared/utils';
-import { TintedIconTile } from 'twenty-ui/primitives/data-display';
+import { TintedIconTile } from 'twenty-ui/components';
 import { IconChevronDown } from 'twenty-ui/icon';
-import { OverflowingTextWithTooltip } from 'twenty-ui/primitives/surfaces';
+import { Tag } from 'twenty-ui/primitives/data-display';
 import { type SelectOption } from 'twenty-ui/primitives/input';
-import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
+import { OverflowingTextWithTooltip } from 'twenty-ui/primitives/typography';
+import { useTheme, themeCssVariables } from 'twenty-ui/theme';
 
 export type SelectControlTextAccent = 'default' | 'placeholder';
 
@@ -93,7 +94,18 @@ const StyledIconChevronDownWrapper = styled.div<{
   display: flex;
 `;
 
+const StyledTagContainer = styled.div`
+  min-width: 0;
+  overflow: hidden;
+`;
+
+const StyledTag = styled(Tag)`
+  box-sizing: border-box;
+  max-width: 100%;
+`;
+
 export type SelectControlProps = {
+  renderAsTag?: boolean;
   selectedOption: SelectOption<string | number | boolean | null>;
   LeftComponent?: ReactNode;
   isDisabled?: boolean;
@@ -105,6 +117,7 @@ export type SelectControlProps = {
 
 export const SelectControl = ({
   selectedOption,
+  renderAsTag = false,
   LeftComponent,
   isDisabled,
   selectSizeVariant,
@@ -112,7 +125,7 @@ export const SelectControl = ({
   hasRightElement,
   variant = 'default',
 }: SelectControlProps) => {
-  const { theme } = useContext(ThemeContext);
+  const theme = useTheme();
   const hasLeadingContent =
     isDefined(LeftComponent) ||
     isDefined(selectedOption.Icon) ||
@@ -152,13 +165,21 @@ export const SelectControl = ({
           {selectedOption.LeftComponent}
         </StyledLeadingContent>
       ) : null}
-      <OverflowingTextWithTooltip
-        text={
-          selectedOption.contextualText
-            ? `${selectedOption.label} · ${selectedOption.contextualText}`
-            : selectedOption.label
-        }
-      />
+      {renderAsTag && isDefined(selectedOption.color) ? (
+        <StyledTagContainer>
+          <StyledTag color={selectedOption.color}>
+            {selectedOption.label}
+          </StyledTag>
+        </StyledTagContainer>
+      ) : (
+        <OverflowingTextWithTooltip
+          text={
+            selectedOption.contextualText
+              ? `${selectedOption.label} · ${selectedOption.contextualText}`
+              : selectedOption.label
+          }
+        />
+      )}
       <StyledIconChevronDownWrapper disabled={isDisabled}>
         <IconChevronDown size={theme.icon.size.md} />
       </StyledIconChevronDownWrapper>

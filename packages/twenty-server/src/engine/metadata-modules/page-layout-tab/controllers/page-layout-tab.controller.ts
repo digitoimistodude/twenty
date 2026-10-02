@@ -20,12 +20,12 @@ import { isDefined } from 'twenty-shared/utils';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { ApplicationTranslationCatalogService } from 'src/engine/metadata-modules/application-translation-catalog/services/application-translation-catalog.service';
 import { paginateMetadataRestItems } from 'src/engine/api/rest/metadata/utils/paginate-metadata-rest-items.util';
-import { type AuthenticatedRequest } from 'src/engine/api/rest/types/authenticated-request';
+import { type AuthenticatedRequest } from 'src/engine/api/rest/types/authenticated-request.type';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
 import { RequestLocale } from 'src/engine/decorators/locale/request-locale.decorator';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 import { FlatEntityMapsRestApiExceptionFilter } from 'src/engine/metadata-modules/flat-entity/filters/flat-entity-maps-rest-api-exception.filter';
 import { CreatePageLayoutTabInput } from 'src/engine/metadata-modules/page-layout-tab/dtos/inputs/create-page-layout-tab.input';
 import { UpdatePageLayoutTabInput } from 'src/engine/metadata-modules/page-layout-tab/dtos/inputs/update-page-layout-tab.input';
@@ -40,14 +40,28 @@ import { PageLayoutTabRestApiExceptionFilter } from 'src/engine/metadata-modules
 import { PageLayoutTabService } from 'src/engine/metadata-modules/page-layout-tab/services/page-layout-tab.service';
 import { PermissionsRestApiExceptionFilter } from 'src/engine/metadata-modules/permissions/utils/permissions-rest-api-exception.filter';
 import { WorkspaceMigrationRunnerRestApiExceptionFilter } from 'src/engine/workspace-manager/workspace-migration/filters/workspace-migration-runner-rest-api-exception.filter';
+import { AuthRestApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-rest-api-exception.filter';
 
 @Controller(`${ApiPath.Rest}/metadata/pageLayoutTabs`)
-@UseGuards(WorkspaceAuthGuard)
+@UseGuards(
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  }),
+)
 @UseFilters(
   PermissionsRestApiExceptionFilter,
   PageLayoutTabRestApiExceptionFilter,
   FlatEntityMapsRestApiExceptionFilter,
   WorkspaceMigrationRunnerRestApiExceptionFilter,
+  AuthRestApiExceptionFilter,
 )
 export class PageLayoutTabController {
   constructor(

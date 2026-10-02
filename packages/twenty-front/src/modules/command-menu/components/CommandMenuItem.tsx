@@ -1,7 +1,8 @@
+import { useLingui } from '@lingui/react/macro';
 import { isNonEmptyString } from '@sniptt/guards';
 import { type ReactNode } from 'react';
+import { MenuItem } from 'twenty-ui/components';
 import { IconArrowUpRight, type IconComponent } from 'twenty-ui/icon';
-import { MenuItem } from 'twenty-ui/primitives/navigation';
 
 import { useCommandMenuOnItemClick } from '@/command-menu/hooks/useCommandMenuOnItemClick';
 import { isSelectedItemIdComponentFamilyState } from '@/ui/layout/selectable-list/states/isSelectedItemIdComponentFamilyState';
@@ -40,6 +41,7 @@ export const CommandMenuItem = ({
   isSubMenuOpened = false,
   disabled = false,
 }: CommandMenuItemProps) => {
+  const { t } = useLingui();
   const { onItemClick } = useCommandMenuOnItemClick();
 
   if (isNonEmptyString(to) && !Icon) {
@@ -60,6 +62,7 @@ export const CommandMenuItem = ({
       contextualText={description}
       contextualTextPosition={contextualTextPosition}
       hotKeys={hotKeys}
+      hotKeysJoinLabel={t`then`}
       onClick={
         onClick || to
           ? () =>

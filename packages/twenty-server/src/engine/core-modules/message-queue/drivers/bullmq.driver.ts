@@ -181,6 +181,21 @@ export class BullMQDriver
     }
   }
 
+  private async writeGlobalConcurrency(
+    queueName: MessageQueue,
+    globalConcurrency: number | undefined,
+  ): Promise<void> {
+    const queue = this.queueMap[queueName];
+
+    if (isDefined(globalConcurrency)) {
+      await queue.setGlobalConcurrency(globalConcurrency);
+
+      return;
+    }
+
+    await queue.removeGlobalConcurrency();
+  }
+
   work<T>(
     queueName: MessageQueue,
     handler: (job: MessageQueueJob<T>) => Promise<void>,
@@ -204,6 +219,8 @@ export class BullMQDriver
     };
 
     this.workerOptionsMap[queueName] = options;
+
+    void this.writeGlobalConcurrency(queueName, options?.globalConcurrency);
 
     this.workerMap[queueName] = new Worker(
       queueName,
@@ -236,6 +253,7 @@ export class BullMQDriver
             name: job.name,
             retryLimit: Math.max(0, (job.opts.attempts ?? 1) - 1),
             updateData: (data) => job.updateData(data),
+            updateProgress: (progress) => job.updateProgress(progress),
             abortSignal,
           });
           const timeEnd = performance.now();
@@ -413,6 +431,7 @@ export class BullMQDriver
         count: QUEUE_RETENTION.failedMaxCount,
       },
       delay: options?.delay,
+      deduplication: options?.deduplication,
       broadcastTo: options?.broadcastTo,
     };
   }
@@ -567,6 +586,7 @@ export class BullMQDriver
       state,
       attemptsMade: job.attemptsMade,
       failedReason: job.failedReason,
+      progress: job.progress,
       timestamp: job.timestamp,
       processedOn: job.processedOn,
       finishedOn: job.finishedOn,

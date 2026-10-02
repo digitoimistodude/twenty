@@ -8,7 +8,7 @@ import {
   IconFolderRoot,
 } from 'twenty-ui/icon';
 import { ICON } from 'twenty-ui/theme';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 import { Checkbox } from 'src/front-components/components/Checkbox';
 import {

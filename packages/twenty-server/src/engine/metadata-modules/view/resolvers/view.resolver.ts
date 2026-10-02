@@ -23,10 +23,11 @@ import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.ent
 import { type IDataloaders } from 'src/engine/dataloaders/dataloader.interface';
 import { AuthUserWorkspaceId } from 'src/engine/decorators/auth/auth-user-workspace-id.decorator';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
+import { AllowSuspendedWorkspace } from 'src/engine/decorators/auth/allow-suspended-workspace.decorator';
 import { CustomPermissionGuard } from 'src/engine/guards/custom-permission.guard';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 import { buildViewNameObjectLabels } from 'src/engine/metadata-modules/view/utils/build-view-name-object-labels.util';
 import { resolveViewName } from 'src/engine/metadata-modules/view/utils/resolve-view-name.util';
 import { ViewFieldGroupDTO } from 'src/engine/metadata-modules/view-field-group/dtos/view-field-group.dto';
@@ -46,10 +47,23 @@ import { ViewGraphqlApiExceptionFilter } from 'src/engine/metadata-modules/view/
 import { ViewPermissionGuard } from 'src/engine/metadata-modules/view-permissions/guards/view-permission.guard';
 import { CreateViewPermissionGuard } from 'src/engine/metadata-modules/view-permissions/guards/create-view-permission.guard';
 import { ApplicationTranslationCatalogService } from 'src/engine/metadata-modules/application-translation-catalog/services/application-translation-catalog.service';
+import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
 
 @MetadataResolver(() => ViewDTO)
-@UseFilters(ViewGraphqlApiExceptionFilter)
-@UseGuards(WorkspaceAuthGuard)
+@UseFilters(ViewGraphqlApiExceptionFilter, AuthGraphqlApiExceptionFilter)
+@UseGuards(
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  }),
+)
 export class ViewResolver {
   constructor(
     private readonly viewService: ViewService,
@@ -129,6 +143,7 @@ export class ViewResolver {
 
   @Query(() => [ViewDTO])
   @UseGuards(CustomPermissionGuard)
+  @AllowSuspendedWorkspace()
   async getViews(
     @AuthWorkspace() workspace: WorkspaceEntity,
     @AuthUserWorkspaceId({ allowUndefined: true })

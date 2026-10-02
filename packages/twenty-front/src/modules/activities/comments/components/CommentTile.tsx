@@ -3,7 +3,7 @@ import { styled } from '@linaria/react';
 import { type Comment } from '@/activities/comments/types/Comment';
 import { getActivityPreview } from '@/activities/utils/getActivityPreview';
 import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 const StyledCard = styled.div`
   align-items: flex-start;

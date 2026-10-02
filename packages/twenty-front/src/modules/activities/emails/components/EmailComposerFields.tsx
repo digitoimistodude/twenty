@@ -1,6 +1,5 @@
 import { EmailOperation } from 'twenty-shared/types';
 import { useQuery } from '@apollo/client/react';
-import { useContext } from 'react';
 import { DragDropProvider } from '@dnd-kit/react';
 import { styled } from '@linaria/react';
 import { t } from '@lingui/core/macro';
@@ -12,7 +11,7 @@ import {
   isDefined,
 } from 'twenty-shared/utils';
 import { IconPaperclip } from 'twenty-ui/icon';
-import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
+import { useTheme, themeCssVariables } from 'twenty-ui/theme';
 
 import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
 import { useFindOneRecord } from '@/object-record/hooks/useFindOneRecord';
@@ -146,7 +145,7 @@ export const EmailComposerFields = ({
   contextRecord,
   onAttachFiles,
 }: EmailComposerFieldsProps) => {
-  const { theme } = useContext(ThemeContext);
+  const theme = useTheme();
   const { uploadEmailImage } = useUploadEmailImage();
 
   // The signature itself is appended server side; this only shows the sender

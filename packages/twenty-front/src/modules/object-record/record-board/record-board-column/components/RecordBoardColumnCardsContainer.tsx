@@ -1,7 +1,7 @@
 import { styled } from '@linaria/react';
 import { Fragment, useContext, useMemo, useRef } from 'react';
 import { isDefined } from 'twenty-shared/utils';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 import { RecordBoardCardContextProvider } from '@/object-record/record-board/record-board-card/components/RecordBoardCardContextProvider';
 import { RecordBoardColumnLoadingSkeletonCards } from '@/object-record/record-board/record-board-column/components/RecordBoardColumnLoadingSkeletonCards';

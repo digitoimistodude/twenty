@@ -1,17 +1,25 @@
+import { type Job, Worker } from 'bullmq';
+
 import { BullMQDriver } from 'src/engine/core-modules/message-queue/drivers/bullmq.driver';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
 
 const mockGetJobs = jest.fn();
+const mockGetJob = jest.fn();
 const mockAdd = jest.fn();
 const mockAddBulk = jest.fn();
+const mockSetGlobalConcurrency = jest.fn();
+const mockRemoveGlobalConcurrency = jest.fn();
 
 jest.mock('bullmq', () => ({
   Queue: jest.fn().mockImplementation(() => ({
     getJobs: mockGetJobs,
+    getJob: mockGetJob,
     add: mockAdd,
     addBulk: mockAddBulk,
+    setGlobalConcurrency: mockSetGlobalConcurrency,
+    removeGlobalConcurrency: mockRemoveGlobalConcurrency,
   })),
-  Worker: jest.fn(),
+  Worker: jest.fn().mockImplementation(() => ({ on: jest.fn() })),
   MetricsTime: { ONE_WEEK: 1 },
 }));
 
@@ -126,5 +134,95 @@ describe('BullMQDriver deduplication', () => {
       expect(mockGetJobs).not.toHaveBeenCalled();
       expect(mockAddBulk).toHaveBeenCalledTimes(1);
     });
+  });
+});
+
+describe('BullMQDriver progress', () => {
+  const driver = new BullMQDriver(
+    {} as never,
+    { recordHistogram: jest.fn() } as never,
+    {} as never,
+    {} as never,
+  );
+
+  driver.register(MessageQueue.workspaceQueue);
+
+  it.each([0, 50, { completed: 5, total: 10 }])(
+    'persists progress %p through BullMQ and exposes it in job snapshots',
+    async (progress) => {
+      const job: Pick<
+        Job,
+        | 'id'
+        | 'name'
+        | 'data'
+        | 'opts'
+        | 'timestamp'
+        | 'progress'
+        | 'updateProgress'
+        | 'getState'
+      > = {
+        id: 'job-id',
+        name: 'job',
+        data: {},
+        opts: {},
+        timestamp: Date.now(),
+        progress: 0,
+        async updateProgress(updatedProgress: Job['progress']) {
+          this.progress = updatedProgress;
+        },
+        getState: jest.fn().mockResolvedValue('active'),
+      };
+      const updateProgress = jest.spyOn(job, 'updateProgress');
+      mockGetJob.mockResolvedValue(job);
+      driver.work(MessageQueue.workspaceQueue, async (queueJob) => {
+        await queueJob.updateProgress(progress);
+      });
+
+      const processor = jest.mocked(Worker).mock.calls[0][1];
+
+      if (typeof processor !== 'function') {
+        throw new Error('Worker processor was not registered');
+      }
+
+      await processor(job as Job);
+
+      expect(updateProgress).toHaveBeenCalledWith(progress);
+      const jobs = await driver.getJobs(MessageQueue.workspaceQueue, [
+        'job-id',
+      ]);
+
+      expect(jobs['job-id']).toMatchObject({ state: 'active', progress });
+    },
+  );
+});
+
+describe('BullMQDriver global concurrency', () => {
+  const driver = new BullMQDriver(
+    {} as never,
+    {} as never,
+    {} as never,
+    {} as never,
+  );
+
+  driver.register(MessageQueue.recordExportQueue);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('sets the global concurrency when the queue declares one', () => {
+    driver.work(MessageQueue.recordExportQueue, jest.fn(), {
+      globalConcurrency: 2,
+    });
+
+    expect(mockSetGlobalConcurrency).toHaveBeenCalledWith(2);
+    expect(mockRemoveGlobalConcurrency).not.toHaveBeenCalled();
+  });
+
+  it('removes the global concurrency when the queue declares none', () => {
+    driver.work(MessageQueue.recordExportQueue, jest.fn(), {});
+
+    expect(mockRemoveGlobalConcurrency).toHaveBeenCalledTimes(1);
+    expect(mockSetGlobalConcurrency).not.toHaveBeenCalled();
   });
 });

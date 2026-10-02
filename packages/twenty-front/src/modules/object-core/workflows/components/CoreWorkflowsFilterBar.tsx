@@ -1,8 +1,8 @@
 import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
 import { IconFilter } from 'twenty-ui/icon';
-import { IconButton } from 'twenty-ui/primitives/input';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { IconButton } from 'twenty-ui/components';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 import { findCoreWorkflowFilterField } from '@/object-core/workflows/utils/findCoreWorkflowFilterField';
 import { useOpenCoreWorkflowFiltersSidePanel } from '@/object-core/workflows/hooks/useOpenCoreWorkflowFiltersSidePanel';
@@ -60,12 +60,13 @@ export const CoreWorkflowsFilterBar = () => {
         />
       ))}
       <IconButton
-        Icon={IconFilter}
-        variant="secondary"
-        size="small"
-        ariaLabel={t`Filter`}
+        variant="outline"
+        size="sm"
+        aria-label={t`Filter`}
         onClick={openCoreWorkflowFiltersSidePanel}
-      />
+      >
+        <IconFilter />
+      </IconButton>
     </StyledContainer>
   );
 };

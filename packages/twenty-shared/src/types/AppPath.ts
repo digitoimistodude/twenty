@@ -27,7 +27,7 @@ export enum AppPath {
   RecordIndexPage = '/objects/:objectNamePlural',
   RecordShowPage = '/object/:objectNameSingular/:objectRecordId',
   PageLayoutPage = '/page/:pageLayoutId',
-  WorkflowCoreIndexPage = '/workflow-core',
+  WorkflowCoreShowPage = '/workflow/:coreWorkflowId',
 
   Settings = `settings`,
   SettingsCatchAll = `/${Settings}/*`,

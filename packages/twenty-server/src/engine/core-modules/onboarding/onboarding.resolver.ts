@@ -14,14 +14,27 @@ import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.ent
 import { AuthUser } from 'src/engine/decorators/auth/auth-user.decorator';
 import { AuthUserWorkspaceId } from 'src/engine/decorators/auth/auth-user-workspace-id.decorator';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
+import { AllowSuspendedWorkspace } from 'src/engine/decorators/auth/allow-suspended-workspace.decorator';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
-import { UserAuthGuard } from 'src/engine/guards/user-auth.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 
-@UseGuards(WorkspaceAuthGuard, UserAuthGuard)
+@UseGuards(
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: false,
+    oauthClient: false,
+    application: false,
+  }),
+)
 @UsePipes(ResolverValidationPipe)
 @UseFilters(PreventNestToAutoLogGraphqlErrorsFilter)
 @MetadataResolver()
+@AllowSuspendedWorkspace()
 export class OnboardingResolver {
   constructor(
     private readonly onboardingService: OnboardingService,

@@ -16,6 +16,7 @@ import { JobStatusDTO } from 'src/engine/core-modules/message-queue/dtos/job-sta
 import { ApplicationJobService } from 'src/engine/core-modules/application/application-job/services/application-job.service';
 import { type FlatApplication } from 'src/engine/core-modules/application/types/flat-application.type';
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
+import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
 import { ResolverValidationPipe } from 'src/engine/core-modules/graphql/pipes/resolver-validation.pipe';
 import { type FlatWorkspace } from 'src/engine/core-modules/workspace/types/flat-workspace.type';
 import { AuthApplication } from 'src/engine/decorators/auth/auth-application.decorator';
@@ -23,10 +24,23 @@ import { AuthUserWorkspaceId } from 'src/engine/decorators/auth/auth-user-worksp
 import { AuthUser } from 'src/engine/decorators/auth/auth-user.decorator';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 
-@UseGuards(WorkspaceAuthGuard, NoPermissionGuard)
-@UseFilters(ApplicationExceptionFilter)
+@UseGuards(
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  }),
+  NoPermissionGuard,
+)
+@UseFilters(ApplicationExceptionFilter, AuthGraphqlApiExceptionFilter)
 @UsePipes(ResolverValidationPipe)
 @MetadataResolver()
 export class ApplicationJobResolver {

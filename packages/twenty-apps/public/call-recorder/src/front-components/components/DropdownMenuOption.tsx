@@ -5,7 +5,7 @@ import {
   StyledMenuItemIconCheck,
   StyledMenuItemSelect,
 } from 'twenty-ui/navigation';
-import { useTheme } from 'twenty-ui/theme-constants';
+import { useTheme } from 'twenty-ui/theme';
 
 const StyledOptionContainer = styled.div`
   cursor: pointer;

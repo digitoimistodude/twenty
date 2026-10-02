@@ -19,11 +19,11 @@ import { useRemoveFocusItemFromFocusStackById } from '@/ui/utilities/focus/hooks
 import { FocusComponentType } from '@/ui/utilities/focus/types/FocusComponentType';
 import { isStandaloneVariableString } from 'twenty-shared/workflow';
 import { isArray } from '@sniptt/guards';
-import { useContext, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
 import { VisibilityHidden } from 'twenty-ui/primitives/accessibility';
 import { IconChevronDown } from 'twenty-ui/icon';
-import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
+import { useTheme, themeCssVariables } from 'twenty-ui/theme';
 
 type FormMultiSelectFieldInputProps = {
   label?: string;
@@ -38,13 +38,22 @@ type FormMultiSelectFieldInputProps = {
   dropdownWidth?: number;
 };
 
+const StyledFormFieldInputRowContainer = styled(FormFieldInputRowContainer)`
+  height: auto;
+  min-height: 32px;
+`;
+
+const StyledMultiSelectDisplay = styled(MultiSelectDisplay)`
+  flex-wrap: wrap;
+`;
+
 const StyledDisplayModeReadonlyContainer = styled.div`
   align-items: center;
   background: transparent;
   border: none;
   display: flex;
   font-family: inherit;
-  padding-inline: ${themeCssVariables.spacing[2]};
+  padding: ${themeCssVariables.spacing[1]} ${themeCssVariables.spacing[2]};
   width: 100%;
 `;
 
@@ -55,13 +64,13 @@ const StyledDisplayModeContainer = styled.div`
   cursor: pointer;
   display: flex;
   font-family: inherit;
-  padding-inline: ${themeCssVariables.spacing[2]};
+  padding: ${themeCssVariables.spacing[1]} ${themeCssVariables.spacing[2]};
   width: 100%;
 `;
 
 const StyledSelectInputContainer = styled.div`
   position: absolute;
-  top: ${themeCssVariables.spacing[9]};
+  top: calc(100% + ${themeCssVariables.spacing[1]});
   z-index: 1;
 `;
 
@@ -89,7 +98,7 @@ export const FormMultiSelectFieldInput = ({
   hint,
   dropdownWidth,
 }: FormMultiSelectFieldInputProps) => {
-  const { theme } = useContext(ThemeContext);
+  const theme = useTheme();
   const instanceId = useId();
 
   const { pushFocusItemToFocusStack } = usePushFocusItemToFocusStack();
@@ -209,7 +218,7 @@ export const FormMultiSelectFieldInput = ({
     <FormFieldInputContainer data-testid={testId}>
       {label ? <Field.Label>{label}</Field.Label> : null}
 
-      <FormFieldInputRowContainer>
+      <StyledFormFieldInputRowContainer>
         <FormFieldInputInnerContainer
           formFieldInputInstanceId={instanceId}
           hasRightElement={isDefined(VariablePicker) && !readonly}
@@ -219,7 +228,7 @@ export const FormMultiSelectFieldInput = ({
             readonly ? (
               <StyledDisplayModeReadonlyContainer>
                 {isDefined(selectedOptions) && selectedOptions.length > 0 ? (
-                  <MultiSelectDisplay
+                  <StyledMultiSelectDisplay
                     values={selectedNames}
                     options={selectedOptions}
                   />
@@ -241,7 +250,7 @@ export const FormMultiSelectFieldInput = ({
                 <VisibilityHidden>{t`Edit`}</VisibilityHidden>
 
                 {isDefined(selectedOptions) && selectedOptions.length > 0 ? (
-                  <MultiSelectDisplay
+                  <StyledMultiSelectDisplay
                     values={selectedNames}
                     options={selectedOptions}
                   />
@@ -292,7 +301,7 @@ export const FormMultiSelectFieldInput = ({
             onVariableSelect={handleVariableTagInsert}
           />
         )}
-      </FormFieldInputRowContainer>
+      </StyledFormFieldInputRowContainer>
       {hint ? <Field.Description>{hint}</Field.Description> : null}
     </FormFieldInputContainer>
   );

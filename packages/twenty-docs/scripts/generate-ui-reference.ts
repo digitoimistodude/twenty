@@ -6,10 +6,10 @@ import {
   type TokenDocumentation,
 } from '../../twenty-ui/docs/types';
 import { checkUiReferenceImports } from './ui/check-ui-reference-imports';
-import {
-  renderComponentReference,
-  renderTokenReference,
-} from './ui/render-ui-reference';
+import { renderComponentReference } from './ui/render-component-reference';
+import { type IconDocumentationGroup } from '../../twenty-ui/docs/IconDocumentationGroup';
+import { renderIconReference } from './ui/render-icon-reference';
+import { renderTokenReference } from './ui/render-ui-reference';
 import { syncUiReferenceFiles } from './ui/sync-ui-reference-files';
 
 const GENERATED_HEADER = `{/*
@@ -34,12 +34,16 @@ const components: ComponentDocumentation[] = JSON.parse(
 const tokens: TokenDocumentation[] = JSON.parse(
   readFileSync(resolve(dataRoot, 'tokens.docs.json'), 'utf8'),
 );
+const iconGroups: IconDocumentationGroup[] = JSON.parse(
+  readFileSync(resolve(dataRoot, 'icons.docs.json'), 'utf8'),
+);
 const outputs = [
   ...components.map((component) => ({
     name: `${component.slug}.mdx`,
     content: renderComponentReference(component),
   })),
   { name: 'tokens.mdx', content: renderTokenReference(tokens) },
+  { name: 'icon/catalog.mdx', content: renderIconReference(iconGroups) },
 ];
 
 const syncErrors = syncUiReferenceFiles({

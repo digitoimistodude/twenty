@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
 import { IconPlus } from 'twenty-ui/icon';
 import { Button } from 'twenty-ui/primitives/input';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 import { type Comment } from '@/activities/comments/types/Comment';
 import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';

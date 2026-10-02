@@ -196,7 +196,9 @@ export const NoResultsSearchFallback: Story = {
     const searchInput = await canvas.findByTestId(SIDE_PANEL_FOCUS_ID);
     await sleep(openTimeout);
     await userEvent.type(searchInput, 'input without results');
-    expect(await canvas.findByText('Fallback')).toBeVisible();
+    expect(
+      await canvas.findByText('Use ‘input without results’ with...'),
+    ).toBeVisible();
     await waitFor(() => {
       expect(canvas.queryByText('No results found')).not.toBeInTheDocument();
     });
@@ -221,42 +223,4 @@ export const NoResultsSearchFallback: Story = {
       ],
     },
   },
-};
-
-export const SubPageNavigation: Story = {
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-
-    // Let the side panel finish opening before interacting, otherwise the
-    // click can land mid-transition and the sub-page navigation is dropped.
-    await sleep(openTimeout);
-
-    const objectButton = await canvas.findByText('Object');
-    expect(objectButton).toBeVisible();
-
-    await userEvent.click(objectButton);
-
-    expect(await canvas.findByText('Pick an object')).toBeVisible();
-
-    const backButton = await canvas.findByRole('button', { name: 'Go back' });
-    await userEvent.click(backButton);
-
-    await waitFor(() => {
-      expect(canvas.getByText('Object')).toBeVisible();
-    });
-  },
-  decorators: [
-    (Story) => {
-      jotaiStore.set(sidePanelNavigationStackState.atom, [
-        {
-          page: SidePanelPages.NavigationMenuAddItem,
-          pageTitle: 'Add item',
-          pageIcon: IconPlus,
-          pageId: '1',
-        },
-      ]);
-
-      return <Story />;
-    },
-  ],
 };

@@ -23,17 +23,29 @@ import {
   RequireFeatureFlag,
 } from 'src/engine/guards/feature-flag.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 import { MessageSuppressionService } from 'src/modules/emailing/services/message-suppression.service';
+import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
 
 @UseGuards(
-  WorkspaceAuthGuard,
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  }),
   FeatureFlagGuard,
   SettingsPermissionGuard(PermissionFlagType.WORKSPACE),
 )
 @UseFilters(
   EmailGroupAccessGraphqlApiExceptionFilter,
   EmailingDomainGraphqlApiExceptionFilter,
+  AuthGraphqlApiExceptionFilter,
 )
 @UsePipes(ResolverValidationPipe)
 @MetadataResolver(() => MessageSuppressionListDTO)

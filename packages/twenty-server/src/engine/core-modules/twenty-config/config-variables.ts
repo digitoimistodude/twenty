@@ -35,11 +35,14 @@ import { EmailDriver } from 'src/engine/core-modules/email/enums/email-driver.en
 import { EmailingDomainDriver } from 'src/engine/core-modules/emailing-domain/drivers/types/emailing-domain-driver.type';
 import { ExceptionHandlerDriver } from 'src/engine/core-modules/exception-handler/interfaces';
 import { StorageDriverType } from 'src/engine/core-modules/file-storage/interfaces';
+import { ADDRESS_AUTOCOMPLETE_DRIVER_TYPE } from 'src/engine/core-modules/geo-map/constants/address-autocomplete-driver-type.constant';
+import { type AddressAutocompleteDriverType } from 'src/engine/core-modules/geo-map/types/address-autocomplete-driver-type.type';
 import {
   LoggerDriverType,
   type TwentyLogLevel,
 } from 'src/engine/core-modules/logger/interfaces';
 import { type MeterDriver } from 'src/engine/core-modules/metrics/types/meter-driver.type';
+import { MeterTemporality } from 'src/engine/core-modules/metrics/types/meter-temporality.type';
 import { CastToLogLevelArray } from 'src/engine/core-modules/twenty-config/decorators/cast-to-log-level-array.decorator';
 import { CastToMeterDriverArray } from 'src/engine/core-modules/twenty-config/decorators/cast-to-meter-driver.decorator';
 import { CastToPositiveNumber } from 'src/engine/core-modules/twenty-config/decorators/cast-to-positive-number.decorator';
@@ -523,7 +526,7 @@ export class ConfigVariables {
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.EMAIL_SETTINGS,
     description:
-      'Hostname announced in the SMTP EHLO greeting, when the machine hostname is not fully qualified',
+      'Hostname sent in the SMTP EHLO greeting. Defaults to the machine hostname; set a fully qualified name if the relay rejects it',
     type: ConfigVariableType.STRING,
   })
   @IsOptional()
@@ -697,6 +700,26 @@ export class ConfigVariables {
   @CastToPositiveNumber()
   @IsOptional()
   MAX_TARBALL_UPLOAD_SIZE_BYTES: number = 100 * 1024 * 1024;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.STORAGE_CONFIG,
+    description:
+      'Maximum bytes of file storage a single workspace may hold, all its files counted. An upload that would cross it is refused',
+    type: ConfigVariableType.NUMBER,
+  })
+  @CastToPositiveNumber()
+  @IsOptional()
+  WORKSPACE_STORAGE_LIMIT_BYTES: number = 100 * 1024 * 1024 * 1024;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.STORAGE_CONFIG,
+    description:
+      'Maximum number of records a single workspace may hold across its objects, system objects other than messages and calendar events left out, soft-deleted records included. A write that would cross it is refused',
+    type: ConfigVariableType.NUMBER,
+  })
+  @CastToPositiveNumber()
+  @IsOptional()
+  WORKSPACE_RECORD_LIMIT: number = 10_000_000;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.LOGIC_FUNCTION_CONFIG,
@@ -967,7 +990,7 @@ export class ConfigVariables {
   })
   @CastToPositiveNumber()
   @ValidateIf((env) => env.IS_BILLING_ENABLED === true)
-  BILLING_FREE_WORKFLOW_CREDITS_FOR_TRIAL_PERIOD_WITH_CREDIT_CARD = 1_000_000;
+  BILLING_FREE_WORKFLOW_CREDITS_FOR_TRIAL_PERIOD_WITH_CREDIT_CARD = 2_500_000;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.BILLING_CONFIG,
@@ -1079,7 +1102,7 @@ export class ConfigVariables {
   @CastToPositiveNumber()
   @IsInt()
   @IsOptional()
-  ONBOARDING_INVITE_TEAM_MAX_INVITES = 10;
+  ONBOARDING_INVITE_TEAM_MAX_INVITES = 5;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.BILLING_CONFIG,
@@ -1095,13 +1118,13 @@ export class ConfigVariables {
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.BILLING_CONFIG,
     description:
-      'Free credits granted per app installed during the install-apps onboarding step (in microCredits)',
+      'Free credits granted for installing apps during the install-apps onboarding step, whatever the number of apps (in microCredits)',
     type: ConfigVariableType.NUMBER,
   })
   @CastToPositiveNumber()
   @IsInt()
   @IsOptional()
-  ONBOARDING_INSTALL_APPS_CREDITS_REWARD_PER_APP = 500_000;
+  ONBOARDING_INSTALL_APPS_CREDITS_REWARD = 500_000;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.BILLING_CONFIG,
@@ -1124,6 +1147,22 @@ export class ConfigVariables {
   @IsUrl({ require_tld: false, require_protocol: true })
   @IsOptional()
   FRONTEND_URL: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.SERVER_CONFIG,
+    description:
+      'Direct HTTPS origin URL for deployments that publish frontend HTML separately. Leave unset for standard self-hosted installations to use bundled HTML.',
+    type: ConfigVariableType.STRING,
+    isEnvOnly: true,
+    isHiddenInAdminPanel: true,
+  })
+  @IsUrl({
+    protocols: ['https'],
+    require_tld: false,
+    require_protocol: true,
+  })
+  @IsOptional()
+  FRONTEND_INDEX_URL: string | undefined;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.SERVER_CONFIG,
@@ -1165,6 +1204,16 @@ export class ConfigVariables {
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.LOGGING,
+    description:
+      'Log one line per API request with the actor, the endpoint and the trace ids',
+    type: ConfigVariableType.BOOLEAN,
+    isEnvOnly: true,
+  })
+  @IsOptional()
+  API_ACCESS_LOG_ENABLED = false;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.LOGGING,
     description: 'Driver used for handling exceptions (Console or Sentry)',
     type: ConfigVariableType.ENUM,
     options: Object.values(ExceptionHandlerDriver),
@@ -1197,6 +1246,29 @@ export class ConfigVariables {
   @CastToMeterDriverArray()
   @IsOptional()
   METER_DRIVER: MeterDriver[] = [];
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.LOGGING,
+    description:
+      'Interval in milliseconds between two metric exports, for the drivers that push them: opentelemetry and console. The prometheus driver is scraped, so it is unaffected. Read before the config store is available, so it cannot be overridden from the database.',
+    type: ConfigVariableType.NUMBER,
+    isEnvOnly: true,
+  })
+  @CastToPositiveNumber()
+  @IsOptional()
+  METER_EXPORT_INTERVAL_MS = 30_000;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.LOGGING,
+    description:
+      'Temporality of the metrics pushed by the opentelemetry driver: delta sends what changed since the previous export, cumulative sends running totals on every export. Read before the config store is available, so it cannot be overridden from the database.',
+    type: ConfigVariableType.ENUM,
+    options: Object.values(MeterTemporality),
+    isEnvOnly: true,
+  })
+  @IsOptional()
+  @IsEnum(MeterTemporality)
+  METER_TEMPORALITY: MeterTemporality = MeterTemporality.Delta;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.LOGGING,
@@ -1429,6 +1501,17 @@ export class ConfigVariables {
     allow_underscores: true,
   })
   REDIS_QUEUE_URL: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description:
+      'Key prefix for BullMQ queue keys. Wrap it in curly braces (e.g. "{twenty}") so all keys of a queue share one hash slot when Redis is clustered (Redis Cluster, Redis Enterprise / Azure Managed Redis), otherwise multi-key Lua scripts fail with CROSSSLOT. Changing it orphans jobs stored under the previous prefix.',
+    isEnvOnly: true,
+    type: ConfigVariableType.STRING,
+  })
+  @IsOptional()
+  @IsString()
+  REDIS_QUEUE_PREFIX: string = 'bull';
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.ADVANCED_SETTINGS,
@@ -1694,6 +1777,15 @@ export class ConfigVariables {
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.RATE_LIMITING,
     description:
+      'Maximum number of emails a single workspace may send per UTC day, campaign and one-off sends counted together. A workspace limit configured in the app replaces it',
+    type: ConfigVariableType.NUMBER,
+  })
+  @CastToPositiveNumber()
+  EMAIL_SEND_WORKSPACE_DAILY_LIMIT = 1_000;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.RATE_LIMITING,
+    description:
       'Time-to-live for the per-workspace outbound email send rate limiting window, in milliseconds',
     type: ConfigVariableType.NUMBER,
   })
@@ -1929,6 +2021,15 @@ export class ConfigVariables {
   })
   @IsOptional()
   MISTRAL_API_KEY?: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.LLM,
+    isSensitive: true,
+    description: 'API key for TypeSafe AI classification models (Jev)',
+    type: ConfigVariableType.STRING,
+  })
+  @IsOptional()
+  TYPESAFE_AI_API_KEY?: string;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.LLM,
@@ -2176,7 +2277,8 @@ export class ConfigVariables {
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.ADVANCED_SETTINGS,
-    description: 'Enable or disable google map api usage',
+    description:
+      'Enable or disable address autocomplete (see ADDRESS_AUTOCOMPLETE_DRIVER)',
     type: ConfigVariableType.BOOLEAN,
   })
   @IsOptional()
@@ -2184,11 +2286,29 @@ export class ConfigVariables {
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description:
+      'Address autocomplete driver: GOOGLE_PLACES (worldwide, requires GOOGLE_MAP_API_KEY) or BASE_ADRESSE_NATIONALE (French national address database, France only, no key needed)',
+    type: ConfigVariableType.ENUM,
+    options: Object.values(ADDRESS_AUTOCOMPLETE_DRIVER_TYPE),
+  })
+  @IsOptional()
+  @CastToUpperSnakeCase()
+  @IsIn(Object.values(ADDRESS_AUTOCOMPLETE_DRIVER_TYPE))
+  ADDRESS_AUTOCOMPLETE_DRIVER: AddressAutocompleteDriverType =
+    ADDRESS_AUTOCOMPLETE_DRIVER_TYPE.GOOGLE_PLACES;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
     isSensitive: true,
     description: 'Google map api key for places and map',
     type: ConfigVariableType.STRING,
   })
-  @ValidateIf((env) => env.IS_MAPS_AND_ADDRESS_AUTOCOMPLETE_ENABLED)
+  @ValidateIf(
+    (env) =>
+      env.IS_MAPS_AND_ADDRESS_AUTOCOMPLETE_ENABLED &&
+      env.ADDRESS_AUTOCOMPLETE_DRIVER ===
+        ADDRESS_AUTOCOMPLETE_DRIVER_TYPE.GOOGLE_PLACES,
+  )
   GOOGLE_MAP_API_KEY: string;
 
   @ConfigVariablesMetadata({
@@ -2393,7 +2513,7 @@ export class ConfigVariables {
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.ADVANCED_SETTINGS,
     description:
-      'Timeout in milliseconds for the search ILIKE fallback query per searchable object. Triggered only when the tsvector query returns 0 results on the first page (e.g. CJK input). When the timeout fires the fallback is skipped for that object.',
+      'Timeout in milliseconds for the search ILIKE fallback query per searchable object. Triggered only for input containing CJK characters when the tsvector query returns 0 results on the first page. When the timeout fires the fallback is skipped for that object.',
     type: ConfigVariableType.NUMBER,
     isEnvOnly: true,
   })

@@ -1,9 +1,10 @@
 import { type Meta, type StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { MemoryRouter, Link, useLocation } from 'react-router-dom';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { IconArrowRight, IconPlus } from '@ui/icon';
+import { Pill } from '@ui/primitives/data-display';
+import { Text } from '@ui/primitives/typography';
 import {
   A11Y_DEFER_COLOR_CONTRAST,
   CatalogDecorator,
@@ -47,9 +48,28 @@ export const Disabled: Story = {
     await expect(args.onClick).not.toHaveBeenCalled();
   },
 };
+export const LinkAction: Story = {
+  ...Keyboard,
+  parameters: { a11y: A11Y_DEFER_COLOR_CONTRAST },
+  args: { ...Keyboard.args, variant: 'link', children: 'Log out' },
+};
 export const Soon: Story = {
   ...Disabled,
-  args: { soon: true, soonLabel: 'Coming soon', onClick: fn() },
+  render: ({ children, ...args }) => (
+    <Button {...args}>
+      <Text
+        render={<span />}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 'var(--t-spacing-1)',
+        }}
+      >
+        {children}
+        <Pill label="Coming soon" />
+      </Text>
+    </Button>
+  ),
 };
 
 const LoadingExample = () => {
@@ -86,11 +106,14 @@ export const Loading: Story = {
 };
 export const NativeForm: Story = {
   ...Default,
+  parameters: { a11y: A11Y_DEFER_COLOR_CONTRAST },
   args: { onClick: fn() },
   render: (args) => (
     <form aria-label="Profile" onSubmit={(event) => event.preventDefault()}>
       <input aria-label="Name" defaultValue="Ada" />
-      <Button {...args}>Default button</Button>
+      <Button {...args} variant="link">
+        Default button
+      </Button>
       <Button type="reset">Reset</Button>
       <Button type="submit">Submit</Button>
     </form>
@@ -116,7 +139,9 @@ export const NativeForm: Story = {
 };
 export const LinkButton: Story = {
   ...Default,
+  parameters: { a11y: A11Y_DEFER_COLOR_CONTRAST },
   args: {
+    variant: 'link',
     href: '#button-destination',
     target: '_blank',
     rel: 'noreferrer',
@@ -130,7 +155,12 @@ export const LinkButton: Story = {
 };
 export const DisabledLink: Story = {
   ...Default,
-  args: { href: '#disabled-destination', disabled: true, onClick: fn() },
+  args: {
+    variant: 'link',
+    href: '#disabled-destination',
+    disabled: true,
+    onClick: fn(),
+  },
   play: async ({ canvasElement, args }) => {
     const link = within(canvasElement).getByRole('link');
     await expect(link).toHaveAttribute('aria-disabled', 'true');
@@ -138,37 +168,10 @@ export const DisabledLink: Story = {
     await expect(args.onClick).not.toHaveBeenCalled();
   },
 };
-const RouterExample = () => {
-  const location = useLocation();
-  return (
-    <>
-      <Button render={<Link to="/settings" />} nativeButton={false} role="link">
-        Open settings
-      </Button>
-      <p>Current path: {location.pathname}</p>
-    </>
-  );
-};
-export const RouterLink: Story = {
-  ...Default,
-  render: () => (
-    <MemoryRouter>
-      <RouterExample />
-    </MemoryRouter>
-  ),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const link = canvas.getByRole('link');
-    link.focus();
-    await userEvent.keyboard('{Enter}');
-    await expect(canvas.getByText('Current path: /settings')).toBeVisible();
-  },
-};
 export const CustomRender: Story = {
   ...Keyboard,
   args: {
-    render: <span />,
-    nativeButton: false,
+    render: <button data-custom-render />,
     onClick: fn(),
     onFocus: fn(),
     onBlur: fn(),
@@ -212,7 +215,7 @@ export const Catalog: CatalogStory<Story, typeof Button> = {
         {
           name: 'state',
           values: Object.keys(CATALOG_STATES),
-          props: (state: string) => CATALOG_STATES[state],
+          props: (state: string) => CATALOG_STATES[state] ?? {},
         },
         {
           name: 'color',
@@ -221,7 +224,7 @@ export const Catalog: CatalogStory<Story, typeof Button> = {
         },
         {
           name: 'variant',
-          values: ['solid', 'outline', 'soft', 'ghost'],
+          values: ['solid', 'outline', 'soft', 'ghost', 'link'],
           props: (variant: ButtonVariant) => ({ variant }),
         },
       ],

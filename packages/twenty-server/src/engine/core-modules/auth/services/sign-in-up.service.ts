@@ -25,8 +25,7 @@ import {
   AppTokenType,
 } from 'src/engine/core-modules/app-token/app-token.entity';
 import { ApplicationService } from 'src/engine/core-modules/application/application.service';
-import { BillingCreditGrantType } from 'src/engine/core-modules/billing/enums/billing-credit-grant-type.enum';
-import { BillingCreditService } from 'src/engine/core-modules/billing/services/billing-credit.service';
+import { FileStorageService } from 'src/engine/core-modules/file-storage/services/file-storage.service';
 import { BillingService } from 'src/engine/core-modules/billing/services/billing.service';
 import {
   AuthException,
@@ -50,7 +49,7 @@ import {
   type PartialUserWithPicture,
   type SignInUpBaseParams,
   type SignInUpNewUserPayload,
-} from 'src/engine/core-modules/auth/types/signInUp.type';
+} from 'src/engine/core-modules/auth/types/sign-in-up.type';
 import { SubdomainManagerService } from 'src/engine/core-modules/domain/subdomain-manager/services/subdomain-manager.service';
 import { EnterprisePlanService } from 'src/engine/core-modules/enterprise/services/enterprise-plan.service';
 import { ExceptionHandlerService } from 'src/engine/core-modules/exception-handler/exception-handler.service';
@@ -96,10 +95,10 @@ export class SignInUpService {
     private readonly workspaceCacheService: WorkspaceCacheService,
     private readonly applicationService: ApplicationService,
     private readonly fileCorePictureService: FileCorePictureService,
+    private readonly fileStorageService: FileStorageService,
     private readonly exceptionHandlerService: ExceptionHandlerService,
     private readonly enterprisePlanService: EnterprisePlanService,
     private readonly eventLogEmitterService: EventLogEmitterService,
-    private readonly billingCreditService: BillingCreditService,
     private readonly billingService: BillingService,
     @InjectDataSource()
     private readonly dataSource: DataSource,
@@ -250,22 +249,10 @@ export class SignInUpService {
       params.invitation.type === AppTokenType.OnboardingInvitationToken &&
       params.userData.type === 'newUserWithPicture'
     ) {
-      try {
-        await this.billingCreditService.grantCredits({
-          workspaceId: invitationValidation.workspace.id,
-          amountMicro: this.twentyConfigService.get(
-            'ONBOARDING_INVITE_TEAM_CREDITS_REWARD_PER_USER',
-          ),
-          type: BillingCreditGrantType.ONBOARDING_REWARD,
-          reason: 'Onboarding reward: invited teammate signed up',
-          idempotencyKey: `onboarding-invite-team:${invitationValidation.workspace.id}:${updatedUser.id}`,
-        });
-      } catch (error) {
-        this.logger.error(
-          `Failed to credit onboarding invite reward for workspace ${invitationValidation.workspace.id}`,
-          error,
-        );
-      }
+      await this.onboardingService.creditInviteTeamReward({
+        workspaceId: invitationValidation.workspace.id,
+        userId: updatedUser.id,
+      });
     }
 
     await this.workspaceInvitationService.invalidateWorkspaceInvitation(
@@ -872,6 +859,11 @@ export class SignInUpService {
 
       return { user, workspace };
     } catch (error) {
+      await this.fileStorageService.invalidateStorageStock({
+        workspaceId,
+        applicationId: workspaceCustomApplicationId,
+      });
+
       const isSubdomainConflict =
         error instanceof QueryFailedError &&
         (error as QueryFailedErrorWithCode).code ===

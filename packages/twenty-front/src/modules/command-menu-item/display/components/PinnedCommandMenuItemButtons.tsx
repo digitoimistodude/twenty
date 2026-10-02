@@ -10,7 +10,7 @@ import { styled } from '@linaria/react';
 import { isDefined } from 'twenty-shared/utils';
 import { motion } from 'framer-motion';
 import { useContext, useMemo } from 'react';
-import { ThemeContext } from 'twenty-ui/theme-constants';
+import { useTheme } from 'twenty-ui/theme';
 import { useIsMobile } from 'twenty-ui/utilities';
 import {
   type CommandMenuItemFieldsFragment,
@@ -54,7 +54,7 @@ export const PinnedCommandMenuItemButtons = ({
   // space to measure it, so sibling actions stay adjacent to the buttons.
   containerWidth?: number;
 }) => {
-  const { theme } = useContext(ThemeContext);
+  const theme = useTheme();
   const { commandMenuItems, containerType } = useContext(CommandMenuContext);
   const isMobile = useIsMobile();
 
@@ -128,7 +128,8 @@ export const PinnedCommandMenuItemButtons = ({
                 EngineComponentKey.CREATE_NEW_RECORD ||
               item.engineComponentKey === EngineComponentKey.COMPOSE_CAMPAIGN ||
               item.engineComponentKey ===
-                EngineComponentKey.SEND_MESSAGE_CAMPAIGN
+                EngineComponentKey.SEND_MESSAGE_CAMPAIGN ||
+              item.engineComponentKey === EngineComponentKey.NEW_AI_CHAT
             }
           />
         </StyledCommandMenuItemContainer>

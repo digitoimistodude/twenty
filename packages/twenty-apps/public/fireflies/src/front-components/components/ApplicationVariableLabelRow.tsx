@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { Pill } from 'twenty-ui/data-display';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 const StyledLabelRow = styled.div`
   align-items: center;

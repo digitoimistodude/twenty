@@ -12,7 +12,7 @@ import { AuthUserWorkspaceId } from 'src/engine/decorators/auth/auth-user-worksp
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
 import { JwtAuthGuard } from 'src/engine/guards/jwt-auth.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 import {
   AiException,
   AiExceptionCode,
@@ -26,16 +26,31 @@ import { buildReasoningProviderOptions } from 'src/engine/metadata-modules/ai/ai
 import { buildAiTelemetry } from 'src/engine/metadata-modules/ai/ai-models/utils/build-ai-telemetry.util';
 import { withDedicatedAiTrace } from 'src/engine/metadata-modules/ai/ai-models/utils/with-dedicated-ai-trace.util';
 import { PermissionsRestApiExceptionFilter } from 'src/engine/metadata-modules/permissions/utils/permissions-rest-api-exception.filter';
+import { AuthRestApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-rest-api-exception.filter';
 import { AUTO_SELECT_MODEL_ID_BY_TIER } from 'twenty-shared/ai';
 
 @Controller(`${ApiPath.Rest}/ai`)
-@UseGuards(JwtAuthGuard, WorkspaceAuthGuard)
+@UseGuards(
+  JwtAuthGuard,
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  }),
+)
 @UseFilters(
   RestApiExceptionFilter,
   PermissionsRestApiExceptionFilter,
   AiRestApiExceptionFilter,
   UsageLimitRestApiExceptionFilter,
   BillingRestApiExceptionFilter,
+  AuthRestApiExceptionFilter,
 )
 export class AiGenerateTextController {
   constructor(

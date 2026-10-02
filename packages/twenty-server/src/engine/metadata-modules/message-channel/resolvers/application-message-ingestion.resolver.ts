@@ -1,4 +1,9 @@
-import { UseGuards, UseInterceptors, UsePipes } from '@nestjs/common';
+import {
+  UseGuards,
+  UseInterceptors,
+  UsePipes,
+  UseFilters,
+} from '@nestjs/common';
 import { Args, Mutation } from '@nestjs/graphql';
 
 import { MetadataResolver } from 'src/engine/api/graphql/graphql-config/decorators/metadata-resolver.decorator';
@@ -9,16 +14,31 @@ import { AuthApplication } from 'src/engine/decorators/auth/auth-application.dec
 import { AuthUserWorkspaceId } from 'src/engine/decorators/auth/auth-user-workspace-id.decorator';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 import { IngestAppMessagesInput } from 'src/engine/metadata-modules/message-channel/dtos/ingest-app-messages.input';
 import { IngestAppMessagesOutput } from 'src/engine/metadata-modules/message-channel/dtos/ingest-app-messages.output';
 import { MessageChannelGraphqlApiExceptionInterceptor } from 'src/engine/metadata-modules/message-channel/interceptors/message-channel-graphql-api-exception.interceptor';
 import { ApplicationMessageIngestionService } from 'src/engine/metadata-modules/message-channel/services/application-message-ingestion.service';
+import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
 
-@UseGuards(WorkspaceAuthGuard, NoPermissionGuard)
+@UseGuards(
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  }),
+  NoPermissionGuard,
+)
 @UseInterceptors(MessageChannelGraphqlApiExceptionInterceptor)
 @UsePipes(ResolverValidationPipe)
 @MetadataResolver()
+@UseFilters(AuthGraphqlApiExceptionFilter)
 export class ApplicationMessageIngestionResolver {
   constructor(
     private readonly applicationMessageIngestionService: ApplicationMessageIngestionService,

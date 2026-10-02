@@ -1,19 +1,19 @@
-import { i18n } from '@lingui/core';
 import { Menu } from '@base-ui/react/menu';
-import { CalendarEventIndicator } from './CalendarEventIndicator';
-import { IconButton } from '@ui/primitives/input/IconButton/IconButton';
+import { i18n } from '@lingui/core';
+import { IconButton } from '@ui/components/input/IconButton/IconButton';
+import { MenuItem } from '@ui/components/navigation/MenuItem/MenuItem';
 import { Button } from '@ui/primitives/input/Button/Button';
-import { MenuItem } from '@ui/primitives/navigation/MenuItem/MenuItem';
-import styles from './MeetingRow.module.scss';
 import {
+  IconArrowUpRight,
   IconCalendarEvent,
   IconCalendarX,
   IconDotsVertical,
-  IconArrowUpRight,
 } from 'twenty-ui/icon';
 import { type Meeting } from '../../shared/types/Meeting';
 import { type ActionProps } from '../types/ActionProps';
 import { formatTime } from '../utils/formatTime';
+import { CalendarEventIndicator } from './CalendarEventIndicator';
+import styles from './MeetingRow.module.scss';
 
 type MeetingRowProps = Pick<ActionProps, 'command' | 'isPending'> & {
   meeting: Meeting;
@@ -68,11 +68,12 @@ export const MeetingRow = ({
           <Menu.Trigger
             render={
               <IconButton
-                variant="tertiary"
-                Icon={IconDotsVertical}
-                size="medium"
-                ariaLabel={i18n._('Meeting options')}
-              />
+                variant="ghost"
+                size="md"
+                aria-label={i18n._('Meeting options')}
+              >
+                <IconDotsVertical />
+              </IconButton>
             }
           />
           <Menu.Portal>

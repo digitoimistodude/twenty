@@ -23,7 +23,7 @@ import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorat
 import { MetadataResolver } from 'src/engine/api/graphql/graphql-config/decorators/metadata-resolver.decorator';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 import { CreatePageLayoutWidgetInput } from 'src/engine/metadata-modules/page-layout-widget/dtos/inputs/create-page-layout-widget.input';
 import { UpdatePageLayoutWidgetInput } from 'src/engine/metadata-modules/page-layout-widget/dtos/inputs/update-page-layout-widget.input';
 import { PageLayoutWidgetDTO } from 'src/engine/metadata-modules/page-layout-widget/dtos/page-layout-widget.dto';
@@ -33,11 +33,24 @@ import { resolveEffectiveEntityProperty } from 'src/engine/metadata-modules/over
 import { PageLayoutGraphqlApiExceptionFilter } from 'src/engine/metadata-modules/page-layout/utils/page-layout-graphql-api-exception.filter';
 import { WorkspaceMigrationGraphqlApiExceptionInterceptor } from 'src/engine/workspace-manager/workspace-migration/interceptors/workspace-migration-graphql-api-exception.interceptor';
 import { ApplicationTranslationCatalogService } from 'src/engine/metadata-modules/application-translation-catalog/services/application-translation-catalog.service';
+import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
 
 @MetadataResolver(() => PageLayoutWidgetDTO)
 @UseInterceptors(WorkspaceMigrationGraphqlApiExceptionInterceptor)
-@UseFilters(PageLayoutGraphqlApiExceptionFilter)
-@UseGuards(WorkspaceAuthGuard)
+@UseFilters(PageLayoutGraphqlApiExceptionFilter, AuthGraphqlApiExceptionFilter)
+@UseGuards(
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  }),
+)
 @UsePipes(ResolverValidationPipe)
 export class PageLayoutWidgetResolver {
   constructor(

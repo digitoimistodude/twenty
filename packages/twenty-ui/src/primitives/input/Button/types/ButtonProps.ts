@@ -5,7 +5,10 @@ import { type ButtonColor } from './ButtonColor';
 import { type ButtonSize } from './ButtonSize';
 import { type ButtonVariant } from './ButtonVariant';
 
-export type ButtonProps = Omit<ButtonPrimitive.Props, 'color'> &
+export type ButtonProps = Omit<
+  ButtonPrimitive.Props,
+  'color' | 'nativeButton' | 'role'
+> &
   Pick<ComponentPropsWithRef<'a'>, 'href' | 'target' | 'rel' | 'download'> & {
     variant?: ButtonVariant;
     color?: ButtonColor;
@@ -16,6 +19,4 @@ export type ButtonProps = Omit<ButtonPrimitive.Props, 'color'> &
     startIcon?: ReactNode;
     endIcon?: ReactNode;
     hotkeys?: string[];
-    soon?: boolean;
-    soonLabel?: string;
   };

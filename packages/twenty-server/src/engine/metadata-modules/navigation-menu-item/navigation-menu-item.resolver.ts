@@ -1,4 +1,4 @@
-import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { UseGuards, UseInterceptors, UseFilters } from '@nestjs/common';
 import {
   Args,
   Context,
@@ -15,15 +15,17 @@ import { UUIDScalarType } from 'src/engine/api/graphql/workspace-schema-builder/
 import { ApiKeyEntity } from 'src/engine/core-modules/api-key/api-key.entity';
 import { ApplicationEntity } from 'src/engine/core-modules/application/application.entity';
 import { getWorkspaceAuthContext } from 'src/engine/core-modules/auth/storage/workspace-auth-context.storage';
+import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
 import { type I18nContext } from 'src/engine/core-modules/i18n/types/i18n-context.type';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { type IDataloaders } from 'src/engine/dataloaders/dataloader.interface';
 import { AuthApiKey } from 'src/engine/decorators/auth/auth-api-key.decorator';
 import { AuthUserWorkspaceId } from 'src/engine/decorators/auth/auth-user-workspace-id.decorator';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
+import { AllowSuspendedWorkspace } from 'src/engine/decorators/auth/allow-suspended-workspace.decorator';
 import { MetadataResolver } from 'src/engine/api/graphql/graphql-config/decorators/metadata-resolver.decorator';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 import { CreateNavigationMenuItemInput } from 'src/engine/metadata-modules/navigation-menu-item/dtos/create-navigation-menu-item.input';
 import { NavigationMenuItemDTO } from 'src/engine/metadata-modules/navigation-menu-item/dtos/navigation-menu-item.dto';
 import { RecordIdentifierDTO } from 'src/engine/metadata-modules/navigation-menu-item/dtos/record-identifier.dto';
@@ -34,12 +36,25 @@ import { resolveEffectiveEntityProperty } from 'src/engine/metadata-modules/over
 import { WorkspaceMigrationGraphqlApiExceptionInterceptor } from 'src/engine/workspace-manager/workspace-migration/interceptors/workspace-migration-graphql-api-exception.interceptor';
 import { ApplicationTranslationCatalogService } from 'src/engine/metadata-modules/application-translation-catalog/services/application-translation-catalog.service';
 
-@UseGuards(WorkspaceAuthGuard)
+@UseGuards(
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  }),
+)
 @UseInterceptors(
   WorkspaceMigrationGraphqlApiExceptionInterceptor,
   NavigationMenuItemGraphqlApiExceptionInterceptor,
 )
 @MetadataResolver(() => NavigationMenuItemDTO)
+@UseFilters(AuthGraphqlApiExceptionFilter)
 export class NavigationMenuItemResolver {
   constructor(
     private readonly navigationMenuItemService: NavigationMenuItemService,
@@ -78,6 +93,7 @@ export class NavigationMenuItemResolver {
 
   @Query(() => [NavigationMenuItemDTO])
   @UseGuards(NoPermissionGuard)
+  @AllowSuspendedWorkspace()
   async navigationMenuItems(
     @AuthWorkspace() workspace: WorkspaceEntity,
     @AuthUserWorkspaceId({ allowUndefined: true })

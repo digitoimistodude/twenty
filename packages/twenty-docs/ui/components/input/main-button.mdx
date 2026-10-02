@@ -19,7 +19,7 @@ text, and 12px horizontal padding. Its default color is neutral and size is `md`
 
 ## State ownership
 
-`MainButton` uses Button's state model and adds no state of its own. Your application supplies `loading`, `disabled`, and `soon`; there are no controlled and uncontrolled selection modes. See [Button's state ownership example](/ui/primitives/input/button#state-ownership) for managing an asynchronous action.
+`MainButton` uses Button's state model and adds no state of its own. Your application supplies `loading` and `disabled`; there are no controlled and uncontrolled selection modes. See [Button's state ownership example](/ui/primitives/input/button#state-ownership) for managing an asynchronous action.
 
 ## Usage
 
@@ -41,11 +41,13 @@ Keep page layout in your application's styling.
 ## Interaction
 
 `MainButton` accepts Button's native attributes, event handlers, refs, icon slots,
-`loading`, `disabled`, and `soon` props. Buttons default to `type="button"`;
+`loading` and `disabled` props. Buttons default to `type="button"`;
 set `type="submit"` explicitly for form submission.
 
-Use `href` for a link or compose a router link through `render`,
-`nativeButton={false}`, and `role="link"`. Routing belongs to the application.
+Use `href` for a link. Supply `render` to choose a custom root, including an
+application-owned router link. The root must preserve a native button, or an
+anchor when `href` is set. Button derives the interaction behavior from `href`.
+
 [ButtonGroup](/ui/primitives/input/button-group) can set a shared size, surface,
 and color. Consumer classes, including state functions, pass through to the root.
 

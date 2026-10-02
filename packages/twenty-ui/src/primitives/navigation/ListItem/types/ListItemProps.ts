@@ -39,11 +39,13 @@ export type ListItemProps = Omit<
   descriptionPlacement?: ListItemDescriptionPlacement;
   /** Trailing content, such as buttons, rendered after the content. */
   actions?: ReactNode;
+  actionsVisibility?: 'hover' | 'always';
   /**
    * Keyboard shortcut keys displayed at the end of the row. Registering the
    * shortcut is up to the application.
    */
   hotkeys?: string[];
+  hotkeysJoinLabel?: string;
   /** Shows a chevron indicating that the item opens a submenu. */
   hasSubmenu?: boolean;
 };

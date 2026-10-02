@@ -2,7 +2,7 @@ import { styled } from '@linaria/react';
 
 import { CommentTile } from '@/activities/comments/components/CommentTile';
 import { type Comment } from '@/activities/comments/types/Comment';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 type CommentListProps = {
   comments: Comment[];

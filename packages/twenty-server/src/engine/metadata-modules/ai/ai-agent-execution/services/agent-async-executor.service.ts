@@ -5,6 +5,7 @@ import {
   generateText,
   jsonSchema,
   type LanguageModelUsage,
+  type ModelMessage,
   Output,
   isStepCount,
   type StepResult,
@@ -48,7 +49,10 @@ import { WORKFLOW_AGENT_REGISTRY_TOOL_CATEGORIES } from 'src/engine/metadata-mod
 import { RunAgentAttachmentService } from 'src/engine/metadata-modules/ai/ai-agent-execution/services/run-agent-attachment.service';
 import { type AgentExecutionResult } from 'src/engine/metadata-modules/ai/ai-agent-execution/types/agent-execution-result.type';
 import { type AgentToolLoadingStrategy } from 'src/engine/metadata-modules/ai/ai-agent-execution/types/agent-tool-loading-strategy.type';
+import { assertAgentResponseFormatHasOutputFieldsOrThrow } from 'src/engine/metadata-modules/ai/ai-agent-execution/utils/assert-agent-response-format-has-output-fields-or-throw.util';
 import { buildAgentRolePermissionConfig } from 'src/engine/metadata-modules/ai/ai-agent-execution/utils/build-agent-role-permission-config.util';
+import { buildStrictAgentResponseSchema } from 'src/engine/metadata-modules/ai/ai-agent-execution/utils/build-strict-agent-response-schema.util';
+import { endsOnPausingToolCall } from 'src/engine/metadata-modules/ai/ai-agent-execution/utils/ends-on-pausing-tool-call.util';
 import { AGENT_CONFIG } from 'src/engine/metadata-modules/ai/ai-agent/constants/agent-config.const';
 import { STRUCTURED_OUTPUT_SYSTEM_PROMPT } from 'src/engine/metadata-modules/ai/ai-agent/constants/structured-output-system-prompt.const';
 import { type AgentEntity } from 'src/engine/metadata-modules/ai/ai-agent/entities/agent.entity';
@@ -269,9 +273,17 @@ export class AgentAsyncExecutorService {
     runAsRoleId,
     operationType = UsageOperationType.AI_WORKFLOW_TOKEN,
     toolLoadingStrategy = 'preload',
+    priorModelMessages = [],
+    pausingTools = {},
   }: {
     agent: AgentEntity | null;
     messages: RunAgentMessage[];
+    // A conversation being continued, with its tool calls and results, which
+    // plain run messages cannot carry.
+    priorModelMessages?: ModelMessage[];
+    // Tools whose call ends the execution so that the caller can wait for
+    // something outside it, such as a person answering.
+    pausingTools?: ToolSet;
     baseSystemPrompt: string;
     actorContext?: ActorMetadata;
     authContext?: WorkspaceAuthContext;
@@ -281,12 +293,14 @@ export class AgentAsyncExecutorService {
     operationType?: UsageOperationType;
     toolLoadingStrategy?: AgentToolLoadingStrategy;
   }): Promise<AgentExecutionResult> {
-    if (!isNonEmptyArray(messages)) {
+    if (!isNonEmptyArray(messages) && !isNonEmptyArray(priorModelMessages)) {
       throw new AiException(
         'Provide at least one message to run an agent',
         AiExceptionCode.INVALID_AGENT_INPUT,
       );
     }
+
+    assertAgentResponseFormatHasOutputFieldsOrThrow(agent?.responseFormat);
 
     await this.aiBillingService.assertAiExecutionAllowed({
       workspaceId,
@@ -386,15 +400,21 @@ export class AgentAsyncExecutorService {
         await this.runAgentAttachmentService.buildModelMessagesOrThrow({
           messages,
           workspaceId,
+          modalities: this.aiModelRegistryService.getModelConfig(
+            registeredModel.modelId,
+          )?.modalities,
         });
+
+      const offeredToolNames = Object.keys(pausingTools);
 
       const textResponse = await generateText({
         instructions: `${baseSystemPrompt}\n\n${agent ? tipTapDocumentToMarkdown(agent.prompt) : ''}${toolCatalogSection}`,
-        tools,
+        tools: { ...tools, ...pausingTools },
         model: registeredModel.model,
-        messages: modelMessages,
+        messages: [...priorModelMessages, ...modelMessages],
         stopWhen: (step) =>
           isStepCount(AGENT_CONFIG.MAX_STEPS)(step) ||
+          endsOnPausingToolCall({ steps: step.steps, offeredToolNames }) ||
           hasNoMoreAvailableCredits,
         providerOptions,
         ...buildAiTelemetry({
@@ -499,7 +519,13 @@ export class AgentAsyncExecutorService {
 
       let result: object = { response: textResponse.text };
 
-      if (agentSchema) {
+      const endsOnPausingTool = endsOnPausingToolCall({
+        steps: textResponse.steps,
+        offeredToolNames,
+      });
+
+      // An execution stopped on a pausing tool has no final answer to structure.
+      if (isDefined(agentSchema) && !endsOnPausingTool) {
         const structuredResult = await generateText({
           instructions: STRUCTURED_OUTPUT_SYSTEM_PROMPT,
           model: registeredModel.model,
@@ -508,7 +534,9 @@ export class AgentAsyncExecutorService {
                  Execution Results: ${textResponse.text}
 
                  Please generate the structured output based on the execution results and context above.`,
-          output: Output.object({ schema: jsonSchema(agentSchema) }),
+          output: Output.object({
+            schema: jsonSchema(buildStrictAgentResponseSchema(agentSchema)),
+          }),
           providerOptions: getCallLevelProviderOptions({
             sdkPackage: registeredModel.sdkPackage,
             providerOptions: undefined,
@@ -557,9 +585,9 @@ export class AgentAsyncExecutorService {
         result = structuredResult.output as object;
       }
 
-      const tokenCostInDollars = this.aiBillingService.calculateCost(
+      const tokenCostInDollars = this.aiBillingService.calculateStepsCost(
         registeredModel.modelId,
-        { usage: accumulatedUsage, cacheCreationTokens },
+        executionSteps,
       );
       const totalCostInDollars =
         tokenCostInDollars +
@@ -572,6 +600,9 @@ export class AgentAsyncExecutorService {
         cacheCreationTokens,
         nativeWebSearchCallCount,
         hasNoMoreAvailableCredits,
+        // An execution out of credits fails even if it asked something, so it
+        // must not be left waiting for an answer.
+        isPaused: endsOnPausingTool && !hasNoMoreAvailableCredits,
         steps: executionSteps,
         modelId: resolvedModelId,
         totalCostInDollars,
@@ -593,10 +624,10 @@ export class AgentAsyncExecutorService {
       // Nothing was generated when execution failed before a model resolved,
       // and pricing an unresolved id would throw over the original error.
       const costInDollars = isDefined(resolvedModelId)
-        ? this.aiBillingService.calculateCost(resolvedModelId, {
-            usage: accumulatedUsage,
-            cacheCreationTokens,
-          })
+        ? this.aiBillingService.calculateStepsCost(
+            resolvedModelId,
+            executionSteps,
+          )
         : 0;
       const creditsUsedMicro = convertDollarsToCreditsMicro(costInDollars);
       const totalTokens =

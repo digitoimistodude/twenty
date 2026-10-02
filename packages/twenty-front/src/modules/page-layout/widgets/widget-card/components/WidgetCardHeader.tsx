@@ -5,16 +5,16 @@ import { WidgetCardHeaderActionsRenderer } from '@/page-layout/widgets/widget-ca
 import { useAtomComponentFamilyStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentFamilyStateValue';
 import { styled } from '@linaria/react';
 import { t } from '@lingui/core/macro';
-import { type ReactNode, useContext } from 'react';
+import { type ReactNode } from 'react';
+import { IconButton } from 'twenty-ui/components';
+import { OverflowingTextWithTooltip } from 'twenty-ui/primitives/typography';
 import { IconTrash } from 'twenty-ui/icon';
-import { IconButton } from 'twenty-ui/primitives/input';
-import { OverflowingTextWithTooltip } from 'twenty-ui/primitives/surfaces';
 
 import { type WidgetCardVariant } from '@/page-layout/widgets/types/WidgetCardVariant';
 import { WidgetGrip } from '@/page-layout/widgets/widget-card/components/WidgetGrip';
 import { AnimatePresence, motion } from 'framer-motion';
 import { isDefined } from 'twenty-shared/utils';
-import { themeCssVariables, ThemeContext } from 'twenty-ui/theme-constants';
+import { useTheme, themeCssVariables } from 'twenty-ui/theme';
 export type WidgetCardHeaderProps = {
   variant: WidgetCardVariant;
   widgetId: string;
@@ -86,7 +86,7 @@ export const WidgetCardHeader = ({
   forbiddenDisplay,
   className,
 }: WidgetCardHeaderProps) => {
-  const { theme } = useContext(ThemeContext);
+  const theme = useTheme();
   const { formatNumber } = useNumberFormat();
   const widgetCardHovered = useAtomComponentFamilyStateValue(
     widgetCardHoveredComponentFamilyState,
@@ -129,11 +129,13 @@ export const WidgetCardHeader = ({
                 }}
               >
                 <IconButton
+                  aria-label={t`Remove widget`}
                   onClick={onRemove}
-                  Icon={IconTrash}
-                  variant="tertiary"
-                  size="small"
-                />
+                  variant="ghost"
+                  size="sm"
+                >
+                  <IconTrash />
+                </IconButton>
               </StyledIconButtonContainer>
             )}
         </AnimatePresence>

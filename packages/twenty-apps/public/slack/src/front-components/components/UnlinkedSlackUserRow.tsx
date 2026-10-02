@@ -6,7 +6,7 @@ import { isDefined } from 'twenty-sdk/utils';
 import { Avatar } from 'twenty-ui/data-display';
 import { Button } from 'twenty-ui/input';
 import { OverflowingTextWithTooltip } from 'twenty-ui/surfaces';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 import { InlineWorkspaceMemberPicker } from 'src/front-components/components/InlineWorkspaceMemberPicker';
 import {

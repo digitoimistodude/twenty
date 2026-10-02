@@ -15,18 +15,33 @@ import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.ent
 import { type IDataloaders } from 'src/engine/dataloaders/dataloader.interface';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
 import { CustomPermissionGuard } from 'src/engine/guards/custom-permission.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 import { WorkspaceManyOrAllFlatEntityMapsCacheService } from 'src/engine/metadata-modules/flat-entity/services/workspace-many-or-all-flat-entity-maps-cache.service';
 import { PermissionsGraphqlApiExceptionFilter } from 'src/engine/metadata-modules/permissions/utils/permissions-graphql-api-exception.filter';
+import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
 
 @CoreResolver()
 @UseFilters(
   SearchApiExceptionFilter,
   PermissionsGraphqlApiExceptionFilter,
   PreventNestToAutoLogGraphqlErrorsFilter,
+  AuthGraphqlApiExceptionFilter,
 )
 @UsePipes(ResolverValidationPipe)
-@UseGuards(WorkspaceAuthGuard, CustomPermissionGuard)
+@UseGuards(
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  }),
+  CustomPermissionGuard,
+)
 export class SearchResolver {
   constructor(
     private readonly searchService: SearchService,

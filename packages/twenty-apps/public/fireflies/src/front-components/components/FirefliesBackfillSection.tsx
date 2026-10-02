@@ -5,7 +5,7 @@ import { enqueueSnackbar } from 'twenty-sdk/front-component';
 import { Button } from 'twenty-ui/input';
 import { Section } from 'twenty-ui/layout';
 import { H2Title } from 'twenty-ui/typography';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 import { FIREFLIES_BACKFILL_MAX_WINDOW_DAYS } from 'src/constants/fireflies-backfill-max-window-days.constant';
 import { StyledSettingsTextInput } from 'src/front-components/components/StyledSettingsTextInput';

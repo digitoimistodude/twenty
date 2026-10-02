@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import { t } from 'twenty-sdk/front-component';
 import { IconFolder } from 'twenty-ui/icon';
 import { ICON } from 'twenty-ui/theme';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 const StyledEmptyState = styled.div`
   align-items: center;

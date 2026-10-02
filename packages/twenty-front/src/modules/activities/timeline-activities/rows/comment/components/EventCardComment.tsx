@@ -4,7 +4,7 @@ import { type Comment } from '@/activities/comments/types/Comment';
 import { useFindOneRecord } from '@/object-record/hooks/useFindOneRecord';
 import { getActivityPreview } from '@/activities/utils/getActivityPreview';
 import { isDefined } from 'twenty-shared/utils';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 const StyledContainer = styled.div`
   display: flex;

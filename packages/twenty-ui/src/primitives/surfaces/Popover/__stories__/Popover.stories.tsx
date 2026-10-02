@@ -4,14 +4,13 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
 import { IconX } from '@ui/icon';
 import { Button } from '@ui/primitives/input/Button/Button';
-import { IconButton } from '@ui/primitives/input/IconButton/IconButton';
 import {
   A11Y_DEFER_COLOR_CONTRAST,
   CatalogDecorator,
   type CatalogStory,
   ComponentDecorator,
 } from '@ui/testing';
-import { ThemeProvider } from '@ui/theme-constants/ThemeProvider';
+import { ThemeProvider } from '@ui/theme/ThemeProvider';
 
 import { Popover } from '../Popover';
 import { type PopoverPopupProps } from '../types/PopoverPopupProps';
@@ -53,7 +52,7 @@ const PopoverStory = ({
         </Button>
         <Popover.Close
           style={{ alignSelf: 'flex-start' }}
-          render={<IconButton Icon={IconX} ariaLabel="Close" size="small" />}
+          render={<Button aria-label="Close" size="sm" startIcon={<IconX />} />}
         />
       </Popover.Popup>
     </Popover.Root>

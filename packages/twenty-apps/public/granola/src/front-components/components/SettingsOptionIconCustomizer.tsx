@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { type IconComponent } from 'twenty-ui/icon';
 import { ICON } from 'twenty-ui/theme';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 // twenty-front reads these off ThemeContext, but a front component has no
 // ThemeProvider: the context default resolves every value to a var() string,

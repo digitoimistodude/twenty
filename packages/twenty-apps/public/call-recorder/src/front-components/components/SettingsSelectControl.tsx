@@ -4,7 +4,7 @@ import { type KeyboardEvent, type ReactNode, useRef } from 'react';
 import { IconChevronDown } from 'twenty-ui/icon';
 import { ICON } from 'twenty-ui/theme';
 import { OverflowingTextWithTooltip } from 'twenty-ui/surfaces';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 import { type SettingsSelectNavigationKey } from 'src/front-components/utils/get-next-active-option-index.util';
 

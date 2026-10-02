@@ -8,11 +8,36 @@ import ts from 'typescript';
 
 // TODO prastoin refactor this file in several one into its dedicated package and make it a TypeScript CLI
 
+const shouldCheck = process.argv.includes('--check');
+const writeGeneratedFile = ({
+  file,
+  content,
+}: {
+  file: string;
+  content: string;
+}) => {
+  if (fs.existsSync(file) && fs.readFileSync(file, 'utf8') === content) {
+    return;
+  }
+  if (shouldCheck) {
+    throw new Error(
+      `Generated exports are stale: ${file}. Run nx generateBarrels twenty-ui.`,
+    );
+  }
+  fs.writeFileSync(file, content, 'utf8');
+};
+
 const INDEX_FILENAME = 'index';
 const PACKAGE_JSON_FILENAME = 'package.json';
 const NX_PROJECT_CONFIGURATION_FILENAME = 'project.json';
 const PACKAGE_PATH = path.resolve('packages/twenty-ui');
 const SRC_PATH = path.resolve(`${PACKAGE_PATH}/src`);
+const STANDALONE_MODULES = [
+  'assets',
+  'components/code-editor',
+  'styles',
+  'testing',
+];
 const PACKAGE_JSON_PATH = path.join(PACKAGE_PATH, PACKAGE_JSON_FILENAME);
 const NX_PROJECT_CONFIGURATION_PATH = path.join(
   PACKAGE_PATH,
@@ -24,8 +49,14 @@ if (prettierConfigFile == null) {
   throw new Error('Prettier config file not found');
 }
 const prettierConfiguration = prettier.resolveConfig(prettierConfigFile);
-const prettierFormat = (str: string, parser: Options['parser']) =>
-  prettier.format(str, {
+const prettierFormat = ({
+  content,
+  parser,
+}: {
+  content: string;
+  parser: Options['parser'];
+}) =>
+  prettier.format(content, {
     ...prettierConfiguration,
     parser,
   });
@@ -49,15 +80,14 @@ const createTypeScriptFile = ({
  *                              |___/
  */
 `;
-  const formattedContent = prettierFormat(
-    `${header}\n${content}\n`,
-    'typescript',
-  );
-  fs.writeFileSync(
-    path.join(filePath, `${filename}.ts`),
-    formattedContent,
-    'utf-8',
-  );
+  const formattedContent = prettierFormat({
+    content: `${header}\n${content}\n`,
+    parser: 'typescript',
+  });
+  writeGeneratedFile({
+    file: path.join(filePath, `${filename}.ts`),
+    content: formattedContent,
+  });
 };
 
 const getModuleName = (moduleDirectory: string) =>
@@ -145,9 +175,11 @@ const generateModuleIndexFiles = (exportByBarrel: ExportByBarrel[]) => {
             .join('\n');
         })
         .join('\n');
-      const childModuleExports = childModuleDirectories.map(
-        (directory) => `export * from './${path.basename(directory)}';`,
-      );
+      const childModuleExports = childModuleDirectories
+        .filter(
+          (directory) => !STANDALONE_MODULES.includes(getModuleName(directory)),
+        )
+        .map((directory) => `export * from './${path.basename(directory)}';`);
       const content = [fileExports, ...childModuleExports]
         .filter((entry) => entry !== '')
         .join('\n');
@@ -174,7 +206,7 @@ const updateJsonFile = ({ content, file }: WriteInJsonFileArgs) => {
     ...prettierConfiguration,
     filepath: file,
   });
-  fs.writeFileSync(file, formattedContent, 'utf-8');
+  writeGeneratedFile({ file, content: formattedContent });
 };
 
 const writeInPackageJson = (update: JsonUpdate) => {
@@ -415,8 +447,7 @@ function extractExportsFromSourceFile(sourceFile: ts.SourceFile) {
             const exportName = element.name.text;
 
             // Check both the declaration and the individual specifier for type-only exports
-            const isTypeExport =
-              node.isTypeOnly || ts.isTypeOnlyExportDeclaration(node);
+            const isTypeExport = node.isTypeOnly || element.isTypeOnly;
             if (isTypeExport) {
               exports.push({
                 kind: 'type',
@@ -507,13 +538,12 @@ const retrieveExportsByBarrel = (barrelDirectories: string[]) => {
   });
 };
 
-const ROOT_BARREL_EXCLUDED_MODULES = ['assets', 'styles', 'testing'];
 const INDIVIDUAL_ENTRY_FILENAME = 'individual-entry';
 
 const getRootBarrelModuleNames = (moduleDirectories: string[]) =>
   moduleDirectories
     .map(getModuleName)
-    .filter((moduleName) => !ROOT_BARREL_EXCLUDED_MODULES.includes(moduleName));
+    .filter((moduleName) => !STANDALONE_MODULES.includes(moduleName));
 
 const generateRootBarrel = (
   moduleDirectories: string[],
@@ -542,8 +572,13 @@ const generateIndividualEntry = (
 const main = () => {
   const moduleDirectories = getSubDirectoryPaths(SRC_PATH);
   const barrelDirectories = [
-    ...moduleDirectories,
-    ...getSubDirectoryPaths(path.join(SRC_PATH, 'primitives')),
+    ...new Set([
+      ...moduleDirectories,
+      ...getSubDirectoryPaths(path.join(SRC_PATH, 'primitives')),
+      ...STANDALONE_MODULES.map((moduleName) =>
+        path.join(SRC_PATH, moduleName),
+      ),
+    ]),
   ].sort((first, second) => first.localeCompare(second));
   const exportsByBarrel = retrieveExportsByBarrel(barrelDirectories);
   const moduleIndexFiles = generateModuleIndexFiles(exportsByBarrel);

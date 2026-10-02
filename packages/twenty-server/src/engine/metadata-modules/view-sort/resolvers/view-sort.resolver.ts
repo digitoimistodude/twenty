@@ -7,7 +7,7 @@ import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.ent
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
 import { MetadataResolver } from 'src/engine/api/graphql/graphql-config/decorators/metadata-resolver.decorator';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 import { CreateViewSortInput } from 'src/engine/metadata-modules/view-sort/dtos/inputs/create-view-sort.input';
 import { UpdateViewSortInput } from 'src/engine/metadata-modules/view-sort/dtos/inputs/update-view-sort.input';
 import { ViewSortDTO } from 'src/engine/metadata-modules/view-sort/dtos/view-sort.dto';
@@ -17,10 +17,23 @@ import { DeleteViewSortInput } from 'src/engine/metadata-modules/view-sort/dtos/
 import { DestroyViewSortInput } from 'src/engine/metadata-modules/view-sort/dtos/inputs/destroy-view-sort.input';
 import { CreateViewChildEntityPermissionGuard } from 'src/engine/metadata-modules/view-permissions/guards/create-view-child-entity-permission.guard';
 import { ViewChildEntityPermissionGuard } from 'src/engine/metadata-modules/view-permissions/guards/view-child-entity-permission.guard';
+import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
 
 @MetadataResolver(() => ViewSortDTO)
-@UseFilters(ViewGraphqlApiExceptionFilter)
-@UseGuards(WorkspaceAuthGuard)
+@UseFilters(ViewGraphqlApiExceptionFilter, AuthGraphqlApiExceptionFilter)
+@UseGuards(
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  }),
+)
 export class ViewSortResolver {
   constructor(private readonly viewSortService: ViewSortService) {}
 

@@ -20,10 +20,11 @@ import { type I18nContext } from 'src/engine/core-modules/i18n/types/i18n-contex
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { type IDataloaders } from 'src/engine/dataloaders/dataloader.interface';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
+import { AllowSuspendedWorkspace } from 'src/engine/decorators/auth/allow-suspended-workspace.decorator';
 import { MetadataResolver } from 'src/engine/api/graphql/graphql-config/decorators/metadata-resolver.decorator';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
-import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
 import { PageLayoutTabDTO } from 'src/engine/metadata-modules/page-layout-tab/dtos/page-layout-tab.dto';
 import { PageLayoutWidgetDTO } from 'src/engine/metadata-modules/page-layout-widget/dtos/page-layout-widget.dto';
 import { CreatePageLayoutInput } from 'src/engine/metadata-modules/page-layout/dtos/inputs/create-page-layout.input';
@@ -38,11 +39,24 @@ import { PageLayoutGraphqlApiExceptionFilter } from 'src/engine/metadata-modules
 import { resolveEffectiveEntityProperty } from 'src/engine/metadata-modules/overrides/utils/resolve-effective-entity-property.util';
 import { WorkspaceMigrationGraphqlApiExceptionInterceptor } from 'src/engine/workspace-manager/workspace-migration/interceptors/workspace-migration-graphql-api-exception.interceptor';
 import { ApplicationTranslationCatalogService } from 'src/engine/metadata-modules/application-translation-catalog/services/application-translation-catalog.service';
+import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
 
 @MetadataResolver(() => PageLayoutDTO)
 @UseInterceptors(WorkspaceMigrationGraphqlApiExceptionInterceptor)
-@UseFilters(PageLayoutGraphqlApiExceptionFilter)
-@UseGuards(WorkspaceAuthGuard)
+@UseFilters(PageLayoutGraphqlApiExceptionFilter, AuthGraphqlApiExceptionFilter)
+@UseGuards(
+  AuthPrincipalGuard({
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  }),
+)
 @UsePipes(ResolverValidationPipe)
 export class PageLayoutResolver {
   constructor(
@@ -82,6 +96,7 @@ export class PageLayoutResolver {
 
   @Query(() => [PageLayoutDTO])
   @UseGuards(NoPermissionGuard)
+  @AllowSuspendedWorkspace()
   async getPageLayouts(
     @AuthWorkspace() workspace: WorkspaceEntity,
     @Args('objectMetadataId', { type: () => String, nullable: true })

@@ -530,10 +530,34 @@ const SettingsObjectNewIndex = lazy(() =>
   ),
 );
 
+const SettingsObjectNewValidationRule = lazy(() =>
+  import('~/pages/settings/data-model/validation-rules/SettingsObjectNewValidationRule').then(
+    (module) => ({
+      default: module.SettingsObjectNewValidationRule,
+    }),
+  ),
+);
+
+const SettingsObjectValidationRuleEdit = lazy(() =>
+  import('~/pages/settings/data-model/validation-rules/SettingsObjectValidationRuleEdit').then(
+    (module) => ({
+      default: module.SettingsObjectValidationRuleEdit,
+    }),
+  ),
+);
+
 const SettingsObjectFieldEdit = lazy(() =>
   import('~/pages/settings/data-model/SettingsObjectFieldEdit').then(
     (module) => ({
       default: module.SettingsObjectFieldEdit,
+    }),
+  ),
+);
+
+const SettingsObjectTranslations = lazy(() =>
+  import('~/pages/settings/data-model/SettingsObjectTranslations').then(
+    (module) => ({
+      default: module.SettingsObjectTranslations,
     }),
   ),
 );
@@ -828,7 +852,11 @@ const createSettingsRouteElements = ({
         element={<SettingsCustomDomainPage />}
       />
       <Route
-        path={SettingsPath.PublicDomain}
+        path={SettingsPath.ApplicationPublicDomainNew}
+        element={<SettingPublicDomain />}
+      />
+      <Route
+        path={SettingsPath.ApplicationPublicDomainDetail}
         element={<SettingPublicDomain />}
       />
       <Route path={SettingsPath.LegalDpa} element={<SettingsLegalDpa />} />
@@ -948,8 +976,28 @@ const createSettingsRouteElements = ({
         handle={MAIN_AND_SIDE_PANEL_SETTINGS_ROUTE_HANDLE}
       />
       <Route
+        path={SettingsPath.ObjectNewValidationRule}
+        element={<SettingsObjectNewValidationRule />}
+        handle={MAIN_AND_SIDE_PANEL_SETTINGS_ROUTE_HANDLE}
+      />
+      <Route
+        path={SettingsPath.ObjectValidationRuleEdit}
+        element={<SettingsObjectValidationRuleEdit />}
+        handle={MAIN_AND_SIDE_PANEL_SETTINGS_ROUTE_HANDLE}
+      />
+      <Route
         path={SettingsPath.ObjectFieldEdit}
         element={<SettingsObjectFieldEdit />}
+        handle={MAIN_AND_SIDE_PANEL_SETTINGS_ROUTE_HANDLE}
+      />
+      <Route
+        path={SettingsPath.ObjectTranslations}
+        element={<SettingsObjectTranslations />}
+        handle={MAIN_AND_SIDE_PANEL_SETTINGS_ROUTE_HANDLE}
+      />
+      <Route
+        path={SettingsPath.ObjectFieldTranslations}
+        element={<SettingsObjectTranslations />}
         handle={MAIN_AND_SIDE_PANEL_SETTINGS_ROUTE_HANDLE}
       />
     </Route>

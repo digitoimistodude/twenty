@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import { isUndefined } from '@sniptt/guards';
 import { IconMinus, IconPlus } from 'twenty-ui/icon';
 import { IconButton } from 'twenty-ui/input';
-import { themeCssVariables } from 'twenty-ui/theme-constants';
+import { themeCssVariables } from 'twenty-ui/theme';
 
 import { StyledSettingsTextInput } from 'src/front-components/components/StyledSettingsTextInput';
 

@@ -1,16 +1,11 @@
 import { styled } from '@linaria/react';
-import {
-  AnimatedPlaceholderEmptyContainer,
-  AnimatedPlaceholderEmptySubTitle,
-  AnimatedPlaceholderEmptyTextContainer,
-  AnimatedPlaceholderEmptyTitle,
-} from 'twenty-ui/primitives/feedback';
 
 import { CommentComposer } from '@/activities/comments/components/CommentComposer';
 import { CommentList } from '@/activities/comments/components/CommentList';
 import { useComments } from '@/activities/comments/hooks/useComments';
 import { CustomResolverFetchMoreLoader } from '@/activities/components/CustomResolverFetchMoreLoader';
 import { SkeletonLoader } from '@/activities/components/SkeletonLoader';
+import { EmptyState } from '@/ui/feedback/empty-state/components/EmptyState';
 import { useTargetRecord } from '@/ui/layout/contexts/useTargetRecord';
 
 const StyledCommentsContainer = styled.div`
@@ -46,16 +41,14 @@ export const CommentsCard = () => {
       {loading && isCommentsEmpty ? (
         <SkeletonLoader />
       ) : isCommentsEmpty ? (
-        <AnimatedPlaceholderEmptyContainer>
-          <AnimatedPlaceholderEmptyTextContainer>
-            <AnimatedPlaceholderEmptyTitle>
-              No comments
-            </AnimatedPlaceholderEmptyTitle>
-            <AnimatedPlaceholderEmptySubTitle>
+        <EmptyState.Root>
+          <EmptyState.Content>
+            <EmptyState.Title>No comments</EmptyState.Title>
+            <EmptyState.Description>
               There are no comments on this record yet.
-            </AnimatedPlaceholderEmptySubTitle>
-          </AnimatedPlaceholderEmptyTextContainer>
-        </AnimatedPlaceholderEmptyContainer>
+            </EmptyState.Description>
+          </EmptyState.Content>
+        </EmptyState.Root>
       ) : (
         <>
           <CommentList comments={comments} />

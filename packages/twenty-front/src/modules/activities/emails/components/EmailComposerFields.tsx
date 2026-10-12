@@ -135,8 +135,7 @@ const buildSignaturePreviewDocument = (
 type EmailComposerFieldsProps = {
   composerState: EmailComposerState;
   contextRecord?: EmailComposerContextRecord | null;
-  // Surfaces without a composer footer of their own pass this so attaching
-  // stays reachable from inside the form.
+  // For surfaces without a composer footer of their own.
   onAttachFiles?: () => void;
 };
 

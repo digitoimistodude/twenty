@@ -129,7 +129,7 @@ export const SearchWithPinnedDisabledAndAction: Story = {
       'Add option',
     ]);
     const disabled = within(popup).getByRole('button', { name: 'Option B' });
-    expect(disabled).toHaveAttribute('aria-disabled', 'true');
+    expect(disabled).toBeDisabled();
     await userEvent.click(disabled);
     expect(args.onChange).not.toHaveBeenCalled();
     await userEvent.click(
@@ -161,6 +161,12 @@ export const SearchWithPinnedDisabledAndAction: Story = {
     expect(args.onChange).toHaveBeenCalledWith('a');
     await waitFor(() => expect(popup).not.toBeInTheDocument());
     await waitFor(() => expect(trigger).toHaveFocus());
+
+    await userEvent.click(trigger);
+    const reopenedPopup = await body.findByRole('dialog');
+    expect(
+      within(reopenedPopup).getByRole('searchbox', { name: 'Search' }),
+    ).toHaveValue('');
   },
 };
 

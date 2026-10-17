@@ -13,6 +13,7 @@ import { shouldDestroyEventStreamState } from '@/sse-db-event/states/shouldDestr
 import { sseClientState } from '@/sse-db-event/states/sseClientState';
 import { sseEventStreamIdState } from '@/sse-db-event/states/sseEventStreamIdState';
 import { sseEventStreamReadyState } from '@/sse-db-event/states/sseEventStreamReadyState';
+import { isCurrentEventStream } from '@/sse-db-event/utils/isCurrentEventStream';
 import { isGracefullyHandledEventStreamError } from '@/sse-db-event/utils/isGracefullyHandledEventStreamError';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
 import { captureException } from '@sentry/react';
@@ -117,6 +118,7 @@ export const useTriggerEventStreamCreation = () => {
             ) {
               captureException(
                 new Error(
+                  // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is a stable event-stream diagnostic reported to Sentry.
                   `SSE subscription error: ${value.errors[0]?.message}`,
                 ),
               );
@@ -156,6 +158,7 @@ export const useTriggerEventStreamCreation = () => {
             );
           } catch (error) {
             const errorProcessingSSEMessage = new Error(
+              // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is a stable event-stream diagnostic reported to Sentry.
               'Error while processing SSE message',
               { cause: error instanceof Error ? error : undefined },
             );
@@ -168,6 +171,12 @@ export const useTriggerEventStreamCreation = () => {
           store.set(shouldDestroyEventStreamState.atom, true);
         },
         complete: () => {
+          if (
+            !isCurrentEventStream({ store, eventStreamId: newSseEventStreamId })
+          ) {
+            return;
+          }
+
           store.set(shouldDestroyEventStreamState.atom, true);
         },
       },

@@ -12,16 +12,6 @@ type CalendarDayCardContentProps = {
   divider?: boolean;
 };
 
-const StyledCardContentContainer = styled.div`
-  > div {
-    align-items: flex-start;
-    display: flex;
-    flex-direction: row;
-    gap: ${themeCssVariables.spacing[3]};
-    padding: ${themeCssVariables.spacing[2]} ${themeCssVariables.spacing[3]};
-  }
-`;
-
 const StyledDayCardContent = styled(Card.Content)`
   @keyframes calendarDayEnded {
     to {
@@ -29,8 +19,13 @@ const StyledDayCardContent = styled(Card.Content)`
     }
   }
 
+  align-items: flex-start;
   animation: calendarDayEnded calc(var(--t-animation-duration-fast) * 1s) ease
     forwards;
+  display: flex;
+  flex-direction: row;
+  gap: ${themeCssVariables.spacing[3]};
+  padding: ${themeCssVariables.spacing[2]} ${themeCssVariables.spacing[3]};
 `;
 
 const StyledDayContainer = styled.div`
@@ -67,27 +62,26 @@ export const CalendarDayCardContent = ({
   const endOfDayDate = endOfDay(getCalendarEventStartDate(calendarEvents[0]));
   const dayEndsIn = differenceInSeconds(endOfDayDate, Date.now());
 
+  // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is a date format or time-zone identifier.
   const weekDayLabel = format(endOfDayDate, 'EE');
   const monthDayLabel = format(endOfDayDate, 'dd');
 
   return (
-    <StyledCardContentContainer>
-      <StyledDayCardContent
-        divider={divider}
-        style={{ animationDelay: `${Math.max(0, dayEndsIn)}s` }}
-      >
-        <StyledDayContainer>
-          <StyledWeekDay>{weekDayLabel}</StyledWeekDay>
-          <StyledMonthDay>{monthDayLabel}</StyledMonthDay>
-        </StyledDayContainer>
-        <StyledEvents>
-          {calendarEvents.map((calendarEvent) => (
-            <StyledEventRowContainer key={calendarEvent.id}>
-              <CalendarEventRow calendarEvent={calendarEvent} />
-            </StyledEventRowContainer>
-          ))}
-        </StyledEvents>
-      </StyledDayCardContent>
-    </StyledCardContentContainer>
+    <StyledDayCardContent
+      divider={divider}
+      style={{ animationDelay: `${Math.max(0, dayEndsIn)}s` }}
+    >
+      <StyledDayContainer>
+        <StyledWeekDay>{weekDayLabel}</StyledWeekDay>
+        <StyledMonthDay>{monthDayLabel}</StyledMonthDay>
+      </StyledDayContainer>
+      <StyledEvents>
+        {calendarEvents.map((calendarEvent) => (
+          <StyledEventRowContainer key={calendarEvent.id}>
+            <CalendarEventRow calendarEvent={calendarEvent} />
+          </StyledEventRowContainer>
+        ))}
+      </StyledEvents>
+    </StyledDayCardContent>
   );
 };

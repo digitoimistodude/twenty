@@ -1,11 +1,10 @@
-import { useIsWorkflowCoreEnabled } from '@/workflow/hooks/useIsWorkflowCoreEnabled';
 import { HeadlessEngineCommandWrapperEffect } from '@/command-menu-item/engine-command/components/HeadlessEngineCommandWrapperEffect';
 import { useHeadlessCommandContextApi } from '@/command-menu-item/engine-command/hooks/useHeadlessCommandContextApi';
 import { useDuplicateWorkflow } from '@/workflow/hooks/useDuplicateWorkflow';
 import { useWorkflowWithCurrentVersion } from '@/workflow/hooks/useWorkflowWithCurrentVersion';
 import { useLingui } from '@lingui/react/macro';
 import { isNonEmptyString } from '@sniptt/guards';
-import { AppPath, CoreObjectNameSingular } from 'twenty-shared/types';
+import { AppPath } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 import { useToast } from 'twenty-ui/components/feedback';
 import { useNavigateApp } from '~/hooks/useNavigateApp';
@@ -16,12 +15,12 @@ export const DuplicateWorkflowSingleRecordCommand = () => {
   const recordId = selectedRecords[0]?.id;
   const workflow = useWorkflowWithCurrentVersion(recordId ?? '');
   const { duplicateWorkflow } = useDuplicateWorkflow();
-  const isCore = useIsWorkflowCoreEnabled();
   const navigate = useNavigateApp();
   const { enqueueToast } = useToast();
   const { t } = useLingui();
 
   if (!isDefined(recordId)) {
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is an internal command precondition diagnostic.
     throw new Error('Record ID is required to duplicate workflow');
   }
 
@@ -37,23 +36,16 @@ export const DuplicateWorkflowSingleRecordCommand = () => {
 
     if (isDefined(result) && isNonEmptyString(result.workflowId)) {
       enqueueToast({
-        variant: 'success',
+        status: 'success',
         children: t`Workflow duplicated successfully`,
       });
 
-      if (isCore) {
-        navigate(AppPath.WorkflowCoreShowPage, {
-          coreWorkflowId: result.workflowId,
-        });
-        return;
-      }
-      navigate(AppPath.RecordShowPage, {
-        objectNameSingular: CoreObjectNameSingular.Workflow,
-        objectRecordId: result.workflowId,
+      navigate(AppPath.WorkflowCoreShowPage, {
+        coreWorkflowId: result.workflowId,
       });
     } else {
       enqueueToast({
-        variant: 'error',
+        status: 'error',
         children: t`Failed to duplicate workflow`,
       });
     }

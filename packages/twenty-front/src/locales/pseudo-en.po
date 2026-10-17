@@ -474,6 +474,11 @@ msgstr ""
 msgid "{appDisplayName} would like to:"
 msgstr ""
 
+#. js-lingui-id: ST9xGf
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
+msgid "{appName} preferences"
+msgstr ""
+
 #. js-lingui-id: ZZZxmp
 #: src/pages/auth/Authorize.tsx
 msgid "{appName} would like to:"
@@ -803,8 +808,13 @@ msgid "{queuedMessage}, skipping {skipReasons}"
 msgstr ""
 
 #. js-lingui-id: r4MTJW
-#: src/modules/log-console/components/LogConsoleTimeRangeDropdown.tsx
+#: src/modules/log-console/hooks/useLogConsoleRetention.ts
 msgid "{retentionInDays, plural, one {# day} other {# days}}"
+msgstr ""
+
+#. js-lingui-id: HlXLUQ
+#: src/modules/log-console/hooks/useLogConsoleRetention.ts
+msgid "{retentionInHours, plural, one {# hour} other {# hours}}"
 msgstr ""
 
 #. js-lingui-id: 5d0hY6
@@ -1130,6 +1140,11 @@ msgstr ""
 msgid "2 Columns"
 msgstr ""
 
+#. js-lingui-id: Ur5nZV
+#: src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts
+msgid "2 hours"
+msgstr ""
+
 #. js-lingui-id: 0HAF12
 #: src/pages/settings/data-model/new-field/SettingsObjectNewFieldConfigure.tsx
 msgid "2. Configure field"
@@ -1365,6 +1380,7 @@ msgstr ""
 #: src/pages/settings/accounts/SettingsAccounts.tsx
 #: src/pages/settings/accounts/SettingsAccountsConfigurationStepCalendar.tsx
 #: src/pages/settings/accounts/SettingsAccountsConfigurationStepEmail.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 msgid "Account"
 msgstr ""
 
@@ -3109,6 +3125,7 @@ msgstr ""
 
 #. js-lingui-id: LMUw1U
 #: src/modules/log-console/constants/LogConsoleApplicationLogFilterFields.tsx
+#: src/modules/settings/app-preferences/components/SettingsNativeAccountAppsSection.tsx
 #: src/modules/settings/data-model/object-details/components/SettingsObjectFieldTable.tsx
 #: src/modules/settings/data-model/object-details/components/SettingsObjectRelationsTable.tsx
 #: src/modules/settings/roles/role-permissions/permission-flags/components/SettingsRolePermissionsSettingsTableHeader.tsx
@@ -3125,19 +3142,17 @@ msgstr ""
 
 #. js-lingui-id: Oh+wHS
 #: src/modules/log-console/constants/LogConsoleSources.tsx
+#: src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts
 msgid "App logs"
-msgstr ""
-
-#. js-lingui-id: ZGfGyx
-#: src/modules/log-console/hooks/useLogConsoleRetention.ts
-msgid "App logs are kept {retentionInDays} days."
 msgstr ""
 
 #. js-lingui-id: MAyGac
 #: src/modules/settings/admin-panel/constants/SettingsAdminFeatureFlagMetadata.ts
+#: src/modules/settings/app-preferences/components/SettingsNativeAccountAppsSection.tsx
 #: src/modules/settings/hooks/useSettingsNavigationItems.tsx
 #: src/pages/settings/accounts/SettingsAccountDetail.tsx
 #: src/pages/settings/accounts/SettingsAccounts.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 msgid "App preferences"
 msgstr ""
 
@@ -3705,11 +3720,6 @@ msgstr ""
 msgid "Audit Logs"
 msgstr ""
 
-#. js-lingui-id: APXe7E
-#: src/modules/log-console/hooks/useLogConsoleRetention.ts
-msgid "Audit logs are kept {retentionInDays} days."
-msgstr ""
-
 #. js-lingui-id: 6TRVUO
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
 msgid "Augment Code"
@@ -3823,6 +3833,7 @@ msgstr ""
 
 #. js-lingui-id: RpExX0
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Automatically create People records when receiving or sending emails"
 msgstr ""
 
@@ -4185,6 +4196,11 @@ msgstr ""
 msgid "Browse partners"
 msgstr ""
 
+#. js-lingui-id: 8nmCIQ
+#: src/modules/settings/event-logs/components/SettingsOpenLogConsoleCard.tsx
+msgid "Browse record changes, security events, app logs and more"
+msgstr ""
+
 #. js-lingui-id: GsXRxc
 #: src/modules/settings/data-model/indexes/forms/components/SettingsObjectIndexOptionsForm.tsx
 msgid "BTREE (default, good for sorting and equality)"
@@ -4348,9 +4364,9 @@ msgstr ""
 #: src/modules/activities/calendar/components/CalendarEventComposerFields.tsx
 #: src/modules/page-layout/widgets/record-table/types/RecordTableWidgetLayoutViewType.ts
 #: src/modules/settings/accounts/components/SettingsAccountsSettingsSection.tsx
-#: src/modules/settings/app-preferences/components/SettingsAccountGroupUsedBy.tsx
 #: src/modules/views/types/ViewType.ts
 #: src/pages/settings/accounts/SettingsAccountDetail.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 msgid "Calendar"
 msgstr ""
 
@@ -4467,11 +4483,6 @@ msgstr ""
 #. js-lingui-id: qIlodj
 #: src/modules/object-record/record-field/ui/form-types/components/FormPhoneFieldInput.tsx
 msgid "Calling Code"
-msgstr ""
-
-#. js-lingui-id: 9rnFEa
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
-msgid "Calls"
 msgstr ""
 
 #. js-lingui-id: rT2cV+
@@ -5027,6 +5038,11 @@ msgstr ""
 #. js-lingui-id: 02EFne
 #: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Choose which profile fields users with the Edit Profile permission can modify"
+msgstr ""
+
+#. js-lingui-id: 22LF79
+#: src/modules/settings/app-preferences/components/SettingsNativeAccountAppsSection.tsx
+msgid "Choose your preferences for the apps installed on your workspace by the admin"
 msgstr ""
 
 #. js-lingui-id: 3wV73y
@@ -5726,6 +5742,7 @@ msgstr ""
 
 #. js-lingui-id: no/yG9
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Configure what emails should get synced"
 msgstr ""
 
@@ -5837,16 +5854,19 @@ msgstr ""
 
 #. js-lingui-id: YLx3sC
 #: src/modules/settings/accounts/components/SettingsAccountsListEmptyStateCard.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesListEmptyStateCard.tsx
 msgid "Connect via IMAP/SMTP"
 msgstr ""
 
 #. js-lingui-id: Zgi9Fd
 #: src/modules/settings/accounts/components/SettingsAccountsListEmptyStateCard.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesListEmptyStateCard.tsx
 msgid "Connect with Google"
 msgstr ""
 
 #. js-lingui-id: IOfqM8
 #: src/modules/settings/accounts/components/SettingsAccountsListEmptyStateCard.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesListEmptyStateCard.tsx
 msgid "Connect with Microsoft"
 msgstr ""
 
@@ -5927,6 +5947,7 @@ msgstr ""
 #. js-lingui-id: Y2y0mC
 #: src/modules/settings/accounts/components/SettingsAccountsCalendarChannelDetails.tsx
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Contact auto-creation"
 msgstr ""
 
@@ -7175,6 +7196,11 @@ msgstr ""
 msgid "Custom views"
 msgstr ""
 
+#. js-lingui-id: T8n/Qf
+#: src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts
+msgid "Custom, up to 3 years"
+msgstr ""
+
 #. js-lingui-id: 876pfE
 #: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceBillingContent.tsx
 msgid "Customer"
@@ -7650,6 +7676,7 @@ msgstr ""
 #. js-lingui-id: bQkkFU
 #: src/modules/settings/accounts/components/SettingsAccountsCalendarChannelDetails.tsx
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Define what will be visible to other users in your workspace"
 msgstr ""
 
@@ -8433,11 +8460,13 @@ msgstr ""
 
 #. js-lingui-id: Emrbzc
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Don't create contacts from/to Gmail, Outlook emails"
 msgstr ""
 
 #. js-lingui-id: hHW6h5
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Don't import emails from team@ support@ noreply@..."
 msgstr ""
 
@@ -9088,14 +9117,13 @@ msgstr ""
 
 #. js-lingui-id: BXEcos
 #: src/modules/settings/accounts/components/SettingsAccountsSettingsSection.tsx
-#: src/modules/settings/app-preferences/components/SettingsAccountGroupUsedBy.tsx
 #: src/modules/settings/billing/constants/UsageLimitInvocationUnitLabels.ts
 #: src/modules/settings/billing/constants/UsageLimitInvocationUnitLabels.ts
 #: src/modules/settings/hooks/useSettingsNavigationItems.tsx
 #: src/pages/settings/accounts/SettingsAccountDetail.tsx
 #: src/pages/settings/accounts/SettingsAccountsEmails.tsx
 #: src/pages/settings/accounts/SettingsAccountsEmails.tsx
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 msgid "Emails"
 msgstr ""
 
@@ -9107,6 +9135,11 @@ msgstr ""
 #. js-lingui-id: VJ5blF
 #: src/modules/command-menu-item/engine-command/record/single-record/message-campaign/components/CancelMessageCampaignSingleRecordCommand.tsx
 msgid "Emails already handed to the provider cannot be recalled. This stops everything still waiting to be sent."
+msgstr ""
+
+#. js-lingui-id: USBKh+
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
+msgid "Emails from the blocklist will be ignored regardless of this setting."
 msgstr ""
 
 #. js-lingui-id: mHrqHa
@@ -9901,11 +9934,13 @@ msgstr ""
 
 #. js-lingui-id: QQlMid
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Exclude group emails"
 msgstr ""
 
 #. js-lingui-id: +tk2yZ
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Exclude non-professional emails"
 msgstr ""
 
@@ -11421,6 +11456,7 @@ msgstr ""
 #: src/modules/settings/domains/components/SettingsCustomDomain.tsx
 #: src/modules/settings/domains/components/SettingsSubdomain.tsx
 #: src/modules/settings/hooks/useSettingsNavigationItems.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 #: src/pages/settings/admin-panel/SettingsAdminApplicationRegistrationDetail.tsx
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationGeneralInfo.tsx
 #: src/pages/settings/applications/SettingsApplicationDetails.tsx
@@ -11551,7 +11587,7 @@ msgid "Global search"
 msgstr ""
 
 #. js-lingui-id: DSJEta
-#: src/modules/settings/app-preferences/components/SettingsAccountGroupUsedBy.tsx
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
 msgid "Gmail"
 msgstr ""
 
@@ -11607,7 +11643,7 @@ msgid "Google"
 msgstr ""
 
 #. js-lingui-id: ebIDwV
-#: src/modules/settings/app-preferences/components/SettingsAccountGroupUsedBy.tsx
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
 msgid "Google Calendar"
 msgstr ""
 
@@ -12280,6 +12316,11 @@ msgstr ""
 msgid "Image \"{fileName}\" exceeds {maxUploadSize}"
 msgstr ""
 
+#. js-lingui-id: Grur3I
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+msgid "IMAP"
+msgstr ""
+
 #. js-lingui-id: ijW9MW
 #: src/modules/settings/accounts/components/SettingsAccountsConnectionForm.tsx
 msgid "IMAP Configuration"
@@ -12378,6 +12419,7 @@ msgstr ""
 
 #. js-lingui-id: l3s5ri
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Import"
 msgstr ""
 
@@ -14086,6 +14128,11 @@ msgstr ""
 msgid "Log a new deal (company, amount, stage, expected close). Details: "
 msgstr ""
 
+#. js-lingui-id: qLzdcJ
+#: src/modules/settings/event-logs/components/SettingsOpenLogConsoleCard.tsx
+msgid "Log console"
+msgstr ""
+
 #. js-lingui-id: RV6CK8
 #: src/modules/log-console/components/LogConsoleDetailPanel.tsx
 msgid "Log copied as JSON"
@@ -14106,6 +14153,7 @@ msgid "Log out all other devices"
 msgstr ""
 
 #. js-lingui-id: qakNlV
+#: src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts
 #: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Log retention"
 msgstr ""
@@ -14186,6 +14234,16 @@ msgstr ""
 #: src/modules/side-panel/pages/workflow/step/view-run/components/SidePanelWorkflowRunViewStepContent.tsx
 #: src/pages/settings/general/SettingsGeneral.tsx
 msgid "Logs"
+msgstr ""
+
+#. js-lingui-id: FBD/J1
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
+msgid "Logs are kept {proPlanEventLogRetentionInHours} hours on your plan. Upgrade to customize retention."
+msgstr ""
+
+#. js-lingui-id: 6SoluV
+#: src/modules/log-console/hooks/useLogConsoleRetention.ts
+msgid "Logs are kept {retentionLabel}."
 msgstr ""
 
 #. js-lingui-id: vOd7ZN
@@ -14286,6 +14344,12 @@ msgstr ""
 #. placeholder {0}: provider.displayName
 #: src/pages/settings/applications/tabs/SettingsApplicationConnectionsSection.tsx
 msgid "Manage connections used by this app to call {0}."
+msgstr ""
+
+#. js-lingui-id: bjuasY
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+msgid "Manage events"
 msgstr ""
 
 #. js-lingui-id: Dt05oz
@@ -14765,6 +14829,11 @@ msgstr ""
 #. js-lingui-id: APfhM/
 #: src/modules/workflow/workflow-trigger/components/WorkflowEditTriggerCronForm.tsx
 msgid "Minutes between triggers"
+msgstr ""
+
+#. js-lingui-id: G40We3
+#: src/modules/settings/app-preferences/components/SettingsNativeAccountAppStatusCell.tsx
+msgid "Missing account"
 msgstr ""
 
 #. js-lingui-id: cOFpUq
@@ -16667,9 +16736,9 @@ msgstr ""
 msgid "Number of dashboards"
 msgstr ""
 
-#. js-lingui-id: +cbzNC
+#. js-lingui-id: n13TAo
 #: src/modules/settings/security/components/SettingsSecuritySettings.tsx
-msgid "Number of days to retain audit logs (30-1095 days)"
+msgid "Number of days to retain logs ({minEventLogRetentionInDays}-{maxEventLogRetentionInDays} days)"
 msgstr ""
 
 #. js-lingui-id: 0fRFSb
@@ -16968,11 +17037,6 @@ msgstr ""
 msgid "One subscription provides one Organization key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Twenty on a second server, activate it with this same Organization key, then register that server as a development instance. Development instances unlock premium features without extra billing and do not count toward your production seats."
 msgstr ""
 
-#. js-lingui-id: JEtonz
-#: src/modules/settings/event-logs/components/SettingsLogs.tsx
-msgid "Only application logs are available on your current plan. Other log types require an Organization subscription."
-msgstr ""
-
 #. js-lingui-id: JzXn58
 #: src/pages/settings/applications/utils/getClaimErrorContent.ts
 msgid "Only applications published to npm can be claimed this way."
@@ -17165,6 +17229,11 @@ msgstr ""
 msgid "Open link"
 msgstr ""
 
+#. js-lingui-id: MQAnOH
+#: src/modules/settings/event-logs/components/SettingsOpenLogConsoleCard.tsx
+msgid "Open log console"
+msgstr ""
+
 #. js-lingui-id: uNObrK
 #: src/modules/command-menu-item/display/hooks/useCommandMenuAppActions.ts
 msgid "Open logs console"
@@ -17300,6 +17369,7 @@ msgstr ""
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdown.tsx
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
 #: src/modules/settings/admin-panel/config-variables/components/ConfigVariableFilterDropdown.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 #: src/modules/settings/data-model/fields/forms/select/components/SettingsDataModelFieldSelectForm.tsx
 #: src/modules/settings/data-model/object-details/components/tabs/ObjectSettings.tsx
 #: src/modules/side-panel/components/SidePanelOptionsDropdown.tsx
@@ -17459,7 +17529,7 @@ msgid "Outage"
 msgstr ""
 
 #. js-lingui-id: gdC3cZ
-#: src/modules/settings/app-preferences/components/SettingsAccountGroupUsedBy.tsx
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
 msgid "Outlook"
 msgstr ""
 
@@ -17862,6 +17932,7 @@ msgid "permission flag"
 msgstr ""
 
 #. js-lingui-id: 9cDpsw
+#: src/modules/settings/app-preferences/components/SettingsAccountGroupsSection.tsx
 #: src/modules/settings/roles/role/components/SettingsRole.tsx
 #: src/modules/workflow/workflow-steps/workflow-actions/ai-agent-action/components/WorkflowEditActionAiAgent.tsx
 #: src/pages/settings/applications/SettingsAvailableApplicationDetails.tsx
@@ -17873,6 +17944,11 @@ msgstr ""
 #: src/modules/settings/roles/role-permissions/object-level-permissions/object-form/components/SettingsRolePermissionsObjectLevelObjectForm.tsx
 #: src/modules/settings/roles/role-permissions/object-level-permissions/object-form/components/SettingsRolePermissionsObjectLevelObjectForm.tsx
 msgid "Permissions · {objectLabelSingular}"
+msgstr ""
+
+#. js-lingui-id: JFI3iH
+#: src/modules/localization/hooks/useLocaleOptions.ts
+msgid "Persian"
 msgstr ""
 
 #. js-lingui-id: qrGMTi
@@ -18610,6 +18686,12 @@ msgstr ""
 msgid "Read documentation"
 msgstr ""
 
+#. js-lingui-id: BksH/i
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+msgid "Read emails"
+msgstr ""
+
 #. js-lingui-id: U26cMX
 #: src/pages/settings/ai/components/SettingsAiSystemPromptsSection.tsx
 msgid "Read system prompts"
@@ -18795,6 +18877,11 @@ msgstr ""
 msgid "Record {displayedRecordNumber} of {recordCount}"
 msgstr ""
 
+#. js-lingui-id: v5nqef
+#: src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts
+msgid "Record change logs"
+msgstr ""
+
 #. js-lingui-id: VW8X7n
 #: src/modules/log-console/constants/LogConsoleSources.tsx
 msgid "Record changes"
@@ -18802,6 +18889,7 @@ msgstr ""
 
 #. js-lingui-id: tpEWQj
 #: src/modules/log-console/components/LogConsole.tsx
+#: src/modules/settings/event-logs/components/SettingsLogs.tsx
 msgid "Record changes and app logs are available on your current plan. Other log types require an Organization subscription."
 msgstr ""
 
@@ -21105,6 +21193,12 @@ msgstr ""
 msgid "Send Email"
 msgstr ""
 
+#. js-lingui-id: YUviZE
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+msgid "Send emails"
+msgstr ""
+
 #. js-lingui-id: CqsED8
 #: src/modules/settings/roles/role-permissions/permission-flags/hooks/useActionRolePermissionFlagConfig.ts
 msgid "Send emails via connected accounts"
@@ -21981,8 +22075,6 @@ msgstr ""
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownCalendarViewContent.tsx
 #: src/modules/settings/components/SettingsCard.tsx
 #: src/modules/ui/navigation/navigation-drawer/components/NavigationDrawerItem.tsx
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
 msgid "Soon"
 msgstr ""
 
@@ -22245,6 +22337,7 @@ msgstr ""
 #: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceContent.tsx
 #: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceCreditGrantsTable.tsx
 #: src/modules/settings/admin-panel/signing-keys/components/SettingsAdminSigningKeysTable.tsx
+#: src/modules/settings/app-preferences/components/SettingsNativeAccountAppsSection.tsx
 #: src/modules/settings/components/SettingsDnsRecordsTable.tsx
 #: src/modules/settings/data-model/object-details/components/tabs/SettingsObjectValidationRulesSection.tsx
 #: src/pages/settings/admin-panel/SettingsAdminApplicationRegistrationClaims.tsx
@@ -25174,11 +25267,6 @@ msgstr ""
 msgid "Upgrade to Organization"
 msgstr ""
 
-#. js-lingui-id: q10MiT
-#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
-msgid "Upgrade to Organization to access audit logs."
-msgstr ""
-
 #. js-lingui-id: SN4fM+
 #: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Upgrade to Organization to configure SSO."
@@ -25510,6 +25598,7 @@ msgstr ""
 #: src/pages/settings/accounts/SettingsAccountsEditImapSmtpCaldavConnection.tsx
 #: src/pages/settings/accounts/SettingsAccountsEmails.tsx
 #: src/pages/settings/accounts/SettingsAccountsNewImapSmtpCaldavConnection.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 #: src/pages/settings/accounts/SettingsNewAccount.tsx
 #: src/pages/settings/ai/SettingsAiPrompts.tsx
 #: src/pages/settings/profile/appearance/components/SettingsExperience.tsx
@@ -25962,6 +26051,7 @@ msgstr ""
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownCustomView.tsx
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownVisibilityContent.tsx
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 #: src/modules/settings/unsubscribe-topics/components/SettingsWorkspaceUnsubscribeTopicSection.tsx
 #: src/pages/settings/applications/SettingsApplicationConnectionDetail.tsx
 #: src/pages/settings/applications/tabs/SettingsApplicationConnectionsSection.tsx
@@ -26378,11 +26468,6 @@ msgstr ""
 msgid "What's installed and being used in your workspace"
 msgstr ""
 
-#. js-lingui-id: RlSr4h
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
-msgid "Whatsapp"
-msgstr ""
-
 #. js-lingui-id: m7GziZ
 #: src/modules/ai/components/suggested-prompts/default-suggested-prompts.ts
 msgid "When a deal's stage changes to Closed Won, create a task assigned to the deal owner, due 7 days after the close date, with title \"Post-sale check-in\" and the company name in the description."
@@ -26709,11 +26794,6 @@ msgstr ""
 #. js-lingui-id: QlqLcK
 #: src/modules/side-panel/pages/share-record/components/SidePanelShareRecordContent.tsx
 msgid "Workspace access is also managed by an application."
-msgstr ""
-
-#. js-lingui-id: rxazlH
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
-msgid "Workspace communications"
 msgstr ""
 
 #. js-lingui-id: fQ8teq

@@ -20,7 +20,11 @@ import { sidePanelNavigationStackState } from '@/side-panel/states/sidePanelNavi
 import { useWorkspaceSurface } from '@/ui/layout/hooks/useWorkspaceSurface';
 import { useSetAtomComponentState } from '@/ui/utilities/state/jotai/hooks/useSetAtomComponentState';
 import { useQueryVariablesFromParentView } from '@/views/hooks/useQueryVariablesFromParentView';
-import { AppPath, SidePanelPages } from 'twenty-shared/types';
+import {
+  AppPath,
+  type RecordGqlFields,
+  SidePanelPages,
+} from 'twenty-shared/types';
 import { combineFilters, getAppPath, isDefined } from 'twenty-shared/utils';
 
 export const useRecordShowPagePagination = (
@@ -52,6 +56,8 @@ export const useRecordShowPagePagination = (
   const objectRecordId = propsObjectRecordId || paramObjectRecordId;
 
   if (!objectNameSingular || !objectRecordId) {
+    // Error text is used for locale-independent issue grouping.
+    // oxlint-disable-next-line lingui/no-unlocalized-strings
     throw new Error('Object name or Record id is not defined');
   }
 
@@ -121,7 +127,7 @@ export const useRecordShowPagePagination = (
   const baseNeighborOptions = {
     skip: skipNeighborQueries,
     objectNameSingular,
-    recordGqlFields: { id: true },
+    recordGqlFields: { id: true } satisfies RecordGqlFields,
     withSoftDeleted,
     limit: 1,
   };

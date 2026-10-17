@@ -58,11 +58,8 @@ const StyledDisplayModeReadonlyContainer = styled.div`
 
 const StyledDisplayModeContainer = styled.div`
   align-items: center;
-  background: transparent;
-  border: none;
   cursor: pointer;
   display: flex;
-  font-family: inherit;
   padding: ${themeCssVariables.spacing[1]} ${themeCssVariables.spacing[2]};
   width: 100%;
 `;
@@ -118,6 +115,8 @@ export const FormMultiSelectFieldInput = ({
 
   const onOptionSelected = (value: FieldMultiSelectValue) => {
     if (draftValue.type !== 'static') {
+      // Error text is used for locale-independent issue grouping.
+      // oxlint-disable-next-line lingui/no-unlocalized-strings
       throw new Error('Can only be called when editing a static value');
     }
 

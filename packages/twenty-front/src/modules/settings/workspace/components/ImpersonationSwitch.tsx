@@ -23,6 +23,7 @@ export const ImpersonationSwitch = () => {
   const handleChange = async (value: boolean) => {
     try {
       if (!currentWorkspace?.id) {
+        // oxlint-disable-next-line lingui/no-unlocalized-strings -- Keep this developer invariant stable for error grouping.
         throw new Error('User is not logged in');
       }
       await updateWorkspace({
@@ -49,7 +50,6 @@ export const ImpersonationSwitch = () => {
         description={t`Grant access to your workspace so we can troubleshoot problems.`}
         checked={currentWorkspace?.allowImpersonation ?? false}
         onChange={handleChange}
-        advancedMode
       />
     </Card.Root>
   );

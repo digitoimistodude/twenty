@@ -85,7 +85,7 @@ export const FilesFieldInput = () => {
           files.length > 0
         ) {
           enqueueToast({
-            variant: 'error',
+            status: 'error',
             children: t`Cannot upload more than ${maxNumberOfValues} files`,
           });
           return;
@@ -184,6 +184,8 @@ export const FilesFieldInput = () => {
           label: _input.trim(),
         };
       }
+      // Error text is used for locale-independent issue grouping.
+      // oxlint-disable-next-line lingui/no-unlocalized-strings
       throw new Error('Cannot create file from text input');
     },
     [files],

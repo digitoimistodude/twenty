@@ -8,7 +8,7 @@ import { DropdownContent } from '@/ui/layout/dropdown/components/DropdownContent
 import { styled } from '@linaria/react';
 import { t } from '@lingui/core/macro';
 import { type ConfigVariableValue } from 'twenty-shared/types';
-import { CustomError } from 'twenty-shared/utils';
+import { CustomError, isDefined } from 'twenty-shared/utils';
 import { Dropdown } from 'twenty-ui/components/navigation';
 import { CodeEditor } from 'twenty-ui/components/code-editor';
 import { themeCssVariables } from 'twenty-ui/theme';
@@ -56,7 +56,9 @@ export const ConfigVariableDatabaseInput = ({
       : [];
 
   const booleanOptions = [
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- Show the exact configuration literal.
     { value: 'true', label: 'true' },
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- Show the exact configuration literal.
     { value: 'false', label: 'false' },
   ];
 
@@ -141,7 +143,6 @@ export const ConfigVariableDatabaseInput = ({
                   {selectOptions.map((option) => (
                     <Dropdown.OptionItem
                       key={option.value}
-                      className="config-variable-array-menu-item-multi-select"
                       selected={isValueSelected(option.value)}
                       onSelect={() => handleMultiSelectChange(option.value)}
                     >
@@ -225,6 +226,10 @@ export const ConfigVariableDatabaseInput = ({
               readOnly: disabled === true,
             }}
             onChange={(text) => {
+              if (!isDefined(text)) {
+                return;
+              }
+
               try {
                 onChange(JSON.parse(text) as Record<string, unknown>);
               } catch {
@@ -236,6 +241,7 @@ export const ConfigVariableDatabaseInput = ({
       );
 
     default:
+      // oxlint-disable-next-line lingui/no-unlocalized-strings -- Keep this developer invariant stable for error grouping.
       throw new CustomError(`Unsupported type: ${type}`, 'UNSUPPORTED_TYPE');
   }
 };

@@ -479,6 +479,11 @@ msgstr "{apiKeyCount, plural, one {{apiKeyCount} klíč API} few {{apiKeyCount} 
 msgid "{appDisplayName} would like to:"
 msgstr "{appDisplayName} chce:"
 
+#. js-lingui-id: ST9xGf
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
+msgid "{appName} preferences"
+msgstr "Předvolby aplikace {appName}"
+
 #. js-lingui-id: ZZZxmp
 #: src/pages/auth/Authorize.tsx
 msgid "{appName} would like to:"
@@ -808,9 +813,14 @@ msgid "{queuedMessage}, skipping {skipReasons}"
 msgstr "{queuedMessage}, přeskakuje se {skipReasons}"
 
 #. js-lingui-id: r4MTJW
-#: src/modules/log-console/components/LogConsoleTimeRangeDropdown.tsx
+#: src/modules/log-console/hooks/useLogConsoleRetention.ts
 msgid "{retentionInDays, plural, one {# day} other {# days}}"
 msgstr "{retentionInDays, plural, one {# den} few {# dny} many {# dní} other {# dní}}"
+
+#. js-lingui-id: HlXLUQ
+#: src/modules/log-console/hooks/useLogConsoleRetention.ts
+msgid "{retentionInHours, plural, one {# hour} other {# hours}}"
+msgstr "{retentionInHours, plural, one {# hodina} few {# hodiny} many {# hodin} other {# hodin}}"
 
 #. js-lingui-id: 5d0hY6
 #: src/modules/settings/admin-panel/health-status/hooks/useRetryJobs.ts
@@ -1135,6 +1145,11 @@ msgstr "12h"
 msgid "2 Columns"
 msgstr "2 sloupce"
 
+#. js-lingui-id: Ur5nZV
+#: src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts
+msgid "2 hours"
+msgstr "2 hodiny"
+
 #. js-lingui-id: 0HAF12
 #: src/pages/settings/data-model/new-field/SettingsObjectNewFieldConfigure.tsx
 msgid "2. Configure field"
@@ -1370,6 +1385,7 @@ msgstr "Přistupujte k datům svého pracovního prostoru ze svého oblíbeného
 #: src/pages/settings/accounts/SettingsAccounts.tsx
 #: src/pages/settings/accounts/SettingsAccountsConfigurationStepCalendar.tsx
 #: src/pages/settings/accounts/SettingsAccountsConfigurationStepEmail.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 msgid "Account"
 msgstr "Účet"
 
@@ -1391,7 +1407,7 @@ msgstr "Smazání účtu"
 #. js-lingui-id: T3FM0r
 #: src/pages/settings/accounts/SettingsAccountDetail.tsx
 msgid "Account settings"
-msgstr ""
+msgstr "Nastavení účtu"
 
 #. js-lingui-id: bPwFdf
 #: src/modules/settings/app-preferences/components/SettingsAccountGroupsSection.tsx
@@ -3114,6 +3130,7 @@ msgstr "Apostrof a tečka"
 
 #. js-lingui-id: LMUw1U
 #: src/modules/log-console/constants/LogConsoleApplicationLogFilterFields.tsx
+#: src/modules/settings/app-preferences/components/SettingsNativeAccountAppsSection.tsx
 #: src/modules/settings/data-model/object-details/components/SettingsObjectFieldTable.tsx
 #: src/modules/settings/data-model/object-details/components/SettingsObjectRelationsTable.tsx
 #: src/modules/settings/roles/role-permissions/permission-flags/components/SettingsRolePermissionsSettingsTableHeader.tsx
@@ -3130,21 +3147,19 @@ msgstr "Aplikace byla úspěšně odstraněna"
 
 #. js-lingui-id: Oh+wHS
 #: src/modules/log-console/constants/LogConsoleSources.tsx
+#: src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts
 msgid "App logs"
 msgstr "Protokoly aplikace"
 
-#. js-lingui-id: ZGfGyx
-#: src/modules/log-console/hooks/useLogConsoleRetention.ts
-msgid "App logs are kept {retentionInDays} days."
-msgstr "Protokoly aplikace se uchovávají {retentionInDays} dní."
-
 #. js-lingui-id: MAyGac
 #: src/modules/settings/admin-panel/constants/SettingsAdminFeatureFlagMetadata.ts
+#: src/modules/settings/app-preferences/components/SettingsNativeAccountAppsSection.tsx
 #: src/modules/settings/hooks/useSettingsNavigationItems.tsx
 #: src/pages/settings/accounts/SettingsAccountDetail.tsx
 #: src/pages/settings/accounts/SettingsAccounts.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 msgid "App preferences"
-msgstr ""
+msgstr "Předvolby aplikace"
 
 #. js-lingui-id: hIGwzP
 #: src/pages/settings/applications/tabs/SettingsApplicationFunctionDomainSection.tsx
@@ -3710,11 +3725,6 @@ msgstr "Záznamy auditu"
 msgid "Audit Logs"
 msgstr "Záznamy auditu"
 
-#. js-lingui-id: APXe7E
-#: src/modules/log-console/hooks/useLogConsoleRetention.ts
-msgid "Audit logs are kept {retentionInDays} days."
-msgstr "Protokoly auditu se uchovávají {retentionInDays} dní."
-
 #. js-lingui-id: 6TRVUO
 #: src/modules/settings/mcp-and-apis/utils/buildMcpSetupCategories.tsx
 msgid "Augment Code"
@@ -3828,6 +3838,7 @@ msgstr "Automaticky vytvářet kontakty pro lidi."
 
 #. js-lingui-id: RpExX0
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Automatically create People records when receiving or sending emails"
 msgstr "Automaticky vytvářet záznamy lidí při přijímání nebo odesílání emailů"
 
@@ -4190,6 +4201,11 @@ msgstr "Procházet vlákna AI chatu ve všech pracovních prostorech, včetně o
 msgid "Browse partners"
 msgstr "Procházet partnery"
 
+#. js-lingui-id: 8nmCIQ
+#: src/modules/settings/event-logs/components/SettingsOpenLogConsoleCard.tsx
+msgid "Browse record changes, security events, app logs and more"
+msgstr "Procházejte změny záznamů, bezpečnostní události, protokoly aplikace a další"
+
 #. js-lingui-id: GsXRxc
 #: src/modules/settings/data-model/indexes/forms/components/SettingsObjectIndexOptionsForm.tsx
 msgid "BTREE (default, good for sorting and equality)"
@@ -4353,9 +4369,9 @@ msgstr "caldav.example.com"
 #: src/modules/activities/calendar/components/CalendarEventComposerFields.tsx
 #: src/modules/page-layout/widgets/record-table/types/RecordTableWidgetLayoutViewType.ts
 #: src/modules/settings/accounts/components/SettingsAccountsSettingsSection.tsx
-#: src/modules/settings/app-preferences/components/SettingsAccountGroupUsedBy.tsx
 #: src/modules/views/types/ViewType.ts
 #: src/pages/settings/accounts/SettingsAccountDetail.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 msgid "Calendar"
 msgstr "Kalendář"
 
@@ -4473,11 +4489,6 @@ msgstr "Tlačítko výzvy k akci"
 #: src/modules/object-record/record-field/ui/form-types/components/FormPhoneFieldInput.tsx
 msgid "Calling Code"
 msgstr "Předvolba"
-
-#. js-lingui-id: 9rnFEa
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
-msgid "Calls"
-msgstr "Hovory"
 
 #. js-lingui-id: rT2cV+
 #: src/modules/front-components/media-session/components/FrontComponentMediaSessionTooltipRow.tsx
@@ -5033,6 +5044,11 @@ msgstr "Zvolte, která pole se použijí při vyhledávání záznamů."
 #: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Choose which profile fields users with the Edit Profile permission can modify"
 msgstr ""
+
+#. js-lingui-id: 22LF79
+#: src/modules/settings/app-preferences/components/SettingsNativeAccountAppsSection.tsx
+msgid "Choose your preferences for the apps installed on your workspace by the admin"
+msgstr "Zvolte předvolby pro aplikace nainstalované správcem ve vašem pracovním prostoru"
 
 #. js-lingui-id: 3wV73y
 #: src/modules/object-metadata/hooks/useSortSubFieldChoicesForField.ts
@@ -5731,6 +5747,7 @@ msgstr "Nakonfigurujte tento widget, aby zobrazoval pole."
 
 #. js-lingui-id: no/yG9
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Configure what emails should get synced"
 msgstr "Nastavte, které e-maily se mají synchronizovat"
 
@@ -5842,16 +5859,19 @@ msgstr "Připojte Google, Microsoft nebo CalDAV a před vytvořením události p
 
 #. js-lingui-id: YLx3sC
 #: src/modules/settings/accounts/components/SettingsAccountsListEmptyStateCard.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesListEmptyStateCard.tsx
 msgid "Connect via IMAP/SMTP"
 msgstr "Připojit se pomocí IMAP/SMTP"
 
 #. js-lingui-id: Zgi9Fd
 #: src/modules/settings/accounts/components/SettingsAccountsListEmptyStateCard.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesListEmptyStateCard.tsx
 msgid "Connect with Google"
 msgstr "Připojit s Google"
 
 #. js-lingui-id: IOfqM8
 #: src/modules/settings/accounts/components/SettingsAccountsListEmptyStateCard.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesListEmptyStateCard.tsx
 msgid "Connect with Microsoft"
 msgstr "Připojit s Microsoft"
 
@@ -5932,6 +5952,7 @@ msgstr "Kontaktovat administrátora"
 #. js-lingui-id: Y2y0mC
 #: src/modules/settings/accounts/components/SettingsAccountsCalendarChannelDetails.tsx
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Contact auto-creation"
 msgstr "Politika automatického vytváření kontaktů"
 
@@ -7180,6 +7201,11 @@ msgstr "Vlastní zobrazení"
 msgid "Custom views"
 msgstr "Vlastní zobrazení"
 
+#. js-lingui-id: T8n/Qf
+#: src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts
+msgid "Custom, up to 3 years"
+msgstr "Vlastní, až 3 roky"
+
 #. js-lingui-id: 876pfE
 #: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceBillingContent.tsx
 msgid "Customer"
@@ -7655,6 +7681,7 @@ msgstr "Definujte, co tento nástroj dělá"
 #. js-lingui-id: bQkkFU
 #: src/modules/settings/accounts/components/SettingsAccountsCalendarChannelDetails.tsx
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Define what will be visible to other users in your workspace"
 msgstr "Definujte, co bude viditelné pro ostatní uživatele ve vaší pracovní oblasti"
 
@@ -8438,11 +8465,13 @@ msgstr "Nevytvářet automaticky kontakty."
 
 #. js-lingui-id: Emrbzc
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Don't create contacts from/to Gmail, Outlook emails"
 msgstr "Nevytvářejte kontakty z/na Gmail, Outlook e-maily"
 
 #. js-lingui-id: hHW6h5
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Don't import emails from team@ support@ noreply@..."
 msgstr "Neimportovat e-maily od team@ support@ noreply@..."
 
@@ -9093,14 +9122,13 @@ msgstr "e-maily"
 
 #. js-lingui-id: BXEcos
 #: src/modules/settings/accounts/components/SettingsAccountsSettingsSection.tsx
-#: src/modules/settings/app-preferences/components/SettingsAccountGroupUsedBy.tsx
 #: src/modules/settings/billing/constants/UsageLimitInvocationUnitLabels.ts
 #: src/modules/settings/billing/constants/UsageLimitInvocationUnitLabels.ts
 #: src/modules/settings/hooks/useSettingsNavigationItems.tsx
 #: src/pages/settings/accounts/SettingsAccountDetail.tsx
 #: src/pages/settings/accounts/SettingsAccountsEmails.tsx
 #: src/pages/settings/accounts/SettingsAccountsEmails.tsx
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 msgid "Emails"
 msgstr "E-maily"
 
@@ -9113,6 +9141,11 @@ msgstr "E-maily a kalendář"
 #: src/modules/command-menu-item/engine-command/record/single-record/message-campaign/components/CancelMessageCampaignSingleRecordCommand.tsx
 msgid "Emails already handed to the provider cannot be recalled. This stops everything still waiting to be sent."
 msgstr "E-maily, které již byly předány poskytovateli, nelze vzít zpět. Tím se zastaví vše, co ještě čeká na odeslání."
+
+#. js-lingui-id: USBKh+
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
+msgid "Emails from the blocklist will be ignored regardless of this setting."
+msgstr "E-maily ze seznamu blokovaných budou bez ohledu na toto nastavení ignorovány."
 
 #. js-lingui-id: mHrqHa
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
@@ -9906,11 +9939,13 @@ msgstr "Vše"
 
 #. js-lingui-id: QQlMid
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Exclude group emails"
 msgstr "Vyloučit emaily skupin"
 
 #. js-lingui-id: +tk2yZ
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Exclude non-professional emails"
 msgstr "Vyloučit nepracovní e-maily"
 
@@ -11426,6 +11461,7 @@ msgstr "Gemini CLI"
 #: src/modules/settings/domains/components/SettingsCustomDomain.tsx
 #: src/modules/settings/domains/components/SettingsSubdomain.tsx
 #: src/modules/settings/hooks/useSettingsNavigationItems.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 #: src/pages/settings/admin-panel/SettingsAdminApplicationRegistrationDetail.tsx
 #: src/pages/settings/applications/components/SettingsApplicationRegistrationGeneralInfo.tsx
 #: src/pages/settings/applications/SettingsApplicationDetails.tsx
@@ -11556,9 +11592,9 @@ msgid "Global search"
 msgstr "Globální vyhledávání"
 
 #. js-lingui-id: DSJEta
-#: src/modules/settings/app-preferences/components/SettingsAccountGroupUsedBy.tsx
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
 msgid "Gmail"
-msgstr ""
+msgstr "Gmail"
 
 #. js-lingui-id: CKyk7Q
 #: src/modules/onboarding/components/OnboardingHeader.tsx
@@ -11612,9 +11648,9 @@ msgid "Google"
 msgstr "Google"
 
 #. js-lingui-id: ebIDwV
-#: src/modules/settings/app-preferences/components/SettingsAccountGroupUsedBy.tsx
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
 msgid "Google Calendar"
-msgstr ""
+msgstr "Kalendář Google"
 
 #. js-lingui-id: CQwSng
 #: src/modules/settings/security/components/sso/SettingsSsoIdentitiesProvidersForm.tsx
@@ -12308,6 +12344,11 @@ msgstr "Obrázek"
 msgid "Image \"{fileName}\" exceeds {maxUploadSize}"
 msgstr "Obrázek \"{fileName}\" překračuje {maxUploadSize}"
 
+#. js-lingui-id: Grur3I
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+msgid "IMAP"
+msgstr "IMAP"
+
 #. js-lingui-id: ijW9MW
 #: src/modules/settings/accounts/components/SettingsAccountsConnectionForm.tsx
 msgid "IMAP Configuration"
@@ -12406,6 +12447,7 @@ msgstr "Implementační partneři"
 
 #. js-lingui-id: l3s5ri
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 msgid "Import"
 msgstr "Importovat"
 
@@ -14114,6 +14156,11 @@ msgstr "Zamknout diagram"
 msgid "Log a new deal (company, amount, stage, expected close). Details: "
 msgstr "Zaznamenejte nový obchod (společnost, částka, fáze, očekávané uzavření). Podrobnosti: "
 
+#. js-lingui-id: qLzdcJ
+#: src/modules/settings/event-logs/components/SettingsOpenLogConsoleCard.tsx
+msgid "Log console"
+msgstr "Konzole protokolů"
+
 #. js-lingui-id: RV6CK8
 #: src/modules/log-console/components/LogConsoleDetailPanel.tsx
 msgid "Log copied as JSON"
@@ -14134,6 +14181,7 @@ msgid "Log out all other devices"
 msgstr "Odhlásit všechna ostatní zařízení"
 
 #. js-lingui-id: qakNlV
+#: src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts
 #: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Log retention"
 msgstr "Uchovávání protokolů"
@@ -14215,6 +14263,16 @@ msgstr "protokoly"
 #: src/pages/settings/general/SettingsGeneral.tsx
 msgid "Logs"
 msgstr "Protokoly"
+
+#. js-lingui-id: FBD/J1
+#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
+msgid "Logs are kept {proPlanEventLogRetentionInHours} hours on your plan. Upgrade to customize retention."
+msgstr "Protokoly se ve vašem tarifu uchovávají {proPlanEventLogRetentionInHours} hodin. Přejděte na vyšší tarif a přizpůsobte dobu uchovávání."
+
+#. js-lingui-id: 6SoluV
+#: src/modules/log-console/hooks/useLogConsoleRetention.ts
+msgid "Logs are kept {retentionLabel}."
+msgstr "Protokoly se uchovávají {retentionLabel}."
 
 #. js-lingui-id: vOd7ZN
 #: src/modules/settings/admin-panel/constants/SettingsAdminFeatureFlagMetadata.ts
@@ -14315,6 +14373,12 @@ msgstr "Správa fakturačních údajů"
 #: src/pages/settings/applications/tabs/SettingsApplicationConnectionsSection.tsx
 msgid "Manage connections used by this app to call {0}."
 msgstr "Spravujte připojení, která tato aplikace používá k volání {0}."
+
+#. js-lingui-id: bjuasY
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+msgid "Manage events"
+msgstr "Spravovat události"
 
 #. js-lingui-id: Dt05oz
 #: src/pages/settings/admin-panel/SettingsAdminWorkspaceDetail.tsx
@@ -14794,6 +14858,11 @@ msgstr "Minuty"
 #: src/modules/workflow/workflow-trigger/components/WorkflowEditTriggerCronForm.tsx
 msgid "Minutes between triggers"
 msgstr "Minuty mezi spouštěči"
+
+#. js-lingui-id: G40We3
+#: src/modules/settings/app-preferences/components/SettingsNativeAccountAppStatusCell.tsx
+msgid "Missing account"
+msgstr "Chybějící účet"
 
 #. js-lingui-id: cOFpUq
 #: src/modules/workflow/workflow-steps/workflow-actions/components/WorkflowEditActionCreateCalendarEvent.tsx
@@ -16695,10 +16764,10 @@ msgstr "Formát čísla"
 msgid "Number of dashboards"
 msgstr "Počet přehledových panelů"
 
-#. js-lingui-id: +cbzNC
+#. js-lingui-id: n13TAo
 #: src/modules/settings/security/components/SettingsSecuritySettings.tsx
-msgid "Number of days to retain audit logs (30-1095 days)"
-msgstr "Počet dnů pro uchování auditních protokolů (30-1095 dnů)"
+msgid "Number of days to retain logs ({minEventLogRetentionInDays}-{maxEventLogRetentionInDays} days)"
+msgstr "Počet dní uchovávání protokolů ({minEventLogRetentionInDays}-{maxEventLogRetentionInDays} dní)"
 
 #. js-lingui-id: 0fRFSb
 #: src/modules/settings/data-model/fields/forms/currency/components/SettingsDataModelFieldCurrencyForm.tsx
@@ -16996,11 +17065,6 @@ msgstr "Jeden na běh"
 msgid "One subscription provides one Organization key that powers one production instance and one potential staging or test instance. To run a staging or test environment, install Twenty on a second server, activate it with this same Organization key, then register that server as a development instance. Development instances unlock premium features without extra billing and do not count toward your production seats."
 msgstr "Jedno předplatné poskytuje jeden klíč Organizace, který obsluhuje jednu produkční instanci a jednu případnou stagingovou nebo testovací instanci. Chcete-li spustit stagingové nebo testovací prostředí, nainstalujte Twenty na druhý server, aktivujte jej stejným klíčem Organizace a poté tento server zaregistrujte jako vývojovou instanci. Vývojové instance zpřístupňují prémiové funkce bez dodatečného účtování a nezapočítávají se do vašich produkčních míst."
 
-#. js-lingui-id: JEtonz
-#: src/modules/settings/event-logs/components/SettingsLogs.tsx
-msgid "Only application logs are available on your current plan. Other log types require an Organization subscription."
-msgstr "V aktuálním tarifu jsou dostupné pouze aplikační logy. Ostatní typy logů vyžadují předplatné Organization."
-
 #. js-lingui-id: JzXn58
 #: src/pages/settings/applications/utils/getClaimErrorContent.ts
 msgid "Only applications published to npm can be claimed this way."
@@ -17193,6 +17257,11 @@ msgstr "Otevřít v postranním panelu"
 msgid "Open link"
 msgstr "Otevřít odkaz"
 
+#. js-lingui-id: MQAnOH
+#: src/modules/settings/event-logs/components/SettingsOpenLogConsoleCard.tsx
+msgid "Open log console"
+msgstr "Otevřít konzoli protokolů"
+
 #. js-lingui-id: uNObrK
 #: src/modules/command-menu-item/display/hooks/useCommandMenuAppActions.ts
 msgid "Open logs console"
@@ -17328,6 +17397,7 @@ msgstr "Volitelný tajný klíč použitý k výpočtu HMAC podpisu pro údaje w
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdown.tsx
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
 #: src/modules/settings/admin-panel/config-variables/components/ConfigVariableFilterDropdown.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 #: src/modules/settings/data-model/fields/forms/select/components/SettingsDataModelFieldSelectForm.tsx
 #: src/modules/settings/data-model/object-details/components/tabs/ObjectSettings.tsx
 #: src/modules/side-panel/components/SidePanelOptionsDropdown.tsx
@@ -17487,9 +17557,9 @@ msgid "Outage"
 msgstr "Výpadek"
 
 #. js-lingui-id: gdC3cZ
-#: src/modules/settings/app-preferences/components/SettingsAccountGroupUsedBy.tsx
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
 msgid "Outlook"
-msgstr ""
+msgstr "Outlook"
 
 #. js-lingui-id: gh06VD
 #: src/modules/ai/components/AgentOutputSchemaBuilder.tsx
@@ -17890,6 +17960,7 @@ msgid "permission flag"
 msgstr "příznak oprávnění"
 
 #. js-lingui-id: 9cDpsw
+#: src/modules/settings/app-preferences/components/SettingsAccountGroupsSection.tsx
 #: src/modules/settings/roles/role/components/SettingsRole.tsx
 #: src/modules/workflow/workflow-steps/workflow-actions/ai-agent-action/components/WorkflowEditActionAiAgent.tsx
 #: src/pages/settings/applications/SettingsAvailableApplicationDetails.tsx
@@ -17902,6 +17973,11 @@ msgstr "Oprávnění"
 #: src/modules/settings/roles/role-permissions/object-level-permissions/object-form/components/SettingsRolePermissionsObjectLevelObjectForm.tsx
 msgid "Permissions · {objectLabelSingular}"
 msgstr "Oprávnění · {objectLabelSingular}"
+
+#. js-lingui-id: JFI3iH
+#: src/modules/localization/hooks/useLocaleOptions.ts
+msgid "Persian"
+msgstr "Perština"
 
 #. js-lingui-id: qrGMTi
 #: src/modules/activities/emails/recipients/components/EmailRecipientChipMenuContent.tsx
@@ -18638,6 +18714,12 @@ msgstr "Přečíst si seznam změn"
 msgid "Read documentation"
 msgstr "Přečtěte si dokumentaci"
 
+#. js-lingui-id: BksH/i
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+msgid "Read emails"
+msgstr "Číst e-maily"
+
 #. js-lingui-id: U26cMX
 #: src/pages/settings/ai/components/SettingsAiSystemPromptsSection.tsx
 msgid "Read system prompts"
@@ -18823,6 +18905,11 @@ msgstr "Záznam (volitelné)"
 msgid "Record {displayedRecordNumber} of {recordCount}"
 msgstr "Záznam {displayedRecordNumber} z {recordCount}"
 
+#. js-lingui-id: v5nqef
+#: src/modules/settings/billing/constants/SettingsBillingPlanComparisonRows.ts
+msgid "Record change logs"
+msgstr "Protokoly změn záznamů"
+
 #. js-lingui-id: VW8X7n
 #: src/modules/log-console/constants/LogConsoleSources.tsx
 msgid "Record changes"
@@ -18830,6 +18917,7 @@ msgstr "Změny záznamu"
 
 #. js-lingui-id: tpEWQj
 #: src/modules/log-console/components/LogConsole.tsx
+#: src/modules/settings/event-logs/components/SettingsLogs.tsx
 msgid "Record changes and app logs are available on your current plan. Other log types require an Organization subscription."
 msgstr "Změny záznamů a protokoly aplikace jsou dostupné v rámci vašeho aktuálního tarifu. Ostatní typy protokolů vyžadují předplatné Organization."
 
@@ -19191,7 +19279,7 @@ msgstr "Odstranit {address}"
 #. js-lingui-id: boQErO
 #: src/modules/ai/components/internal/AgentChatFilePreview.tsx
 msgid "Remove {displayName}"
-msgstr ""
+msgstr "Odstranit {displayName}"
 
 #. js-lingui-id: 7RLmNA
 #: src/modules/settings/security/components/SettingsSecurityIframeOrigins.tsx
@@ -19433,7 +19521,7 @@ msgstr "Změnit pořadí možností"
 #. js-lingui-id: Jtm0TT
 #: src/modules/settings/admin-panel/constants/SettingsAdminFeatureFlagMetadata.ts
 msgid "Replace the Accounts settings with App preferences, built around accounts and the apps that use them."
-msgstr ""
+msgstr "Nahradit nastavení účtů předvolbami aplikace, které jsou založeny na účtech a aplikacích, jež je používají."
 
 #. js-lingui-id: q8Id6J
 #: src/modules/side-panel/pages/page-layout/components/WidgetSettingsManageSection.tsx
@@ -21133,6 +21221,12 @@ msgstr "Odeslat e-mail"
 msgid "Send Email"
 msgstr "Odeslat e-mail"
 
+#. js-lingui-id: YUviZE
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+#: src/modules/settings/app-preferences/constants/NativeAccountApps.ts
+msgid "Send emails"
+msgstr "Odesílat e-maily"
+
 #. js-lingui-id: CqsED8
 #: src/modules/settings/roles/role-permissions/permission-flags/hooks/useActionRolePermissionFlagConfig.ts
 msgid "Send emails via connected accounts"
@@ -21484,7 +21578,7 @@ msgstr "Sdílejte svou aplikaci s dalšími pracovními prostory, aniž byste ji
 #. js-lingui-id: fX13zr
 #: src/modules/settings/app-preferences/components/SettingsAccountGroupsSection.tsx
 msgid "Shared accounts between apps"
-msgstr ""
+msgstr "Sdílené účty mezi aplikacemi"
 
 #. js-lingui-id: SmARy0
 #: src/modules/workflow/workflow-steps/workflow-actions/components/WorkflowConversationFields.tsx
@@ -22009,8 +22103,6 @@ msgstr "Při načítání této stránky se něco pokazilo."
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownCalendarViewContent.tsx
 #: src/modules/settings/components/SettingsCard.tsx
 #: src/modules/ui/navigation/navigation-drawer/components/NavigationDrawerItem.tsx
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
 msgid "Soon"
 msgstr "Brzy"
 
@@ -22273,6 +22365,7 @@ msgstr "Statický text sdílený mezi všemi stránkami záznamů"
 #: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceContent.tsx
 #: src/modules/settings/admin-panel/components/SettingsAdminWorkspaceCreditGrantsTable.tsx
 #: src/modules/settings/admin-panel/signing-keys/components/SettingsAdminSigningKeysTable.tsx
+#: src/modules/settings/app-preferences/components/SettingsNativeAccountAppsSection.tsx
 #: src/modules/settings/components/SettingsDnsRecordsTable.tsx
 #: src/modules/settings/data-model/object-details/components/tabs/SettingsObjectValidationRulesSection.tsx
 #: src/pages/settings/admin-panel/SettingsAdminApplicationRegistrationClaims.tsx
@@ -25232,11 +25325,6 @@ msgstr "Přejít na roční fakturaci?"
 msgid "Upgrade to Organization"
 msgstr "Přejít na Organization"
 
-#. js-lingui-id: q10MiT
-#: src/modules/settings/security/components/SettingsSecuritySettings.tsx
-msgid "Upgrade to Organization to access audit logs."
-msgstr "Pro přístup k auditním protokolům upgradujte na Organization."
-
 #. js-lingui-id: SN4fM+
 #: src/modules/settings/security/components/SettingsSecuritySettings.tsx
 msgid "Upgrade to Organization to configure SSO."
@@ -25547,7 +25635,7 @@ msgstr "Využito"
 #. js-lingui-id: xUOPoQ
 #: src/modules/settings/app-preferences/components/SettingsAccountGroupsSection.tsx
 msgid "Used by"
-msgstr ""
+msgstr "Používá"
 
 #. js-lingui-id: AQVj2A
 #: src/modules/settings/data-model/objects/forms/components/SettingsDataModelObjectAboutForm.tsx
@@ -25568,6 +25656,7 @@ msgstr "Užitečné pro pivot/spojovací tabulky"
 #: src/pages/settings/accounts/SettingsAccountsEditImapSmtpCaldavConnection.tsx
 #: src/pages/settings/accounts/SettingsAccountsEmails.tsx
 #: src/pages/settings/accounts/SettingsAccountsNewImapSmtpCaldavConnection.tsx
+#: src/pages/settings/accounts/SettingsNativeAccountApp.tsx
 #: src/pages/settings/accounts/SettingsNewAccount.tsx
 #: src/pages/settings/ai/SettingsAiPrompts.tsx
 #: src/pages/settings/profile/appearance/components/SettingsExperience.tsx
@@ -26020,6 +26109,7 @@ msgstr "Fialková"
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownCustomView.tsx
 #: src/modules/object-record/object-options-dropdown/components/ObjectOptionsDropdownVisibilityContent.tsx
 #: src/modules/settings/accounts/components/SettingsAccountsMessageChannelDetails.tsx
+#: src/modules/settings/app-preferences/components/SettingsAppPreferencesMessageChannelDetails.tsx
 #: src/modules/settings/unsubscribe-topics/components/SettingsWorkspaceUnsubscribeTopicSection.tsx
 #: src/pages/settings/applications/SettingsApplicationConnectionDetail.tsx
 #: src/pages/settings/applications/tabs/SettingsApplicationConnectionsSection.tsx
@@ -26436,11 +26526,6 @@ msgstr "Co může tato API dělat: Vyberte roli uživatele pro definování jeho
 msgid "What's installed and being used in your workspace"
 msgstr "Co je nainstalováno a používá se ve vašem pracovním prostoru"
 
-#. js-lingui-id: RlSr4h
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
-msgid "Whatsapp"
-msgstr "WhatsApp"
-
 #. js-lingui-id: m7GziZ
 #: src/modules/ai/components/suggested-prompts/default-suggested-prompts.ts
 msgid "When a deal's stage changes to Closed Won, create a task assigned to the deal owner, due 7 days after the close date, with title \"Post-sale check-in\" and the company name in the description."
@@ -26768,11 +26853,6 @@ msgstr "Pracovní prostor"
 #: src/modules/side-panel/pages/share-record/components/SidePanelShareRecordContent.tsx
 msgid "Workspace access is also managed by an application."
 msgstr "Přístup k pracovnímu prostoru je také spravován aplikací."
-
-#. js-lingui-id: rxazlH
-#: src/pages/settings/communications/SettingsWorkspaceCommunications.tsx
-msgid "Workspace communications"
-msgstr "Komunikace pracovního prostoru"
 
 #. js-lingui-id: fQ8teq
 #: src/modules/auth/sign-in-up/hooks/useSignUpInNewWorkspace.ts

@@ -1,4 +1,5 @@
 import { type WorkflowTrigger } from '@/workflow/types/Workflow';
+import { getWorkflowStepDisplayName } from '@/workflow/utils/getWorkflowStepDisplayName';
 import { splitWorkflowTriggerEventName } from '@/workflow/utils/splitWorkflowTriggerEventName';
 import { type WorkflowDiagramStepNodeData } from '@/workflow/workflow-diagram/types/WorkflowDiagram';
 import { DATABASE_TRIGGER_TYPES } from '@/workflow/workflow-trigger/constants/DatabaseTriggerTypes';
@@ -17,18 +18,21 @@ export const getWorkflowDiagramTriggerNode = ({
 
   switch (trigger.type) {
     case 'MANUAL': {
+      // oxlint-disable-next-line lingui/no-unlocalized-strings -- The canonical name is translated by getWorkflowStepDisplayName below.
       triggerDefaultLabel = 'Manual trigger';
       triggerIcon = getTriggerIcon(trigger);
 
       break;
     }
     case 'CRON': {
+      // oxlint-disable-next-line lingui/no-unlocalized-strings -- The canonical name is translated by getWorkflowStepDisplayName below.
       triggerDefaultLabel = 'On a schedule';
       triggerIcon = getTriggerIcon(trigger);
 
       break;
     }
     case 'WEBHOOK': {
+      // oxlint-disable-next-line lingui/no-unlocalized-strings -- The canonical name is translated by getWorkflowStepDisplayName below.
       triggerDefaultLabel = 'Webhook';
       triggerIcon = getTriggerIcon(trigger);
 
@@ -60,7 +64,10 @@ export const getWorkflowDiagramTriggerNode = ({
     data: {
       nodeType: 'trigger',
       triggerType: trigger.type,
-      name: isDefined(trigger.name) ? trigger.name : triggerDefaultLabel,
+      name: getWorkflowStepDisplayName({
+        name: isDefined(trigger.name) ? trigger.name : triggerDefaultLabel,
+        type: trigger.type,
+      }),
       icon: triggerIcon,
       stepId: 'trigger',
       hasNextStepIds:

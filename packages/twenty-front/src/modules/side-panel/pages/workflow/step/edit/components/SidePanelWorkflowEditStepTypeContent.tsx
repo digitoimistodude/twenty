@@ -7,6 +7,7 @@ import { sidePanelNavigationStackState } from '@/side-panel/states/sidePanelNavi
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
 import { useFlowOrThrow } from '@/workflow/hooks/useFlowOrThrow';
 import { workflowVisualizerWorkflowIdComponentState } from '@/workflow/states/workflowVisualizerWorkflowIdComponentState';
+import { getWorkflowStepDisplayName } from '@/workflow/utils/getWorkflowStepDisplayName';
 import {
   type WorkflowAction,
   type WorkflowActionType,
@@ -40,6 +41,7 @@ export const SidePanelWorkflowEditStepTypeContent = () => {
   const handleUpdateStepType = async (selection: WorkflowActionSelection) => {
     if (!isDefined(workflowVisualizerWorkflowId)) {
       throw new Error(
+        // oxlint-disable-next-line lingui/no-unlocalized-strings -- This message describes a developer-only invariant; keeping it stable preserves error reporting fingerprints.
         'Workflow ID must be configured for the edge when creating a step',
       );
     }
@@ -49,6 +51,7 @@ export const SidePanelWorkflowEditStepTypeContent = () => {
     );
 
     if (!isDefined(existingStep)) {
+      // oxlint-disable-next-line lingui/no-unlocalized-strings -- This message describes a developer-only invariant; keeping it stable preserves error reporting fingerprints.
       throw new Error('Step not found');
     }
 
@@ -70,7 +73,10 @@ export const SidePanelWorkflowEditStepTypeContent = () => {
 
     openWorkflowEditStepInSidePanel({
       workflowId: workflowVisualizerWorkflowId,
-      title: updatedStep.name,
+      title: getWorkflowStepDisplayName({
+        name: updatedStep.name,
+        type: updatedStep.type as WorkflowActionType,
+      }),
       icon: getIcon(getActionIcon(updatedStep.type as WorkflowActionType)),
       stepId: updatedStep.id,
     });

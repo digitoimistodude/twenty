@@ -1,3 +1,4 @@
+import { findFieldMetadataItemByFieldMetadataId } from '@/object-metadata/utils/findFieldMetadataItemByFieldMetadataId';
 import { SelectOptionIcon } from '@/ui/input/components/SelectOptionIcon';
 import { useState } from 'react';
 import { OverflowingTextWithTooltip } from 'twenty-ui/primitives/typography';
@@ -64,10 +65,12 @@ export const ChartSortBySelectionDropdownContent = () => {
   );
 
   if (!isBarChart && !isLineChart && !isPieChart) {
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This message describes a developer-only invariant; keeping it stable preserves error reporting fingerprints.
     throw new Error('Invalid configuration type');
   }
 
   if (!isDefined(widgetInEditMode?.objectMetadataId)) {
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This message describes a developer-only invariant; keeping it stable preserves error reporting fingerprints.
     throw new Error('No data source in chart');
   }
 
@@ -99,9 +102,10 @@ export const ChartSortBySelectionDropdownContent = () => {
       barOrLineChartConfiguration.primaryAxisGroupBySubFieldName;
   }
 
-  const primaryAxisField = objectMetadataItem?.fields.find(
-    (field) => field.id === groupByFieldMetadataId,
-  );
+  const primaryAxisField = findFieldMetadataItemByFieldMetadataId({
+    fieldMetadataItems: objectMetadataItem?.fields,
+    fieldMetadataId: groupByFieldMetadataId,
+  });
 
   if (!isDefined(primaryAxisField)) {
     return null;

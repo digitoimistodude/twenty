@@ -8,6 +8,7 @@ import { useAtomComponentState } from '@/ui/utilities/state/jotai/hooks/useAtomC
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
 import { flowComponentState } from '@/workflow/states/flowComponentState';
 import { workflowVisualizerWorkflowIdComponentState } from '@/workflow/states/workflowVisualizerWorkflowIdComponentState';
+import { getWorkflowStepDisplayName } from '@/workflow/utils/getWorkflowStepDisplayName';
 import {
   type WorkflowActionType,
   type WorkflowIfElseAction,
@@ -59,6 +60,7 @@ export const SidePanelWorkflowCreateStepContent = () => {
   const handleCreateStep = async (selection: WorkflowActionSelection) => {
     if (!isDefined(workflowVisualizerWorkflowId)) {
       throw new Error(
+        // oxlint-disable-next-line lingui/no-unlocalized-strings -- This message describes a developer-only invariant; keeping it stable preserves error reporting fingerprints.
         'Workflow ID must be configured for the edge when creating a step',
       );
     }
@@ -107,7 +109,10 @@ export const SidePanelWorkflowCreateStepContent = () => {
 
     openWorkflowEditStepInSidePanel({
       workflowId: workflowVisualizerWorkflowId,
-      title: createdStep.name,
+      title: getWorkflowStepDisplayName({
+        name: createdStep.name,
+        type: createdStep.type as WorkflowActionType,
+      }),
       icon: getIcon(getActionIcon(createdStep.type as WorkflowActionType)),
       stepId: createdStep.id,
     });

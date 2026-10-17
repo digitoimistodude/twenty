@@ -90,7 +90,7 @@ export const useAgentChat = () => {
 
     if (aiModels.length === 0) {
       enqueueToast({
-        variant: 'error',
+        status: 'error',
         children: t`No AI provider is configured on this instance.`,
       });
 
@@ -100,6 +100,11 @@ export const useAgentChat = () => {
     const agentChatSelectedFiles = store.get(agentChatSelectedFilesState.atom);
 
     if (agentChatSelectedFiles.length > 0) {
+      enqueueToast({
+        status: 'error',
+        children: t`Wait for the attachments to finish uploading.`,
+      });
+
       return;
     }
 
@@ -112,6 +117,10 @@ export const useAgentChat = () => {
       ...prev,
       [threadId]: '',
     }));
+
+    dispatchBrowserEvent(AGENT_CHAT_RESTORE_EDITOR_CONTENT_EVENT_NAME, {
+      content: '',
+    });
 
     const browsingContext = getBrowsingContext();
     const lastSentBrowsingContextAtom =
@@ -141,8 +150,8 @@ export const useAgentChat = () => {
       ],
       metadata: {
         createdAt: optimisticMessageCreatedAt,
-        senderUserWorkspaceId: store.get(currentWorkspaceMemberState.atom)
-          ?.userWorkspaceId,
+        senderWorkspaceMemberId: store.get(currentWorkspaceMemberState.atom)
+          ?.id,
       },
       status: 'sent',
     };

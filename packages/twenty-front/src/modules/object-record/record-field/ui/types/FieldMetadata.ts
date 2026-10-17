@@ -307,6 +307,8 @@ export type FieldRichTextValue = {
 };
 
 const FieldActorSourceSchema = z.union([
+  // Metadata and protocol identifiers must stay stable across locales.
+  // oxlint-disable-next-line lingui/no-unlocalized-strings
   z.literal('API'),
   z.literal('IMPORT'),
   z.literal('EMAIL'),
@@ -327,6 +329,7 @@ export const FieldActorValueSchema = z.object({
     .object({
       // GraphQL ActorContext returns provider: null for MANUAL/SYSTEM/… actors
       provider: z.enum(ConnectedAccountProvider).nullish(),
+      applicationId: z.string().nullish(),
     })
     .nullable(),
 });

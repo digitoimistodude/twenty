@@ -1,6 +1,7 @@
+import { BILLING_PLAN_LABELS } from '@/settings/billing/constants/BillingPlanLabels';
 import { useFormatPrices } from '@/settings/billing/hooks/useFormatPrices';
 import {
-  BillingPlanKey,
+  type BillingPlanKey,
   SubscriptionInterval,
 } from '~/generated-metadata/graphql';
 import {
@@ -43,6 +44,7 @@ export const useBillingWording = () => {
   const getBeautifiedRenewDate = () => {
     assertIsDefinedOrThrow(
       currentBillingSubscription.currentPeriodEnd,
+      // oxlint-disable-next-line lingui/no-unlocalized-strings -- Keep this developer invariant stable for error grouping.
       new Error(`No renew date defined for current subscription.`),
     );
 
@@ -52,7 +54,7 @@ export const useBillingWording = () => {
   };
 
   const getBillingPlanLabel = (planKey: BillingPlanKey) =>
-    planKey === BillingPlanKey.ENTERPRISE ? t`Organization` : t`Pro`;
+    t(BILLING_PLAN_LABELS[planKey]);
 
   const getIntervalLabelAsAdjectiveCapitalize = (isMonthlyPlan: boolean) => {
     return capitalize(getIntervalLabel(isMonthlyPlan, true));

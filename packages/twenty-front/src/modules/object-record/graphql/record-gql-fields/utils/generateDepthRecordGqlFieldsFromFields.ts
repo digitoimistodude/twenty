@@ -1,6 +1,10 @@
-import { FieldMetadataType, RelationType } from 'twenty-shared/types';
+import {
+  FieldMetadataType,
+  RelationType,
+  type RecordGqlFields,
+} from 'twenty-shared/types';
+import { t } from '@lingui/core/macro';
 import { type GenerateDepthRecordGqlFieldsFromFields } from '@/object-record/graphql/record-gql-fields/types/GenerateDepthRecordGqlFieldsFromFields';
-import { type RecordGqlFields } from '@/object-record/graphql/record-gql-fields/types/RecordGqlFields';
 import { buildIdentifierGqlFields } from '@/object-record/graphql/record-gql-fields/utils/buildIdentifierGqlFields';
 import { generateJunctionRelationGqlFields } from '@/object-record/graphql/record-gql-fields/utils/generateJunctionRelationGqlFields';
 import { resolveJunctionConfig } from '@/object-record/record-field/ui/utils/junction/resolveJunctionConfig';
@@ -34,6 +38,8 @@ export const generateDepthRecordGqlFieldsFromFields = ({
 
         if (!targetObjectMetadataItem) {
           throw new Error(
+            // Error text is used for locale-independent issue grouping.
+            // oxlint-disable-next-line lingui/no-unlocalized-strings
             `Target object metadata item not found for ${fieldMetadata.name}`,
           );
         }
@@ -68,6 +74,8 @@ export const generateDepthRecordGqlFieldsFromFields = ({
         );
 
         const manyToOneGqlFields = {
+          // Generated GraphQL syntax must stay stable across locales.
+          // oxlint-disable-next-line lingui/no-unlocalized-strings
           [`${fieldMetadata.name}Id`]: true,
         };
 
@@ -88,7 +96,7 @@ export const generateDepthRecordGqlFieldsFromFields = ({
       if (isMorphRelation) {
         if (!isDefined(fieldMetadata.morphRelations)) {
           throw new Error(
-            `Field ${fieldMetadata.name} is missing, please refresh the page. If the problem persists, please contact support.`,
+            t`Field ${fieldMetadata.name} is missing, please refresh the page. If the problem persists, please contact support.`,
           );
         }
 
@@ -101,6 +109,8 @@ export const generateDepthRecordGqlFieldsFromFields = ({
 
             if (!morphTargetObjectMetadataItem) {
               throw new Error(
+                // Error text is used for locale-independent issue grouping.
+                // oxlint-disable-next-line lingui/no-unlocalized-strings
                 `Target object metadata item not found for ${fieldMetadata.name} (morph target ${morphRelation.targetObjectMetadata.nameSingular})`,
               );
             }
@@ -137,7 +147,9 @@ export const generateDepthRecordGqlFieldsFromFields = ({
                 ? { [`${morphGqlField.gqlField}`]: true }
                 : {}),
               ...(relationType === RelationType.MANY_TO_ONE
-                ? { [`${morphGqlField.gqlField}Id`]: true }
+                ? // Generated GraphQL syntax must stay stable across locales.
+                  // oxlint-disable-next-line lingui/no-unlocalized-strings
+                  { [`${morphGqlField.gqlField}Id`]: true }
                 : {}),
             }),
             {},

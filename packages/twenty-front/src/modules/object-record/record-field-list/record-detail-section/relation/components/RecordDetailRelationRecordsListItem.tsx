@@ -96,6 +96,8 @@ export const RecordDetailRelationRecordsListItem = ({
 
   if (!objectMetadataItem) {
     throw new CustomError(
+      // Error text is used for locale-independent issue grouping.
+      // oxlint-disable-next-line lingui/no-unlocalized-strings
       'Object metadata item not found',
       'OBJECT_METADATA_ITEM_NOT_FOUND',
     );
@@ -266,10 +268,6 @@ export const RecordDetailRelationRecordsListItem = ({
             instanceId={`${scopeInstanceId}-relation-${relationRecord.id}`}
             objectNameSingular={relationObjectMetadataNameSingular}
             objectRecordId={relationRecord.id}
-            showDuplicatesSection={false}
-            showRelationSections={false}
-            excludeCreatedAtAndUpdatedAt={true}
-            excludeFieldMetadataIds={[relationFieldMetadataId]}
           />
         </Collapsible.Panel>
       </Collapsible.Root>

@@ -1,22 +1,17 @@
-import { useIsWorkflowCoreEnabled } from '@/workflow/hooks/useIsWorkflowCoreEnabled';
 import { HeadlessNavigateEngineCommand } from '@/command-menu-item/engine-command/components/HeadlessNavigateEngineCommand';
 import { useHeadlessCommandContextApi } from '@/command-menu-item/engine-command/hooks/useHeadlessCommandContextApi';
 import { CoreObjectNamePlural } from '@/object-metadata/types/CoreObjectNamePlural';
-import { useWorkflowWithCurrentVersion } from '@/workflow/hooks/useWorkflowWithCurrentVersion';
 import { AppPath, ViewFilterOperand } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
 export const SeeRunsWorkflowSingleRecordCommand = () => {
-  const isCore = useIsWorkflowCoreEnabled();
   const { selectedRecords } = useHeadlessCommandContextApi();
 
   const recordId = selectedRecords[0]?.id;
   const workflowName = selectedRecords[0]?.name;
-  const workflowWithCurrentVersion = useWorkflowWithCurrentVersion(
-    recordId ?? '',
-  );
 
   if (!isDefined(recordId)) {
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is an internal command precondition diagnostic.
     throw new Error('Record ID is required to see runs workflow');
   }
 
@@ -25,18 +20,10 @@ export const SeeRunsWorkflowSingleRecordCommand = () => {
       to={AppPath.RecordIndexPage}
       params={{ objectNamePlural: CoreObjectNamePlural.WorkflowRun }}
       queryParams={{
-        filter: isCore
-          ? { coreWorkflowId: { [ViewFilterOperand.IS]: recordId } }
-          : {
-              workflow: {
-                [ViewFilterOperand.IS]: {
-                  selectedRecordIds: [workflowWithCurrentVersion?.id],
-                },
-              },
-            },
-        filterDisplayValue: isCore
-          ? { coreWorkflowId: { [ViewFilterOperand.IS]: workflowName } }
-          : undefined,
+        filter: { coreWorkflowId: { [ViewFilterOperand.IS]: recordId } },
+        filterDisplayValue: {
+          coreWorkflowId: { [ViewFilterOperand.IS]: workflowName },
+        },
       }}
     />
   );

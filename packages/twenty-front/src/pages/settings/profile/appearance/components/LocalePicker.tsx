@@ -6,6 +6,7 @@ import { getDateFnsLocale } from '@/ui/field/display/utils/getDateFnsLocale';
 import { Select } from '@/ui/input/components/Select';
 import { useUpdateWorkspaceMemberSettings } from '@/workspace-member/hooks/useUpdateWorkspaceMemberSettings';
 
+import { useInvalidateToolIndex } from '@/ai/hooks/useInvalidateToolIndex';
 import { useInvalidateMetadataStore } from '@/metadata-store/hooks/useInvalidateMetadataStore';
 import { useStore } from 'jotai';
 import { useLingui } from '@lingui/react/macro';
@@ -34,9 +35,11 @@ export const LocalePicker = () => {
   const localeOptions = useLocaleOptions();
 
   const { invalidateMetadataStore } = useInvalidateMetadataStore();
+  const { invalidateToolIndex } = useInvalidateToolIndex();
 
   const updateWorkspaceMember = async (changedFields: any) => {
     if (!currentWorkspaceMember?.id) {
+      // oxlint-disable-next-line lingui/no-unlocalized-strings -- Keep this developer invariant stable for error grouping.
       throw new Error('User is not logged in');
     }
 
@@ -74,6 +77,8 @@ export const LocalePicker = () => {
       console.log('Failed to save locale to localStorage:', error);
     }
     invalidateMetadataStore();
+    // Tool labels are translated server-side in the member's locale
+    invalidateToolIndex();
   };
 
   return (

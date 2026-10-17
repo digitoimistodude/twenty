@@ -18,6 +18,7 @@ export const DuplicateDashboardSingleRecordCommand = () => {
   const { t } = useLingui();
 
   if (!isDefined(recordId)) {
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is an internal command precondition diagnostic.
     throw new Error('Record ID is required to duplicate dashboard');
   }
 
@@ -26,7 +27,7 @@ export const DuplicateDashboardSingleRecordCommand = () => {
 
     if (isDefined(result) && isNonEmptyString(result.id)) {
       enqueueToast({
-        variant: 'success',
+        status: 'success',
         children: t`Dashboard duplicated successfully`,
       });
 

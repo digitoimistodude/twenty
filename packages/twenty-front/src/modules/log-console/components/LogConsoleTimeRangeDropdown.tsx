@@ -1,4 +1,3 @@
-import { plural } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
 import { useState } from 'react';
 import { SettingsPath } from 'twenty-shared/types';
@@ -16,7 +15,6 @@ import { useDateTimeFormat } from '@/localization/hooks/useDateTimeFormat';
 import { LOG_CONSOLE_TIME_RANGE_PRESETS } from '@/log-console/constants/LogConsoleTimeRangePresets';
 import { useLogConsoleRetention } from '@/log-console/hooks/useLogConsoleRetention';
 import { logConsoleTimeZoneState } from '@/log-console/states/logConsoleTimeZoneState';
-import { type LogConsoleSource } from '@/log-console/types/LogConsoleSource';
 import { type LogConsoleTimeRange } from '@/log-console/types/LogConsoleTimeRange';
 import { isLogConsoleTimeRangeWithinRetention } from '@/log-console/utils/isLogConsoleTimeRangeWithinRetention';
 import { Dropdown } from '@/ui/layout/dropdown/components/Dropdown';
@@ -33,20 +31,22 @@ import { useNavigateSettings } from '~/hooks/useNavigateSettings';
 const LOG_CONSOLE_TIME_RANGE_DROPDOWN_ID = 'log-console-time-range';
 
 type LogConsoleTimeRangeDropdownProps = {
-  source: LogConsoleSource;
   timeRange: LogConsoleTimeRange;
   onTimeRangeChange: (timeRange: LogConsoleTimeRange) => void;
 };
 
 export const LogConsoleTimeRangeDropdown = ({
-  source,
   timeRange,
   onTimeRangeChange,
 }: LogConsoleTimeRangeDropdownProps) => {
   const { t } = useLingui();
   const { timeZone: memberTimeZone } = useDateTimeFormat();
-  const { retentionInDays, retentionDescription } =
-    useLogConsoleRetention(source);
+  const {
+    retentionInHours,
+    retentionLabel,
+    retentionDescription,
+    isRetentionConfigurable,
+  } = useLogConsoleRetention();
   const [logConsoleTimeZone, setLogConsoleTimeZone] = useAtomState(
     logConsoleTimeZoneState,
   );
@@ -56,10 +56,12 @@ export const LogConsoleTimeRangeDropdown = ({
 
   const timeZoneOptions = [
     { value: 'member', label: memberTimeZone },
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is a date format or time-zone identifier.
     { value: 'utc', label: 'UTC' },
   ] as const;
 
   const selectedTimeZoneLabel =
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is a date format or time-zone identifier.
     logConsoleTimeZone === 'utc' ? 'UTC' : memberTimeZone;
 
   const getTimeRangeLabel = (labeledTimeRange: LogConsoleTimeRange) => {
@@ -87,7 +89,7 @@ export const LogConsoleTimeRangeDropdown = ({
   const renderTimeRangeItem = (itemTimeRange: LogConsoleTimeRange) => {
     const isWithinRetention = isLogConsoleTimeRangeWithinRetention({
       timeRange: itemTimeRange,
-      retentionInDays,
+      retentionInHours,
     });
 
     return (
@@ -167,12 +169,9 @@ export const LogConsoleTimeRangeDropdown = ({
             <DropdownMenuSeparator />
             <DropdownMenuItemsContainer scrollable={false}>
               <ListItemButton
-                description={plural(retentionInDays, {
-                  one: '# day',
-                  other: '# days',
-                })}
+                description={retentionLabel}
                 descriptionPlacement="end"
-                disabled={!source.requiresAuditLogs}
+                disabled={!isRetentionConfigurable}
                 onClick={openRetentionSettings}
               >
                 {t`Retention`}

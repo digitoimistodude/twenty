@@ -30,12 +30,11 @@ import { lastScrollPositionComponentState } from '@/object-record/record-table/v
 import { recordIdByRealIndexComponentState } from '@/object-record/record-table/virtualization/states/recordIdByRealIndexComponentState';
 import { scrollAtRealIndexComponentState } from '@/object-record/record-table/virtualization/states/scrollAtRealIndexComponentState';
 import { totalNumberOfRecordsToVirtualizeComponentState } from '@/object-record/record-table/virtualization/states/totalNumberOfRecordsToVirtualizeComponentState';
-import { type ObjectRecord } from '@/object-record/types/ObjectRecord';
 import { useAtomComponentFamilyStateCallbackState } from '@/ui/utilities/state/jotai/hooks/useAtomComponentFamilyStateCallbackState';
 import { useAtomComponentSelectorCallbackState } from '@/ui/utilities/state/jotai/hooks/useAtomComponentSelectorCallbackState';
 import { useAtomComponentStateCallbackState } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateCallbackState';
 import { useSetAtomComponentState } from '@/ui/utilities/state/jotai/hooks/useSetAtomComponentState';
-import { isDefined } from 'twenty-shared/utils';
+import { isDefined, isNonEmptyArray } from 'twenty-shared/utils';
 
 export const useTriggerInitialRecordTableDataLoad = () => {
   const { recordTableId, objectNameSingular } = useRecordTableContextOrThrow();
@@ -131,19 +130,15 @@ export const useTriggerInitialRecordTableDataLoad = () => {
       store.set(isInitializingVirtualTableDataLoadingCallbackState, true);
 
       try {
-        const currentRecordIds = store.get(recordIndexAllRecordIds);
+        const hasRecordsToKeepDisplayed = isNonEmptyArray(
+          store.get(recordIndexAllRecordIds),
+        );
 
-        // Keep the already rendered rows visible while the (often cached)
-        // fetch resolves, so navigating back to a view does not flash a skeleton
-        const tableIsEmpty = currentRecordIds.length === 0;
-
-        if (tableIsEmpty) {
+        if (!hasRecordsToKeepDisplayed) {
           store.set(isRecordTableInitialLoading, true);
         }
 
         resetTableFocuses();
-
-        resetVirtualizedRowTreadmill();
 
         updateRecordTableCSSVariable(
           recordTableId,
@@ -157,39 +152,45 @@ export const useTriggerInitialRecordTableDataLoad = () => {
           'hidden',
         );
 
-        let records: ObjectRecord[] | null = null;
-        let totalCount = 0;
+        const clearLoadedRecords = () => {
+          const currentRecordIds = store.get(recordIndexAllRecordIds);
 
-        const { records: findManyRecords, totalCount: findManyTotalCount } =
-          await findManyRecordsLazy();
+          const newRecordIdByRealIndex = new Map(
+            store.get(recordIdByRealIndexCallbackState),
+          );
+          const newDataLoadingStatusByRealIndex = new Map(
+            store.get(dataLoadingStatusByRealIndexCallbackState),
+          );
 
-        records = findManyRecords;
-        totalCount = findManyTotalCount;
+          for (const [realIndex] of currentRecordIds.entries()) {
+            newDataLoadingStatusByRealIndex.set(realIndex, 'not-loaded');
+            newRecordIdByRealIndex.delete(realIndex);
+          }
 
-        const recordIdsToClear = store.get(recordIndexAllRecordIds);
+          store.set(recordIdByRealIndexCallbackState, newRecordIdByRealIndex);
+          store.set(
+            dataLoadingStatusByRealIndexCallbackState,
+            newDataLoadingStatusByRealIndex,
+          );
 
-        const newRecordIdByRealIndex = new Map(
-          store.get(recordIdByRealIndexCallbackState),
-        );
-        const newDataLoadingStatusByRealIndex = new Map(
-          store.get(dataLoadingStatusByRealIndexCallbackState),
-        );
+          store.set(
+            recordIndexRecordIdsByGroupFamilyState(NO_RECORD_GROUP_FAMILY_KEY),
+            [],
+          );
+        };
 
-        for (const [realIndex] of recordIdsToClear.entries()) {
-          newDataLoadingStatusByRealIndex.set(realIndex, 'not-loaded');
-          newRecordIdByRealIndex.delete(realIndex);
+        let findManyRecordsResult: Awaited<
+          ReturnType<typeof findManyRecordsLazy>
+        >;
+
+        try {
+          findManyRecordsResult = await findManyRecordsLazy();
+        } finally {
+          clearLoadedRecords();
+          resetVirtualizedRowTreadmill();
         }
 
-        store.set(recordIdByRealIndexCallbackState, newRecordIdByRealIndex);
-        store.set(
-          dataLoadingStatusByRealIndexCallbackState,
-          newDataLoadingStatusByRealIndex,
-        );
-
-        store.set(
-          recordIndexRecordIdsByGroupFamilyState(NO_RECORD_GROUP_FAMILY_KEY),
-          [],
-        );
+        const { records, totalCount } = findManyRecordsResult;
 
         store.set(
           totalNumberOfRecordsToVirtualizeCallbackState,

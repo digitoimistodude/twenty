@@ -1,4 +1,3 @@
-import { t } from '@lingui/core/macro';
 import { type ReactNode, useCallback, useContext } from 'react';
 
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
@@ -27,11 +26,10 @@ import { getFieldMetadataItemById } from '@/object-metadata/utils/getFieldMetada
 import { assertFieldMetadata } from '@/object-record/record-field/ui/types/guards/assertFieldMetadata';
 import { isFieldRelation } from '@/object-record/record-field/ui/types/guards/isFieldRelation';
 import { CustomError, isDefined } from 'twenty-shared/utils';
-import { LightIconButton } from 'twenty-ui/components/input';
-import { IconForbid, IconPencil } from 'twenty-ui/icon';
+import { IconForbid } from 'twenty-ui/icon';
 
 type RecordDetailRelationSectionDropdownToOneProps = {
-  dropdownTriggerClickableComponent?: ReactNode;
+  dropdownTriggerClickableComponent: ReactNode;
 };
 
 export const RecordDetailRelationSectionDropdownToOne = ({
@@ -59,6 +57,8 @@ export const RecordDetailRelationSectionDropdownToOne = ({
 
   if (!isDefined(fieldMetadataItem) || !isDefined(objectMetadataItem)) {
     throw new CustomError(
+      // Error text is used for locale-independent issue grouping.
+      // oxlint-disable-next-line lingui/no-unlocalized-strings
       'Field metadata item or object metadata item not found',
       'FIELD_METADATA_ITEM_OR_OBJECT_METADATA_ITEM_NOT_FOUND',
     );
@@ -75,6 +75,8 @@ export const RecordDetailRelationSectionDropdownToOne = ({
 
   if (!relationFieldMetadataItem) {
     throw new CustomError(
+      // Error text is used for locale-independent issue grouping.
+      // oxlint-disable-next-line lingui/no-unlocalized-strings
       'Relation field metadata item not found',
       'RELATION_FIELD_METADATA_ITEM_NOT_FOUND',
     );
@@ -165,17 +167,7 @@ export const RecordDetailRelationSectionDropdownToOne = ({
       dropdownPlacement="left-start"
       onClose={handleCloseRelationPickerDropdown}
       onOpen={handleOpenRelationPickerDropdown}
-      clickableComponent={
-        dropdownTriggerClickableComponent ?? (
-          <LightIconButton
-            className="displayOnHover"
-            emphasis="subtle"
-            aria-label={t`Edit relation`}
-          >
-            <IconPencil />
-          </LightIconButton>
-        )
-      }
+      clickableComponent={dropdownTriggerClickableComponent}
       dropdownComponents={
         <SingleRecordPicker
           focusId={dropdownId}

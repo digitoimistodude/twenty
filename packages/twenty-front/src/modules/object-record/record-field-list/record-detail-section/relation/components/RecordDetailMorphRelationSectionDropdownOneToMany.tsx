@@ -1,5 +1,5 @@
-import { t } from '@lingui/core/macro';
 import { type ReactNode, useCallback, useContext } from 'react';
+import { t } from '@lingui/core/macro';
 
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
 import { useRecordFieldsScopeContextOrThrow } from '@/object-record/record-field-list/contexts/RecordFieldsScopeContext';
@@ -23,11 +23,9 @@ import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/use
 import { useSetAtomComponentState } from '@/ui/utilities/state/jotai/hooks/useSetAtomComponentState';
 import { FieldMetadataType } from 'twenty-shared/types';
 import { CustomError, isDefined } from 'twenty-shared/utils';
-import { LightIconButton } from 'twenty-ui/components/input';
-import { IconPlus } from 'twenty-ui/icon';
 
 type RecordDetailMorphRelationSectionDropdownOneToManyProps = {
-  dropdownTriggerClickableComponent?: ReactNode;
+  dropdownTriggerClickableComponent: ReactNode;
 };
 
 export const RecordDetailMorphRelationSectionDropdownOneToMany = ({
@@ -113,7 +111,7 @@ export const RecordDetailMorphRelationSectionDropdownOneToMany = ({
         )?.targetObjectMetadata.id;
         if (!objectMetadataId) {
           throw new CustomError(
-            'Sorry, we could not determine the correct object type for this related record. Please contact support if the issue persists.',
+            t`Sorry, we could not determine the correct object type for this related record. Please contact support if the issue persists.`,
           );
         }
         return {
@@ -138,6 +136,8 @@ export const RecordDetailMorphRelationSectionDropdownOneToMany = ({
             record.objectNameSingular,
         )?.targetObjectMetadata.id;
         if (!objectMetadataId) {
+          // Error text is used for locale-independent issue grouping.
+          // oxlint-disable-next-line lingui/no-unlocalized-strings
           throw new Error('ObjectMetadataId is required');
         }
         return {
@@ -159,17 +159,7 @@ export const RecordDetailMorphRelationSectionDropdownOneToMany = ({
       dropdownPlacement="left-start"
       onClose={handleCloseRelationPickerDropdown}
       onOpen={handleOpenRelationPickerDropdown}
-      clickableComponent={
-        dropdownTriggerClickableComponent ?? (
-          <LightIconButton
-            className="displayOnHover"
-            emphasis="subtle"
-            aria-label={t`Add relation`}
-          >
-            <IconPlus />
-          </LightIconButton>
-        )
-      }
+      clickableComponent={dropdownTriggerClickableComponent}
       dropdownComponents={
         <MultipleRecordPicker
           focusId={dropdownId}

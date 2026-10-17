@@ -1,3 +1,6 @@
+import { type MessageDescriptor } from '@lingui/core';
+import { msg } from '@lingui/core/macro';
+import { COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES } from '@/settings/data-model/constants/CompositeFieldSubFieldLabelMessages';
 import {
   type FieldActorValue,
   type FieldAddressValue,
@@ -11,7 +14,6 @@ import {
 import { type SettingsFieldTypeConfig } from '@/settings/data-model/constants/SettingsNonCompositeFieldTypeConfigs';
 import { type CompositeFieldType } from '@/settings/data-model/types/CompositeFieldType';
 import {
-  COMPOSITE_FIELD_SUB_FIELD_LABELS,
   COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES,
   CurrencyCode,
 } from 'twenty-shared/constants';
@@ -32,7 +34,7 @@ import { FieldMetadataType } from '~/generated-metadata/graphql';
 
 export type CompositeSubFieldConfig<T> = {
   subFieldName: keyof T;
-  subFieldLabel: string;
+  subFieldLabel: MessageDescriptor;
   isImportable: boolean;
   isFilterable: boolean;
   isIncludedInUniqueConstraint: boolean;
@@ -48,9 +50,11 @@ type SettingsCompositeFieldTypeConfigArray = Record<
   SettingsCompositeFieldTypeConfig<any>
 >;
 
+// Example records are fixed samples; visible field labels are MessageDescriptors.
+// oxlint-disable lingui/no-unlocalized-strings
 export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
   [FieldMetadataType.CURRENCY]: {
-    label: 'Currency',
+    label: msg({ message: `Currency`, context: 'Field type' }),
     Icon: IllustrationIconCurrency,
     subFields: [
       {
@@ -58,7 +62,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.CURRENCY]
             .amountMicros,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.CURRENCY]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.CURRENCY]
             .amountMicros,
         isImportable: true,
         isFilterable: true,
@@ -69,7 +73,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.CURRENCY]
             .currencyCode,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.CURRENCY]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.CURRENCY]
             .currencyCode,
         isImportable: true,
         isFilterable: true,
@@ -93,7 +97,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
     category: 'Basic',
   } as const satisfies SettingsCompositeFieldTypeConfig<FieldCurrencyValue>,
   [FieldMetadataType.EMAILS]: {
-    label: 'Emails',
+    label: msg({ message: `Emails`, context: 'Field type' }),
     Icon: IllustrationIconMail,
     subFields: [
       {
@@ -101,7 +105,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.EMAILS]
             .primaryEmail,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.EMAILS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.EMAILS]
             .primaryEmail,
         isImportable: true,
         isFilterable: true,
@@ -112,7 +116,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.EMAILS]
             .additionalEmails,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.EMAILS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.EMAILS]
             .additionalEmails,
         isImportable: true,
         isFilterable: true,
@@ -140,7 +144,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
     category: 'Basic',
   } as const satisfies SettingsCompositeFieldTypeConfig<FieldEmailsValue>,
   [FieldMetadataType.LINKS]: {
-    label: 'Links',
+    label: msg({ message: `Links`, context: 'Field type' }),
     Icon: IllustrationIconLink,
     subFields: [
       {
@@ -148,7 +152,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.LINKS]
             .primaryLinkUrl,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.LINKS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.LINKS]
             .primaryLinkUrl,
         isImportable: true,
         isFilterable: true,
@@ -159,7 +163,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.LINKS]
             .primaryLinkLabel,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.LINKS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.LINKS]
             .primaryLinkLabel,
         isImportable: true,
         isFilterable: true,
@@ -170,7 +174,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.LINKS]
             .secondaryLinks,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.LINKS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.LINKS]
             .secondaryLinks,
         isImportable: true,
         isFilterable: true,
@@ -197,7 +201,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
     category: 'Basic',
   } as const satisfies SettingsCompositeFieldTypeConfig<FieldLinksValue>,
   [FieldMetadataType.PHONES]: {
-    label: 'Phones',
+    label: msg({ message: `Phones`, context: 'Field type' }),
     Icon: IllustrationIconPhone,
     subFields: [
       {
@@ -205,7 +209,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.PHONES]
             .primaryPhoneCallingCode,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.PHONES]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.PHONES]
             .primaryPhoneCallingCode,
         isImportable: true,
         isFilterable: true,
@@ -216,7 +220,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.PHONES]
             .primaryPhoneCountryCode,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.PHONES]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.PHONES]
             .primaryPhoneCountryCode,
         isImportable: true,
         isFilterable: false,
@@ -227,7 +231,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.PHONES]
             .primaryPhoneNumber,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.PHONES]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.PHONES]
             .primaryPhoneNumber,
         isImportable: true,
         isFilterable: true,
@@ -238,7 +242,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.PHONES]
             .additionalPhones,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.PHONES]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.PHONES]
             .additionalPhones,
         isImportable: true,
         isFilterable: true,
@@ -273,7 +277,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
     category: 'Basic',
   } as const satisfies SettingsCompositeFieldTypeConfig<FieldPhonesValue>,
   [FieldMetadataType.FULL_NAME]: {
-    label: 'Full Name',
+    label: msg({ message: `Full Name`, context: 'Field type' }),
     Icon: IllustrationIconUser,
     subFields: [
       {
@@ -281,7 +285,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.FULL_NAME]
             .firstName,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.FULL_NAME]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.FULL_NAME]
             .firstName,
         isImportable: true,
         isFilterable: true,
@@ -292,7 +296,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.FULL_NAME]
             .lastName,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.FULL_NAME]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.FULL_NAME]
             .lastName,
         isImportable: true,
         isFilterable: true,
@@ -307,7 +311,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
     category: 'Basic',
   } as const satisfies SettingsCompositeFieldTypeConfig<FieldFullNameValue>,
   [FieldMetadataType.ADDRESS]: {
-    label: 'Address',
+    label: msg({ message: `Address`, context: 'Field type' }),
     Icon: IllustrationIconMap,
     subFields: [
       {
@@ -315,7 +319,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ADDRESS]
             .addressStreet1,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ADDRESS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ADDRESS]
             .addressStreet1,
         isImportable: true,
         isFilterable: true,
@@ -326,7 +330,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ADDRESS]
             .addressStreet2,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ADDRESS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ADDRESS]
             .addressStreet2,
         isImportable: true,
         isFilterable: true,
@@ -337,7 +341,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ADDRESS]
             .addressCity,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ADDRESS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ADDRESS]
             .addressCity,
         isImportable: true,
         isFilterable: true,
@@ -348,7 +352,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ADDRESS]
             .addressState,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ADDRESS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ADDRESS]
             .addressState,
         isImportable: true,
         isFilterable: true,
@@ -359,7 +363,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ADDRESS]
             .addressCountry,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ADDRESS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ADDRESS]
             .addressCountry,
         isImportable: true,
         isFilterable: true,
@@ -370,7 +374,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ADDRESS]
             .addressPostcode,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ADDRESS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ADDRESS]
             .addressPostcode,
         isImportable: true,
         isFilterable: true,
@@ -381,7 +385,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ADDRESS]
             .addressLat,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ADDRESS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ADDRESS]
             .addressLat,
         isImportable: false,
         isFilterable: false,
@@ -392,7 +396,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ADDRESS]
             .addressLng,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ADDRESS]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ADDRESS]
             .addressLng,
         isImportable: false,
         isFilterable: false,
@@ -434,7 +438,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
     category: 'Basic',
   } as const satisfies SettingsCompositeFieldTypeConfig<FieldAddressValue>,
   [FieldMetadataType.ACTOR]: {
-    label: 'Actor',
+    label: msg({ message: `Actor`, context: 'Field type' }),
     Icon: IllustrationIconSetting,
     category: 'Basic',
     subFields: [
@@ -442,7 +446,8 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
         subFieldName:
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ACTOR].source,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ACTOR].source,
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ACTOR]
+            .source,
         isImportable: true,
         isFilterable: true,
         isIncludedInUniqueConstraint: false,
@@ -451,7 +456,8 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
         subFieldName:
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ACTOR].name,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ACTOR].name,
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ACTOR]
+            .name,
         isImportable: true,
         isFilterable: true,
         isIncludedInUniqueConstraint: false,
@@ -461,7 +467,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ACTOR]
             .workspaceMemberId,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ACTOR]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ACTOR]
             .workspaceMemberId,
         isImportable: true,
         isFilterable: true,
@@ -472,7 +478,8 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.ACTOR]
             .context,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.ACTOR].context,
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.ACTOR]
+            .context,
         isImportable: true,
         isFilterable: false,
         isIncludedInUniqueConstraint: false,
@@ -500,7 +507,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
     ],
   } as const satisfies SettingsCompositeFieldTypeConfig<FieldActorValue>,
   [FieldMetadataType.RICH_TEXT]: {
-    label: 'Rich Text',
+    label: msg({ message: `Rich Text`, context: 'Field type' }),
     Icon: IllustrationIconText,
     category: 'Basic',
     subFields: [
@@ -509,7 +516,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.RICH_TEXT]
             .blocknote,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.RICH_TEXT]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.RICH_TEXT]
             .blocknote,
         isImportable: false,
         isFilterable: false,
@@ -520,7 +527,7 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
           COMPOSITE_FIELD_TYPE_SUB_FIELDS_NAMES[FieldMetadataType.RICH_TEXT]
             .markdown,
         subFieldLabel:
-          COMPOSITE_FIELD_SUB_FIELD_LABELS[FieldMetadataType.RICH_TEXT]
+          COMPOSITE_FIELD_SUB_FIELD_LABEL_MESSAGES[FieldMetadataType.RICH_TEXT]
             .markdown,
         isImportable: true,
         isFilterable: false,
@@ -543,3 +550,4 @@ export const SETTINGS_COMPOSITE_FIELD_TYPE_CONFIGS = {
     ],
   } as const satisfies SettingsCompositeFieldTypeConfig<FieldRichTextValue>,
 } as const satisfies SettingsCompositeFieldTypeConfigArray;
+// oxlint-enable lingui/no-unlocalized-strings

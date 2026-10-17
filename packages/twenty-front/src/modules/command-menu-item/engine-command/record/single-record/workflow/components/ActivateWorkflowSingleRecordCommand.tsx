@@ -14,6 +14,7 @@ export const ActivateWorkflowSingleRecordCommand = () => {
   );
 
   if (!isDefined(recordId)) {
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is an internal command precondition diagnostic.
     throw new Error('Record ID is required to activate workflow');
   }
 
@@ -24,7 +25,6 @@ export const ActivateWorkflowSingleRecordCommand = () => {
 
     return activateWorkflowVersion({
       workflowVersionId: workflowWithCurrentVersion.currentVersion.id,
-      workflowId: workflowWithCurrentVersion.id,
     });
   };
 

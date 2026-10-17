@@ -13,10 +13,10 @@ import { type ApplicationRegistrationData } from '~/pages/settings/applications/
 
 export const SettingsApplicationRegistrationDistributionTab = ({
   registration,
-  fromAdmin,
+  isAdminView,
 }: {
   registration: ApplicationRegistrationData;
-  fromAdmin?: boolean;
+  isAdminView?: boolean;
 }) => {
   const { t } = useLingui();
 
@@ -32,11 +32,13 @@ export const SettingsApplicationRegistrationDistributionTab = ({
     availableApplicationId: registration.universalIdentifier,
   });
 
+  // The command must remain executable when copied into a terminal.
+  // oxlint-disable-next-line lingui/no-unlocalized-strings
   const publishCommands = ['yarn twenty app:publish'];
 
   return (
     <>
-      {isNpmSource && fromAdmin !== true && (
+      {isNpmSource && isAdminView !== true && (
         <Section.Root>
           <Section.Header
             title={t`Ownership`}

@@ -1,5 +1,5 @@
 import { DeleteCoreWorkflowsCommand } from '@/object-core/workflows/components/DeleteCoreWorkflowsCommand';
-import { useIsWorkflowCoreEnabled } from '@/workflow/hooks/useIsWorkflowCoreEnabled';
+import { t } from '@lingui/core/macro';
 import {
   CoreObjectNameSingular,
   type RecordGqlOperationFilter,
@@ -21,6 +21,7 @@ const DeleteWorkspaceRecordsCommand = () => {
     useHeadlessCommandContextApi();
 
   if (!isDefined(objectMetadataItem)) {
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is an internal command precondition diagnostic.
     throw new Error('Object metadata is required to delete records');
   }
 
@@ -71,7 +72,7 @@ const DeleteWorkspaceRecordsCommand = () => {
     }
 
     if (!isDefined(graphqlFilter)) {
-      throw new Error('Cannot delete records without a valid filter');
+      throw new Error(t`Cannot delete records without a valid filter`);
     }
 
     await incrementalDeleteManyRecords();
@@ -81,10 +82,9 @@ const DeleteWorkspaceRecordsCommand = () => {
 };
 
 export const DeleteRecordsCommand = () => {
-  const isCore = useIsWorkflowCoreEnabled();
   const { objectMetadataItem } = useHeadlessCommandContextApi();
-  return isCore &&
-    objectMetadataItem?.nameSingular === CoreObjectNameSingular.Workflow ? (
+  return objectMetadataItem?.nameSingular ===
+    CoreObjectNameSingular.Workflow ? (
     <DeleteCoreWorkflowsCommand />
   ) : (
     <DeleteWorkspaceRecordsCommand />

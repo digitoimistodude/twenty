@@ -19,8 +19,9 @@ export const useUploadEmailImage = () => {
         file.type as (typeof EMAIL_IMAGE_MIME_TYPES)[number],
       )
     ) {
-      enqueueToast({ variant: 'error', children: t`Unsupported image format` });
+      enqueueToast({ status: 'error', children: t`Unsupported image format` });
 
+      // oxlint-disable-next-line lingui/no-unlocalized-strings -- A translated toast has already explained this upload failure.
       throw new Error(`Unsupported email image MIME type: ${file.type}`);
     }
 
@@ -29,10 +30,11 @@ export const useUploadEmailImage = () => {
       const maxUploadSize = formatFileSize(MAX_ATTACHMENT_SIZE);
 
       enqueueToast({
-        variant: 'error',
+        status: 'error',
         children: t`Image "${fileName}" exceeds ${maxUploadSize}`,
       });
 
+      // oxlint-disable-next-line lingui/no-unlocalized-strings -- A translated toast has already explained this upload failure.
       throw new Error('Email image exceeds the maximum upload size');
     }
 
@@ -47,7 +49,7 @@ export const useUploadEmailImage = () => {
 
       logError(`Failed to upload email image "${fileName}": ${error}`);
       enqueueToast({
-        variant: 'error',
+        status: 'error',
         children: t`Failed to upload "${fileName}"`,
       });
 

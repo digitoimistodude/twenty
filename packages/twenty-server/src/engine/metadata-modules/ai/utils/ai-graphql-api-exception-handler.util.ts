@@ -28,6 +28,7 @@ export const aiGraphqlApiExceptionHandler = (error: Error) => {
       case AiExceptionCode.CONTEXT_WINDOW_EXCEEDED:
       case AiExceptionCode.INVALID_AGENT_INPUT:
       case AiExceptionCode.INVALID_CHAT_THREAD_SNOOZE_TIME:
+      case AiExceptionCode.INVALID_CHAT_MESSAGE_REACTION_EMOJI:
       case AiExceptionCode.INVALID_TOOL_CALL_OUTPUT:
       case AiExceptionCode.TOOL_CALL_NOT_PENDING:
       case AiExceptionCode.EVALUATION_QUESTION_UNSUPPORTED:
@@ -36,7 +37,6 @@ export const aiGraphqlApiExceptionHandler = (error: Error) => {
         throw new UserInputError(error);
       case AiExceptionCode.AGENT_ALREADY_EXISTS:
       case AiExceptionCode.NO_FAILED_TURN_TO_RETRY:
-      case AiExceptionCode.CHAT_THREAD_INBOX_STATE_UNAVAILABLE:
       case AiExceptionCode.THREAD_AWAITING_ANSWER:
       case AiExceptionCode.CHAT_THREAD_ASSIGNEE_CANNOT_UNSUBSCRIBE:
         throw new ConflictError(error);

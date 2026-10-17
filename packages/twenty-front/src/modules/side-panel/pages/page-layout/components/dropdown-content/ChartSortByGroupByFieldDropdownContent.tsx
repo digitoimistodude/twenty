@@ -1,3 +1,4 @@
+import { findFieldMetadataItemByFieldMetadataId } from '@/object-metadata/utils/findFieldMetadataItemByFieldMetadataId';
 import { SelectOptionIcon } from '@/ui/input/components/SelectOptionIcon';
 import { useState } from 'react';
 import { OverflowingTextWithTooltip } from 'twenty-ui/primitives/typography';
@@ -44,10 +45,12 @@ export const ChartSortByGroupByFieldDropdownContent = () => {
     isWidgetConfigurationOfType(configuration, 'LineChartConfiguration');
 
   if (!isBarOrLineChart) {
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This message describes a developer-only invariant; keeping it stable preserves error reporting fingerprints.
     throw new Error('Invalid configuration type');
   }
 
   if (!isDefined(widgetInEditMode?.objectMetadataId)) {
+    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This message describes a developer-only invariant; keeping it stable preserves error reporting fingerprints.
     throw new Error('No data source in chart');
   }
 
@@ -64,9 +67,14 @@ export const ChartSortByGroupByFieldDropdownContent = () => {
     (item) => item.id === widgetInEditMode.objectMetadataId,
   );
 
-  const secondaryAxisField = objectMetadataItem?.fields.find(
-    (field) => field.id === configuration.secondaryAxisGroupByFieldMetadataId,
-  );
+  const secondaryAxisField = isDefined(
+    configuration.secondaryAxisGroupByFieldMetadataId,
+  )
+    ? findFieldMetadataItemByFieldMetadataId({
+        fieldMetadataItems: objectMetadataItem?.fields,
+        fieldMetadataId: configuration.secondaryAxisGroupByFieldMetadataId,
+      })
+    : undefined;
 
   const { getGroupBySortOptionLabel } = useGraphGroupBySortOptionLabels({
     objectMetadataId: widgetInEditMode.objectMetadataId,

@@ -13,7 +13,10 @@ import {
   MessagingThreadCompletionService,
 } from 'src/modules/messaging/message-import-manager/services/messaging-thread-completion.service';
 
+const DEFAULT_DISCOVER_LIMIT = 40;
+
 type MessagingCompleteThreadsOptions = {
+  discoverLimit?: number;
   workspaceId: string;
   dryRun?: boolean;
   limit?: number;
@@ -61,6 +64,16 @@ export class MessagingCompleteThreadsCommand extends CommandRunner {
     return Number(value);
   }
 
+  @Option({
+    flags: '--discover-limit [discoverLimit]',
+    description:
+      'Maximum number of threads per channel to look up by Message-ID when the channel has no copy of them',
+    required: false,
+  })
+  parseDiscoverLimit(value: string): number {
+    return Number(value);
+  }
+
   async run(
     _passedParams: string[],
     options: MessagingCompleteThreadsOptions,
@@ -72,7 +85,8 @@ export class MessagingCompleteThreadsCommand extends CommandRunner {
       relations: ['messageFolders'],
     });
 
-    const totals: ThreadCompletionResult = {
+    const totals: ThreadCompletionResult & { discoveredThreads: number } = {
+      discoveredThreads: 0,
       scannedThreads: 0,
       threadsWithMissingMessages: 0,
       missingMessages: 0,
@@ -92,23 +106,39 @@ export class MessagingCompleteThreadsCommand extends CommandRunner {
         continue;
       }
 
-      const threadExternalIds = await this.findThreadExternalIds({
+      const knownThreadExternalIds = await this.findThreadExternalIds({
         workspaceId: options.workspaceId,
         messageChannelId: messageChannel.id,
         limit: options.limit,
       });
+
+      const discovery =
+        await this.messagingThreadCompletionService.discoverThreadExternalIds({
+          workspaceId: options.workspaceId,
+          messageChannel,
+          connectedAccount,
+          limit: options.discoverLimit ?? DEFAULT_DISCOVER_LIMIT,
+        });
+
+      totals.discoveredThreads += discovery.result.discoveredThreads;
+      totals.errors += discovery.result.errors;
 
       const result =
         await this.messagingThreadCompletionService.completeThreads({
           workspaceId: options.workspaceId,
           messageChannel,
           connectedAccount,
-          threadExternalIds,
+          threadExternalIds: [
+            ...new Set([
+              ...knownThreadExternalIds,
+              ...discovery.threadExternalIds,
+            ]),
+          ],
           dryRun,
         });
 
       for (const key of Object.keys(
-        totals,
+        result,
       ) as (keyof ThreadCompletionResult)[]) {
         totals[key] += result[key];
       }

@@ -34,6 +34,15 @@ export type ThreadCompletionResult = {
 const DISCOVERY_MESSAGE_IDS_PER_THREAD = 3;
 const FIND_CHUNK_SIZE = 500;
 
+// Gmail meters "units per minute per user"; a burst of thread reads next to
+// the regular sync trips it, and the quota comes back after a minute.
+const GMAIL_CALL_GAP_MS = 150;
+const QUOTA_RETRY_DELAY_MS = 65_000;
+const QUOTA_ERROR = /quota|rate ?limit/i;
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 // Gmail labels the messages that exist when the label is applied, so a reply
 // sent afterwards never carries it and never reaches the CRM. If a thread is
 // already in the CRM the whole conversation belongs there, so pull in whatever
@@ -77,11 +86,13 @@ export class MessagingThreadCompletionService {
 
     for (const threadExternalId of threadExternalIds) {
       try {
-        const thread = await gmailClient.users.threads.get({
-          userId: 'me',
-          id: threadExternalId,
-          format: 'minimal',
-        });
+        const thread = await this.paced(() =>
+          gmailClient.users.threads.get({
+            userId: 'me',
+            id: threadExternalId,
+            format: 'minimal',
+          }),
+        );
 
         result.scannedThreads++;
 
@@ -117,13 +128,15 @@ export class MessagingThreadCompletionService {
         // ALL_FOLDERS short-circuits the folder filter, which is the whole
         // point here: these messages are missing precisely because they do
         // not carry the synced label.
-        const messages = await this.gmailGetMessagesService.getMessages(
-          missingExternalIds,
-          connectedAccount,
-          {
-            ...messageChannel,
-            messageFolderImportPolicy: MessageFolderImportPolicy.ALL_FOLDERS,
-          },
+        const messages = await this.paced(() =>
+          this.gmailGetMessagesService.getMessages(
+            missingExternalIds,
+            connectedAccount,
+            {
+              ...messageChannel,
+              messageFolderImportPolicy: MessageFolderImportPolicy.ALL_FOLDERS,
+            },
+          ),
         );
 
         if (messages.length === 0) {
@@ -195,11 +208,13 @@ export class MessagingThreadCompletionService {
     for (const candidate of candidates) {
       try {
         for (const headerMessageId of candidate.headerMessageIds) {
-          const response = await gmailClient.users.messages.list({
-            userId: 'me',
-            q: `rfc822msgid:${headerMessageId.replace(/^<|>$/g, '')}`,
-            maxResults: 1,
-          });
+          const response = await this.paced(() =>
+            gmailClient.users.messages.list({
+              userId: 'me',
+              q: `rfc822msgid:${headerMessageId.replace(/^<|>$/g, '')}`,
+              maxResults: 1,
+            }),
+          );
           const threadExternalId = response.data.messages?.[0]?.threadId;
 
           if (isDefined(threadExternalId)) {
@@ -217,6 +232,22 @@ export class MessagingThreadCompletionService {
     }
 
     return { threadExternalIds: [...new Set(threadExternalIds)], result };
+  }
+
+  private async paced<T>(call: () => Promise<T>): Promise<T> {
+    try {
+      return await call();
+    } catch (error) {
+      if (!QUOTA_ERROR.test(error.message ?? '')) {
+        throw error;
+      }
+
+      await sleep(QUOTA_RETRY_DELAY_MS);
+
+      return call();
+    } finally {
+      await sleep(GMAIL_CALL_GAP_MS);
+    }
   }
 
   // CRM threads the account took part in that this channel holds no copy of,

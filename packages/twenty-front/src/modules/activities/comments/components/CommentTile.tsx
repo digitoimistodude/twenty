@@ -1,7 +1,7 @@
 import { styled } from '@linaria/react';
 
 import { type Comment } from '@/activities/comments/types/Comment';
-import { getActivityPreview } from '@/activities/utils/getActivityPreview';
+import { getRichTextFieldTextLines } from '@/object-record/record-field/ui/utils/getRichTextFieldTextLines';
 import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSidePanel';
 import { themeCssVariables } from 'twenty-ui/theme';
 
@@ -33,7 +33,7 @@ const StyledBody = styled.div`
 export const CommentTile = ({ comment }: { comment: Comment }) => {
   const { openRecordInSidePanel } = useOpenRecordInSidePanel();
 
-  const body = getActivityPreview(comment.body?.blocknote ?? null);
+  const body = getRichTextFieldTextLines(comment.body).join('\n');
   const author = comment.createdBy?.name ?? 'Unknown';
 
   return (

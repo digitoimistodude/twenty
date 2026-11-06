@@ -1,7 +1,8 @@
+import { type FieldRichTextValue } from '@/object-record/record-field/ui/types/FieldMetadata';
 import { type ObjectRecord } from '@/object-record/types/ObjectRecord';
 
 export type Comment = ObjectRecord & {
-  body?: { blocknote?: string | null; markdown?: string | null } | null;
+  body?: FieldRichTextValue | null;
   createdBy?: { name?: string | null } | null;
   createdAt?: string;
 };

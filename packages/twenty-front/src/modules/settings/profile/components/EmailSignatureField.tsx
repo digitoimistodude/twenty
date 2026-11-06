@@ -6,7 +6,7 @@ import { useFindOneRecord } from '@/object-record/hooks/useFindOneRecord';
 import { useUpdateOneRecord } from '@/object-record/hooks/useUpdateOneRecord';
 import { useColorScheme } from '@/workspace-member/hooks/useColorScheme';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
-import { CoreObjectNameSingular } from 'twenty-shared/types';
+import { StandardObjectNameSingular } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 import { Button } from 'twenty-ui/primitives/input';
 import { themeCssVariables } from 'twenty-ui/theme';
@@ -69,7 +69,7 @@ export const EmailSignatureField = () => {
       window.matchMedia?.('(prefers-color-scheme: dark)').matches === true);
 
   const { record, loading } = useFindOneRecord({
-    objectNameSingular: CoreObjectNameSingular.WorkspaceMember,
+    objectNameSingular: StandardObjectNameSingular.WorkspaceMember,
     objectRecordId: workspaceMemberId,
     skip: !isDefined(currentWorkspaceMember?.id),
   });
@@ -89,7 +89,7 @@ export const EmailSignatureField = () => {
     }
 
     await updateOneRecord({
-      objectNameSingular: CoreObjectNameSingular.WorkspaceMember,
+      objectNameSingular: StandardObjectNameSingular.WorkspaceMember,
       idToUpdate: currentWorkspaceMember.id,
       updateOneRecordInput: { emailSignature: value },
     });

@@ -2,7 +2,7 @@ import { styled } from '@linaria/react';
 
 import { type Comment } from '@/activities/comments/types/Comment';
 import { useFindOneRecord } from '@/object-record/hooks/useFindOneRecord';
-import { getActivityPreview } from '@/activities/utils/getActivityPreview';
+import { getRichTextFieldTextLines } from '@/object-record/record-field/ui/utils/getRichTextFieldTextLines';
 import { isDefined } from 'twenty-shared/utils';
 import { themeCssVariables } from 'twenty-ui/theme';
 
@@ -47,7 +47,7 @@ export const EventCardComment = ({
     <StyledContainer>
       <StyledAuthor>{comment.createdBy?.name ?? authorFullName}</StyledAuthor>
       <StyledBody>
-        {getActivityPreview(comment.body?.blocknote ?? null)}
+        {getRichTextFieldTextLines(comment.body).join('\n')}
       </StyledBody>
     </StyledContainer>
   );

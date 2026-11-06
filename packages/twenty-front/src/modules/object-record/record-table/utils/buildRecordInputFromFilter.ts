@@ -16,7 +16,10 @@ export const buildRecordInputFromFilter = ({
 }: {
   currentRecordFilters: RecordFilter[];
   objectMetadataItem: {
-    fields: (Pick<FieldMetadataItem, 'id' | 'name' | 'type' | 'options'> & {
+    fields: (Pick<
+      FieldMetadataItem,
+      'id' | 'name' | 'type' | 'options' | 'isUIEditable'
+    > & {
       relation?: Pick<FieldMetadataItemRelation, 'type'> | null;
     })[];
   };

@@ -1,10 +1,9 @@
-import { EmailOperation } from 'twenty-shared/types';
+import { EmailOperation, StandardObjectNameSingular } from 'twenty-shared/types';
 import { useQuery } from '@apollo/client/react';
 import { DragDropProvider } from '@dnd-kit/react';
 import { css } from '@linaria/core';
 import { styled } from '@linaria/react';
 import { isNonEmptyString } from '@sniptt/guards';
-import { CoreObjectNameSingular } from 'twenty-shared/types';
 import {
   canConnectedAccountPerformEmailOperation,
   getSendableEmailHandles,
@@ -123,7 +122,7 @@ export const EmailComposerFields = ({
   // what will be added.
   const currentWorkspaceMember = useAtomStateValue(currentWorkspaceMemberState);
   const { record: workspaceMemberRecord } = useFindOneRecord({
-    objectNameSingular: CoreObjectNameSingular.WorkspaceMember,
+    objectNameSingular: StandardObjectNameSingular.WorkspaceMember,
     objectRecordId: currentWorkspaceMember?.id ?? '',
     skip: !isDefined(currentWorkspaceMember?.id),
   });

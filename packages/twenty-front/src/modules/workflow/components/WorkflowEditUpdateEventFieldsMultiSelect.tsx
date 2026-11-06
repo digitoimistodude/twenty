@@ -4,10 +4,11 @@ import { FormMultiSelectFieldInput } from '@/object-record/record-field/ui/form-
 import { type FieldMultiSelectValue } from '@/object-record/record-field/ui/types/FieldMetadata';
 import { isFieldRelation } from '@/object-record/record-field/ui/types/guards/isFieldRelation';
 import { shouldDisplayFormField } from '@/workflow/workflow-steps/workflow-actions/utils/shouldDisplayFormField';
-import { t } from '@lingui/core/macro';
 import { isDefined } from 'twenty-shared/utils';
-import { useIcons } from 'twenty-ui/icon';
+import { doNotTranslate } from 'twenty-shared/i18n';
+import { useIcons } from 'twenty-ui/icon/provider';
 import { RelationType } from '~/generated-metadata/graphql';
+import { useLingui } from '@lingui/react/macro';
 
 export const WorkflowFieldsMultiSelect = ({
   label,
@@ -28,6 +29,7 @@ export const WorkflowFieldsMultiSelect = ({
   actionType: 'UPDATE_RECORD' | 'UPSERT_RECORD' | 'DATABASE_EVENT';
   hint?: string;
 }) => {
+  const { t } = useLingui();
   const { getIcon } = useIcons();
 
   const inlineFieldMetadataItems = objectMetadataItem?.fields
@@ -74,8 +76,7 @@ export const WorkflowFieldsMultiSelect = ({
           field.metadata.relationType === RelationType.MANY_TO_ONE;
 
         const value = isFieldRelationManyToOne
-          ? // oxlint-disable-next-line lingui/no-unlocalized-strings -- This suffix forms a GraphQL field identifier.
-            `${field.metadata.fieldName}Id`
+          ? doNotTranslate(`${field.metadata.fieldName}Id`)
           : field.metadata.fieldName;
 
         return {

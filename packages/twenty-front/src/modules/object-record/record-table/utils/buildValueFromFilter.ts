@@ -23,6 +23,7 @@ import {
   parseToInstantOrThrow,
   parseToPlainDateOrThrow,
 } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { RelationType } from '~/generated-metadata/graphql';
 
 type FilterOption = {
@@ -92,13 +93,29 @@ const computeValueFromContainsOperand = (
   }
 };
 
+const computeValueFromFilterText = (
+  operand: RecordFilterToRecordInputOperand<'TEXT'>,
+  value: string,
+) => {
+  switch (operand) {
+    case ViewFilterOperand.CONTAINS:
+    case ViewFilterOperand.IS:
+    case ViewFilterOperand.IS_NOT_EMPTY:
+      return value;
+    case ViewFilterOperand.DOES_NOT_CONTAIN:
+    case ViewFilterOperand.IS_NOT:
+    case ViewFilterOperand.IS_EMPTY:
+      return undefined;
+    default:
+      assertUnreachable(operand);
+  }
+};
+
 const filterDateTimeToInstant = (
   value: string,
   timeZone: string,
 ): Temporal.Instant =>
-  // Date and time syntax must stay stable across locales.
-  // oxlint-disable-next-line lingui/no-unlocalized-strings
-  value.includes('T')
+  value.includes(doNotTranslate('T'))
     ? parseToInstantOrThrow(value)
     : parseToPlainDateOrThrow(value).toZonedDateTime(timeZone).toInstant();
 
@@ -106,9 +123,7 @@ const computeValueFromFilterDate = (
   operand: RecordFilterToRecordInputOperand<'DATE_TIME'>,
   value: string,
   isDateOnly: boolean,
-  // Date and time syntax must stay stable across locales.
-  // oxlint-disable-next-line lingui/no-unlocalized-strings
-  timeZone = 'UTC',
+  timeZone = doNotTranslate('UTC'),
 ): string | undefined => {
   switch (operand) {
     case ViewFilterOperand.IS:
@@ -322,7 +337,10 @@ const computeValueFromFilterUUID = (
 const VALUE_HANDLER_REGISTRY: Partial<Record<FieldMetadataType, ValueHandler>> =
   {
     [FieldMetadataType.TEXT]: ({ operand, value }) =>
-      computeValueFromContainsOperand(operand as ContainsBasedOperand, value),
+      computeValueFromFilterText(
+        operand as RecordFilterToRecordInputOperand<'TEXT'>,
+        value,
+      ),
     [FieldMetadataType.ARRAY]: ({ operand, value }) =>
       computeValueFromContainsOperand(operand as ContainsBasedOperand, value),
     [FieldMetadataType.RAW_JSON]: ({ operand, value }) =>
@@ -509,9 +527,9 @@ const buildCompositeValueFromFilter = ({
   });
 
   if (!operands.some((operand) => operand === filter.operand)) {
-    // Error text is used for locale-independent issue grouping.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    throw new Error('Operand not supported for this sub field type');
+    throw new Error(
+      doNotTranslate('Operand not supported for this sub field type'),
+    );
   }
 
   const subFieldValue = computeValueFromSubFieldType({
@@ -572,9 +590,9 @@ export const buildValueFromFilter = ({
 
   const operands = FILTER_OPERANDS_MAP[filter.type];
   if (!operands.some((operand) => operand === filter.operand)) {
-    // Error text is used for locale-independent issue grouping.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    throw new Error('Operand not supported for this field type');
+    throw new Error(
+      doNotTranslate('Operand not supported for this field type'),
+    );
   }
 
   const handler = VALUE_HANDLER_REGISTRY[filter.type as FieldMetadataType];

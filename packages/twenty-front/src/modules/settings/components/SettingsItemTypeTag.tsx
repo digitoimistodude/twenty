@@ -1,8 +1,7 @@
-import { t } from '@lingui/core/macro';
-
 import { AppChip } from '@/applications/components/AppChip';
 import { Avatar, Chip } from 'twenty-ui/primitives/data-display';
 import { isDefined } from 'twenty-shared/utils';
+import { useLingui } from '@lingui/react/macro';
 
 type SettingsItemTypeTagProps = {
   item: {
@@ -14,26 +13,28 @@ type SettingsItemTypeTagProps = {
 export const SettingsItemTypeTag = ({
   item: { isRemote, applicationId },
 }: SettingsItemTypeTagProps) => {
+  const { t } = useLingui();
   if (isDefined(applicationId)) {
     return <AppChip applicationId={applicationId} />;
-  } else if (isRemote === true) {
-    return (
-      <Chip
-        variant="ghost"
-        color="primary"
-        startElement={
-          <Avatar
-            shape="square"
-            variant="outline"
-            size="sm"
-            name={t`Remote`}
-            colorSeed="Remote"
-          />
-        }
-        style={{ paddingInlineStart: 0 }}
-      >{t`Remote`}</Chip>
-    );
-  } else {
+  }
+
+  if (!isRemote) {
     return null;
   }
+
+  return (
+    <Chip
+      variant="plain"
+      color="primary"
+      startElement={
+        <Avatar
+          shape="square"
+          variant="outline"
+          size="sm"
+          name={t`Remote`}
+          colorSeed="Remote"
+        />
+      }
+    >{t`Remote`}</Chip>
+  );
 };

@@ -21,7 +21,6 @@ import { useAtomComponentState } from '@/ui/utilities/state/jotai/hooks/useAtomC
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { useUpdateCurrentView } from '@/views/hooks/useUpdateCurrentView';
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 import { format } from 'date-fns';
 import { Temporal } from 'temporal-polyfill';
 import { type Nullable } from 'twenty-shared/types';
@@ -29,11 +28,13 @@ import {
   isDefined,
   turnPlainDateToShiftedDateInSystemTimeZone,
 } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { IconChevronLeft, IconChevronRight } from 'twenty-ui/icon';
 import { Button } from 'twenty-ui/primitives/input';
 import { themeCssVariables } from 'twenty-ui/theme';
 import { ViewCalendarLayout } from '~/generated-metadata/graphql';
 import { dateLocaleState } from '@/localization/states/dateLocaleState';
+import { useLingui } from '@lingui/react/macro';
 
 const StyledContainer = styled.div`
   align-items: center;
@@ -61,6 +62,7 @@ const StyledNavigationSection = styled.div`
 `;
 
 export const RecordCalendarTopBar = () => {
+  const { t } = useLingui();
   const recordCalendarId = useAvailableComponentInstanceIdOrThrow(
     RecordCalendarComponentInstanceContext,
   );
@@ -147,9 +149,7 @@ export const RecordCalendarTopBar = () => {
             turnPlainDateToShiftedDateInSystemTimeZone(
               recordCalendarSelectedDate,
             ),
-            // Date and time syntax must stay stable across locales.
-            // oxlint-disable-next-line lingui/no-unlocalized-strings
-            'MMMM yyyy',
+            doNotTranslate('MMMM yyyy'),
             { locale: dateLocale.localeCatalog },
           );
 

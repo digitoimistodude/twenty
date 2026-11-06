@@ -1,5 +1,4 @@
 import { css, cx } from '@linaria/core';
-import { t } from '@lingui/core/macro';
 import { FormFieldInputContainer } from '@/ui/input/components/FormFieldInputContainer';
 import { FormFieldInputInnerContainer } from '@/object-record/record-field/ui/form-types/components/FormFieldInputInnerContainer';
 import { FormFieldInputRowContainer } from '@/object-record/record-field/ui/form-types/components/FormFieldInputRowContainer';
@@ -9,7 +8,9 @@ import { type VariablePickerComponent } from '@/ui/input/types/VariablePickerCom
 import { Field } from 'twenty-ui/primitives/input';
 import { useId } from 'react';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { turnIntoEmptyStringIfWhitespacesOnly } from '~/utils/string/turnIntoEmptyStringIfWhitespacesOnly';
+import { useLingui } from '@lingui/react/macro';
 
 type FormRawJsonFieldInputProps = {
   label?: string;
@@ -40,6 +41,7 @@ export const FormRawJsonFieldInput = ({
   className,
   fullHeight = false,
 }: FormRawJsonFieldInputProps) => {
+  const { t } = useLingui();
   const instanceId = useId();
 
   const editor = useTextVariableEditor({
@@ -63,9 +65,9 @@ export const FormRawJsonFieldInput = ({
   const handleVariableTagInsert = (variableName: string) => {
     if (!isDefined(editor)) {
       throw new Error(
-        // Error text is used for locale-independent issue grouping.
-        // oxlint-disable-next-line lingui/no-unlocalized-strings
-        'Expected the editor to be defined when a variable is selected',
+        doNotTranslate(
+          'Expected the editor to be defined when a variable is selected',
+        ),
       );
     }
 

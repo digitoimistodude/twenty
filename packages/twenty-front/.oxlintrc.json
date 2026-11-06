@@ -11,7 +11,6 @@
     "src/generated-metadata",
     "src/generated-admin",
     "src/locales/generated",
-    "src/modules/onboarding/components/WelcomeOverlay/welcomeHalftoneDots.ts",
     "src/testing/mock-data",
     "**/__mocks__/**",
     "**/*.stories.ts",
@@ -146,14 +145,6 @@
     ]
   },
   "overrides": [
-    {
-      "files": [
-        "src/modules/ui/feedback/skeleton/constants/LEGACY_SKELETON_COLORS.ts"
-      ],
-      "rules": {
-        "twenty/no-hardcoded-colors": "off"
-      }
-    },
     {
       "files": [
         "src/modules/ui/input/components/NavigationButton.tsx",

@@ -1,10 +1,10 @@
 import { SettingsApplicationScreenshotLightbox } from '@/settings/applications/components/SettingsApplicationScreenshotLightbox';
 import { useDialog } from '@/ui/layout/dialog/hooks/useDialog';
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 import { useId, useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
 import { themeCssVariables } from 'twenty-ui/theme';
+import { useLingui } from '@lingui/react/macro';
 
 type SettingsApplicationScreenshotGalleryProps = {
   screenshots: string[];
@@ -29,6 +29,11 @@ const StyledHeroButton = styled.button`
   overflow: hidden;
   padding: 0;
   width: 100%;
+
+  &:focus-visible {
+    outline: 2px solid ${themeCssVariables.color.blue};
+    outline-offset: 2px;
+  }
 `;
 
 const StyledHeroImage = styled.img`
@@ -46,13 +51,9 @@ const StyledThumbnails = styled.div`
   overflow-x: auto;
 `;
 
-const StyledThumbnail = styled.button<{ isSelected: boolean }>`
+const StyledThumbnail = styled.button`
   background-color: ${themeCssVariables.background.secondary};
-  border: 1px solid
-    ${({ isSelected }) =>
-      isSelected
-        ? themeCssVariables.color.blue
-        : themeCssVariables.border.color.medium};
+  border: 1px solid ${themeCssVariables.border.color.medium};
   border-radius: ${themeCssVariables.border.radius.sm};
   cursor: pointer;
   flex: 0 0 88px;
@@ -61,7 +62,16 @@ const StyledThumbnail = styled.button<{ isSelected: boolean }>`
   padding: 0;
 
   &:hover {
+    border-color: ${themeCssVariables.border.color.strong};
+  }
+
+  &[aria-pressed='true'] {
     border-color: ${themeCssVariables.color.blue};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${themeCssVariables.color.blue};
+    outline-offset: -2px;
   }
 `;
 
@@ -76,6 +86,7 @@ export const SettingsApplicationScreenshotGallery = ({
   screenshots: allScreenshots,
   displayName,
 }: SettingsApplicationScreenshotGalleryProps) => {
+  const { t } = useLingui();
   const [selectedScreenshot, setSelectedScreenshot] = useState<
     string | undefined
   >(undefined);
@@ -131,7 +142,6 @@ export const SettingsApplicationScreenshotGallery = ({
             <StyledThumbnail
               key={screenshot}
               type="button"
-              isSelected={index === safeIndex}
               aria-pressed={index === safeIndex}
               aria-label={getScreenshotAltText(index)}
               onClick={() => setSelectedScreenshot(screenshot)}

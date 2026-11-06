@@ -8,7 +8,7 @@ import { NavigationMenuItemSelectableItem } from '@/navigation-menu-item/edit/co
 import { type NavigationMenuItemOption } from '@/navigation-menu-item/edit/types/NavigationMenuItemOption';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
 import { selectedNavigationMenuItemIdInEditModeState } from '@/navigation-menu-item/common/states/selectedNavigationMenuItemIdInEditModeState';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useLingui } from '@lingui/react/macro';
 import { isNonEmptyString } from '@sniptt/guards';
 import { NavigationMenuItemType } from 'twenty-shared/types';
@@ -29,6 +29,7 @@ const STEP_BY_PAGE: Partial<Record<string, Step>> = {
   [VIEW_OBJECT_PAGE]: 'view',
   record: 'record',
   page: 'page',
+  nativePage: 'nativePage',
 };
 
 type NavigationMenuItemAddDropdownContentProps = {
@@ -111,6 +112,7 @@ export const NavigationMenuItemAddDropdownContent = ({
     view: t`View`,
     record: t`Record`,
     page: t`Page`,
+    nativePage: t`Native page`,
   };
 
   const normalizedSearch = normalizeSearchText(search.trim());
@@ -123,6 +125,10 @@ export const NavigationMenuItemAddDropdownContent = ({
         { label: t`Objects`, items: getItems('object').filter(matchesSearch) },
         { label: t`Views`, items: getItems('view').filter(matchesSearch) },
         { label: t`Pages`, items: getItems('page').filter(matchesSearch) },
+        {
+          label: t`Native pages`,
+          items: getItems('nativePage').filter(matchesSearch),
+        },
         {
           label: t`Records`,
           items: isSearchDebouncing ? [] : getItems('record'),
@@ -201,15 +207,24 @@ export const NavigationMenuItemAddDropdownContent = ({
         <Dropdown.Section scrollable>
           {groups
             .filter((group) => isNonEmptyArray(group.items))
-            .map((group) => (
-              <Dropdown.Section
-                key={group.label}
-                label={isNonEmptyString(group.label) ? group.label : undefined}
-              >
-                {group.items.map((item) => (
-                  <NavigationMenuItemSelectableItem key={item.id} item={item} />
-                ))}
-              </Dropdown.Section>
+            .map((group, index) => (
+              <Fragment key={group.label}>
+                {index > 0 && isNonEmptyString(group.label) && (
+                  <Dropdown.Separator />
+                )}
+                <Dropdown.Section
+                  label={
+                    isNonEmptyString(group.label) ? group.label : undefined
+                  }
+                >
+                  {group.items.map((item) => (
+                    <NavigationMenuItemSelectableItem
+                      key={item.id}
+                      item={item}
+                    />
+                  ))}
+                </Dropdown.Section>
+              </Fragment>
             ))}
           {!isNonEmptyArray(items) && (
             <Dropdown.Empty>{emptyMessage}</Dropdown.Empty>

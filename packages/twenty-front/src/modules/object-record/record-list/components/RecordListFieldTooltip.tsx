@@ -1,8 +1,7 @@
 import { useRecordIndexContextOrThrow } from '@/object-record/record-index/contexts/RecordIndexContext';
-import { TooltipTextContent } from '@/ui/layout/tooltip/components/TooltipTextContent';
 import { type ReactNode } from 'react';
 import { isDefined } from 'twenty-shared/utils';
-import { useIcons } from 'twenty-ui/icon';
+import { useIcons } from 'twenty-ui/icon/provider';
 import { Tooltip } from 'twenty-ui/primitives/surfaces';
 
 type RecordListFieldTooltipProps = {
@@ -35,12 +34,12 @@ export const RecordListFieldTooltip = ({
                 positionMethod="fixed"
                 sideOffset={10}
               >
-                <Tooltip.Popup maxWidth={300}>
-                  <TooltipTextContent
+                <Tooltip.Popup>
+                  <Tooltip.Body
                     startIcon={isDefined(FieldIcon) ? <FieldIcon /> : undefined}
                   >
                     {fieldDefinition?.label}
-                  </TooltipTextContent>
+                  </Tooltip.Body>
                 </Tooltip.Popup>
               </Tooltip.Positioner>
             </Tooltip.Portal>

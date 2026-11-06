@@ -6,10 +6,13 @@ import {
   isNonEmptyArray,
 } from 'twenty-shared/utils';
 import { Dropdown, useDropdownPage } from 'twenty-ui/components/navigation';
-import { useIcons } from 'twenty-ui/icon';
+import { useIcons } from 'twenty-ui/icon/provider';
 import { SelectOptionIcon } from '@/ui/input/components/SelectOptionIcon';
 
-import { CoreObjectNameSingular, FieldMetadataType } from 'twenty-shared/types';
+import {
+  StandardObjectNameSingular,
+  FieldMetadataType,
+} from 'twenty-shared/types';
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
 import { type FieldMetadataItem } from '@/object-metadata/types/FieldMetadataItem';
 import { useAdvancedFilterFieldSelectDropdown } from '@/object-record/advanced-filter/hooks/useAdvancedFilterFieldSelectDropdown';
@@ -54,7 +57,7 @@ export const SettingsRolePermissionsObjectLevelRecordLevelPermissionFieldSelectF
 
     const { objectMetadataItem: workspaceMemberObjectMetadataItem } =
       useObjectMetadataItem({
-        objectNameSingular: CoreObjectNameSingular.WorkspaceMember,
+        objectNameSingular: StandardObjectNameSingular.WorkspaceMember,
       });
 
     const isPredicateFieldMetadataItem = (
@@ -74,7 +77,7 @@ export const SettingsRolePermissionsObjectLevelRecordLevelPermissionFieldSelectF
 
       if (
         fieldMetadataItem.relation?.targetObjectMetadata.nameSingular ===
-        CoreObjectNameSingular.WorkspaceMember
+        StandardObjectNameSingular.WorkspaceMember
       ) {
         return true;
       }
@@ -136,6 +139,7 @@ export const SettingsRolePermissionsObjectLevelRecordLevelPermissionFieldSelectF
           placeholder={t`Search fields`}
           aria-label={t`Search fields`}
         />
+        <Dropdown.Separator />
         <Dropdown.Section label={t`Fields`}>
           {filteredFieldMetadataItems.map((fieldMetadataItem) => (
             <Dropdown.OptionItem

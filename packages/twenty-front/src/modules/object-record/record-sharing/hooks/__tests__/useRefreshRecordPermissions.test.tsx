@@ -15,6 +15,7 @@ jest.mock('@apollo/client/react', () => ({
 }));
 const target = { objectMetadataId: 'object', recordId: 'record' };
 const permissions = {
+  __typename: 'RecordPermissionsDTO' as const,
   canRead: true,
   canUpdate: true,
   canDelete: false,
@@ -23,7 +24,11 @@ const permissions = {
 const response = (canUpdate = true) => ({
   data: {
     recordPermissions: [
-      { ...target, permissions: { ...permissions, canUpdate } },
+      {
+        __typename: 'RecordPermissionsResult' as const,
+        ...target,
+        permissions: { ...permissions, canUpdate },
+      },
     ],
   },
 });
@@ -121,7 +126,7 @@ describe('Viewer-scoped record permissions', () => {
         store.set(currentWorkspaceMemberState.atom, { id: 'other' } as never);
       if (change === 'role')
         store.set(currentUserWorkspaceState.atom, {
-          objectsPermissions: [],
+          objectRecordsPermissions: [],
         } as never);
       await act(async () => {
         pending.resolve(response());
@@ -158,7 +163,7 @@ describe('Viewer-scoped record permissions', () => {
     expect(read()).toBeUndefined();
     store.set(currentWorkspaceMemberState.atom, { id: 'member' } as never);
     store.set(currentUserWorkspaceState.atom, {
-      objectsPermissions: [],
+      objectRecordsPermissions: [],
     } as never);
     expect(read()).toBeUndefined();
   });

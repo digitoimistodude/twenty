@@ -1,8 +1,9 @@
 import { HeadlessNavigateEngineCommand } from '@/command-menu-item/engine-command/components/HeadlessNavigateEngineCommand';
 import { useHeadlessCommandContextApi } from '@/command-menu-item/engine-command/hooks/useHeadlessCommandContextApi';
-import { CoreObjectNamePlural } from '@/object-metadata/types/CoreObjectNamePlural';
+import { StandardObjectNamePlural } from '@/object-metadata/types/StandardObjectNamePlural';
 import { AppPath, ViewFilterOperand } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 
 export const SeeRunsWorkflowSingleRecordCommand = () => {
   const { selectedRecords } = useHeadlessCommandContextApi();
@@ -11,14 +12,15 @@ export const SeeRunsWorkflowSingleRecordCommand = () => {
   const workflowName = selectedRecords[0]?.name;
 
   if (!isDefined(recordId)) {
-    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is an internal command precondition diagnostic.
-    throw new Error('Record ID is required to see runs workflow');
+    throw new Error(
+      doNotTranslate('Record ID is required to see runs workflow'),
+    );
   }
 
   return (
     <HeadlessNavigateEngineCommand
       to={AppPath.RecordIndexPage}
-      params={{ objectNamePlural: CoreObjectNamePlural.WorkflowRun }}
+      params={{ objectNamePlural: StandardObjectNamePlural.WorkflowRun }}
       queryParams={{
         filter: { coreWorkflowId: { [ViewFilterOperand.IS]: recordId } },
         filterDisplayValue: {

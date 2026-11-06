@@ -1,5 +1,6 @@
-import { AppPath, CoreObjectNameSingular } from 'twenty-shared/types';
+import { AppPath, StandardObjectNameSingular } from 'twenty-shared/types';
 import { appendCopySuffix, isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { v4 } from 'uuid';
 
 import { type MessageCampaign } from '@/activities/emails/types/MessageCampaign';
@@ -16,16 +17,17 @@ export const DuplicateMessageCampaignSingleRecordCommand = () => {
   const navigateApp = useNavigateApp();
 
   const { findOneRecord: findCampaign } = useLazyFindOneRecord<MessageCampaign>(
-    { objectNameSingular: CoreObjectNameSingular.MessageCampaign },
+    { objectNameSingular: StandardObjectNameSingular.MessageCampaign },
   );
 
   const { createOneRecord: createMessageCampaign } = useCreateOneRecord({
-    objectNameSingular: CoreObjectNameSingular.MessageCampaign,
+    objectNameSingular: StandardObjectNameSingular.MessageCampaign,
   });
 
   if (!isDefined(campaignId)) {
-    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is an internal command precondition diagnostic.
-    throw new Error('Record ID is required to duplicate the campaign');
+    throw new Error(
+      doNotTranslate('Record ID is required to duplicate the campaign'),
+    );
   }
 
   const handleExecute = async () => {
@@ -57,7 +59,7 @@ export const DuplicateMessageCampaignSingleRecordCommand = () => {
     });
 
     navigateApp(AppPath.RecordShowPage, {
-      objectNameSingular: CoreObjectNameSingular.MessageCampaign,
+      objectNameSingular: StandardObjectNameSingular.MessageCampaign,
       objectRecordId: duplicatedCampaignId,
     });
   };

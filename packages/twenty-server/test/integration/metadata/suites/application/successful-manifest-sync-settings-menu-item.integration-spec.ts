@@ -1,11 +1,11 @@
 import { buildBaseManifest } from 'test/integration/metadata/suites/application/utils/build-base-manifest.util';
+import { buildFrontComponentManifest } from 'test/integration/metadata/suites/application/utils/build-front-component-manifest.util';
 import { cleanupApplicationAndAppRegistration } from 'test/integration/metadata/suites/application/utils/cleanup-application-and-app-registration.util';
 import { findOneApplication } from 'test/integration/metadata/suites/application/utils/find-one-application.util';
 import { setupApplicationForSync } from 'test/integration/metadata/suites/application/utils/setup-application-for-sync.util';
 import { syncApplication } from 'test/integration/metadata/suites/application/utils/sync-application.util';
-import { uploadApplicationFile } from 'test/integration/metadata/suites/application/utils/upload-application-file.util';
+import { uploadBuiltFrontComponentFile } from 'test/integration/metadata/suites/application/utils/upload-built-front-component-file.util';
 import {
-  type FrontComponentManifest,
   getLegacySettingsMenuItemUniversalIdentifier,
   type Manifest,
   type SettingsMenuItemManifest,
@@ -25,22 +25,9 @@ type PersistedSettingsMenuItem = {
   icon: string | null;
   position: number;
   scope: string;
+  slug: string | null;
   frontComponentUniversalIdentifier: string;
 };
-
-const buildFrontComponent = (
-  universalIdentifier: string,
-  componentName: string,
-): FrontComponentManifest => ({
-  universalIdentifier,
-  name: componentName,
-  description: `The ${componentName} page of the application`,
-  sourceComponentPath: `src/front-components/${componentName}.tsx`,
-  builtComponentPath: `src/front-components/${componentName}.mjs`,
-  builtComponentChecksum: `${componentName}-checksum`,
-  componentName,
-  isHeadless: false,
-});
 
 const SYNC_SETTINGS_MENU_ITEM: SettingsMenuItemManifest = {
   universalIdentifier: SYNC_SETTINGS_MENU_ITEM_ID,
@@ -68,8 +55,14 @@ const buildManifest = (
     roleId: TEST_ROLE_ID,
     overrides: {
       frontComponents: [
-        buildFrontComponent(SYNC_FRONT_COMPONENT_ID, 'SyncSettings'),
-        buildFrontComponent(BILLING_FRONT_COMPONENT_ID, 'BillingSettings'),
+        buildFrontComponentManifest({
+          universalIdentifier: SYNC_FRONT_COMPONENT_ID,
+          componentName: 'SyncSettings',
+        }),
+        buildFrontComponentManifest({
+          universalIdentifier: BILLING_FRONT_COMPONENT_ID,
+          componentName: 'BillingSettings',
+        }),
       ],
       settingsMenuItems,
       ...overrides,
@@ -85,6 +78,7 @@ const findAppSettingsMenuItems = async (): Promise<
             "settingsMenuItem"."icon" AS "icon",
             "settingsMenuItem"."position" AS "position",
             "settingsMenuItem"."scope" AS "scope",
+            "settingsMenuItem"."slug" AS "slug",
             "frontComponent"."universalIdentifier" AS "frontComponentUniversalIdentifier"
      FROM core."settingsMenuItem" "settingsMenuItem"
      INNER JOIN core."application" "application"
@@ -95,20 +89,6 @@ const findAppSettingsMenuItems = async (): Promise<
      ORDER BY "settingsMenuItem"."position" ASC`,
     [TEST_APP_ID],
   );
-
-// The migration runner refuses to create a front component whose built file is
-// not in storage, so every component an item points at needs one uploaded first.
-const uploadBuiltComponentFile = async (componentName: string) => {
-  await uploadApplicationFile({
-    applicationUniversalIdentifier: TEST_APP_ID,
-    fileFolder: 'BuiltFrontComponent',
-    filePath: `src/front-components/${componentName}.mjs`,
-    fileBuffer: Buffer.from('dummy built component content'),
-    filename: `${componentName}.mjs`,
-    contentType: 'application/javascript',
-    expectToFail: false,
-  });
-};
 
 describe('Manifest sync - settings menu items', () => {
   // The application, its role and its front components are identical for every
@@ -126,8 +106,14 @@ describe('Manifest sync - settings menu items', () => {
     // multipart upload never resolves.
     jest.useRealTimers();
 
-    await uploadBuiltComponentFile('SyncSettings');
-    await uploadBuiltComponentFile('BillingSettings');
+    await uploadBuiltFrontComponentFile({
+      applicationUniversalIdentifier: TEST_APP_ID,
+      componentName: 'SyncSettings',
+    });
+    await uploadBuiltFrontComponentFile({
+      applicationUniversalIdentifier: TEST_APP_ID,
+      componentName: 'BillingSettings',
+    });
   }, 120000);
 
   beforeEach(async () => {
@@ -191,7 +177,36 @@ describe('Manifest sync - settings menu items', () => {
       icon: null,
       position: 0,
       scope: 'WORKSPACE',
+      slug: null,
     });
+  }, 60000);
+
+  it('persists the slug and lets two items swap their slugs in one sync', async () => {
+    await syncApplication({
+      manifest: buildManifest([
+        { ...SYNC_SETTINGS_MENU_ITEM, slug: 'sync' },
+        { ...BILLING_SETTINGS_MENU_ITEM, slug: 'billing' },
+      ]),
+      expectToFail: false,
+    });
+
+    expect((await findAppSettingsMenuItems()).map(({ slug }) => slug)).toEqual([
+      'sync',
+      'billing',
+    ]);
+
+    await syncApplication({
+      manifest: buildManifest([
+        { ...SYNC_SETTINGS_MENU_ITEM, slug: 'billing' },
+        { ...BILLING_SETTINGS_MENU_ITEM, slug: 'sync' },
+      ]),
+      expectToFail: false,
+    });
+
+    expect((await findAppSettingsMenuItems()).map(({ slug }) => slug)).toEqual([
+      'billing',
+      'sync',
+    ]);
   }, 60000);
 
   it('updates an item in place rather than replacing it', async () => {
@@ -345,7 +360,7 @@ describe('Manifest sync - settings menu items', () => {
     await syncApplication({
       manifest: buildManifest([
         BILLING_SETTINGS_MENU_ITEM,
-        SYNC_SETTINGS_MENU_ITEM,
+        { ...SYNC_SETTINGS_MENU_ITEM, slug: 'sync' },
       ]),
       expectToFail: false,
     });
@@ -365,6 +380,7 @@ describe('Manifest sync - settings menu items', () => {
           icon
           position
           scope
+          slug
         }
       `,
     });
@@ -388,6 +404,7 @@ describe('Manifest sync - settings menu items', () => {
           icon: 'IconRefresh',
           position: 1,
           scope: 'WORKSPACE',
+          slug: 'sync',
         }),
         expect.objectContaining({
           universalIdentifier: BILLING_SETTINGS_MENU_ITEM_ID,
@@ -398,6 +415,7 @@ describe('Manifest sync - settings menu items', () => {
           icon: 'IconCreditCard',
           position: 2,
           scope: 'USER',
+          slug: null,
         }),
       ]),
     );

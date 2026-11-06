@@ -4,8 +4,8 @@ import { CallRecordingWidget } from '@/page-layout/widgets/call-recording/compon
 import { CommentWidget } from '@/page-layout/widgets/comments/components/CommentWidget';
 import { ChatWidget } from '@/page-layout/widgets/chat/components/ChatWidget';
 import { ChatThreadsWidget } from '@/page-layout/widgets/chat-threads/components/ChatThreadsWidget';
-import { EmailThreadWidget } from '@/page-layout/widgets/email-thread/components/EmailThreadWidget';
-import { EmailWidget } from '@/page-layout/widgets/emails/components/EmailWidget';
+import { MessageThreadWidget } from '@/page-layout/widgets/email-thread/components/MessageThreadWidget';
+import { MessagesWidget } from '@/page-layout/widgets/messages/components/MessagesWidget';
 import { FieldRichTextWidgetRenderer } from '@/page-layout/widgets/field-rich-text/components/FieldRichTextWidgetRenderer';
 import { FieldWidget } from '@/page-layout/widgets/field/components/FieldWidget';
 import { FieldsWidget } from '@/page-layout/widgets/fields/components/FieldsWidget';
@@ -68,7 +68,7 @@ export const WidgetContentRenderer = ({
       return <FileWidget widget={widget} />;
 
     case WidgetType.EMAILS:
-      return <EmailWidget widget={widget} />;
+      return <MessagesWidget widget={widget} />;
 
     case WidgetType.CALENDAR:
       return <CalendarWidget widget={widget} />;
@@ -92,7 +92,7 @@ export const WidgetContentRenderer = ({
       return <RecordTableWidgetRenderer widget={widget} />;
 
     case WidgetType.EMAIL_THREAD:
-      return <EmailThreadWidget widget={widget} />;
+      return <MessageThreadWidget widget={widget} />;
 
     case WidgetType.MESSAGE_CAMPAIGN_BODY:
       return <MessageCampaignBodyWidget />;

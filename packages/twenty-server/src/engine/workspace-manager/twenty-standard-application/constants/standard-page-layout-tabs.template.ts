@@ -17,14 +17,11 @@ export const CONDITIONAL_DISPLAY_DEVICE_DESKTOP = {
   and: [{ '===': [{ var: 'device' }, 'DESKTOP'] }],
 } as const satisfies PageLayoutWidgetConditionalDisplay;
 
-// Visibility expressions are executable syntax rather than user-facing text.
-// oxlint-disable lingui/no-unlocalized-strings
 export const CONDITIONAL_AVAILABILITY_EXPRESSION_DEVICE_MOBILE =
   'device == "MOBILE"';
 
 export const CONDITIONAL_AVAILABILITY_EXPRESSION_DEVICE_DESKTOP =
   'device == "DESKTOP"';
-// oxlint-enable lingui/no-unlocalized-strings
 
 export const GRID_LAYOUT_POSITIONS = {
   FULL_WIDTH: {
@@ -108,10 +105,10 @@ export const TAB_PROPS = {
   },
   emails: {
     title: i18nLabel(
-      msg({ message: `Emails`, context: 'pageLayoutTab.title' }),
+      msg({ message: `Messages`, context: 'pageLayoutTab.title' }),
     ),
     position: 60,
-    icon: 'IconMail',
+    icon: 'IconMessage',
     layoutMode: PageLayoutTabLayoutMode.VERTICAL_LIST,
   },
   conversations: {
@@ -119,7 +116,7 @@ export const TAB_PROPS = {
       msg({ message: `Conversations`, context: 'pageLayoutTab.title' }),
     ),
     position: 65,
-    icon: 'IconMessage',
+    icon: 'IconInbox',
     layoutMode: PageLayoutTabLayoutMode.VERTICAL_LIST,
   },
   chat: {
@@ -208,7 +205,7 @@ export const WIDGET_PROPS = {
   },
   emails: {
     title: i18nLabel(
-      msg({ message: `Emails`, context: 'pageLayoutWidget.title' }),
+      msg({ message: `Messages`, context: 'pageLayoutWidget.title' }),
     ),
     type: WidgetType.EMAILS,
     position: VERTICAL_LIST_LAYOUT_POSITIONS.FIRST,

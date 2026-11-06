@@ -9,17 +9,22 @@ import { RecordTableWidgetJunctionAddNewRow } from '@/object-record/record-table
 import { RecordTableWidgetNestedRelationAddNewRow } from '@/object-record/record-table-widget/components/RecordTableWidgetNestedRelationAddNewRow';
 import { RecordTableWidgetContext } from '@/object-record/record-table-widget/contexts/RecordTableWidgetContext';
 import { canCreateRecordsForObjectMetadataItem } from '@/object-record/utils/canCreateRecordsForObjectMetadataItem';
-import { useLoadRecordsToVirtualRows } from '@/object-record/record-table/virtualization/hooks/useLoadRecordsToVirtualRows';
-import { totalNumberOfRecordsToVirtualizeComponentState } from '@/object-record/record-table/virtualization/states/totalNumberOfRecordsToVirtualizeComponentState';
+import { useLoadRecordsAtRowIndexes } from '@/object-record/record-table/virtualization/hooks/useLoadRecordsAtRowIndexes';
+import { totalNumberOfRowsComponentState } from '@/object-record/record-table/virtualization/states/totalNumberOfRowsComponentState';
+import { recordTableRowIndexByRecordIdComponentSelector } from '@/object-record/record-table/states/selectors/recordTableRowIndexByRecordIdComponentSelector';
+import { useAtomComponentSelectorCallbackState } from '@/ui/utilities/state/jotai/hooks/useAtomComponentSelectorCallbackState';
+import { useAtomComponentStateCallbackState } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateCallbackState';
+import { useStore } from 'jotai';
 import { useAtomComponentSelectorValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentSelectorValue';
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
-import { t } from '@lingui/core/macro';
 import { useCallback, useContext } from 'react';
 import { type ObjectRecord } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 import { IconPlus } from 'twenty-ui/icon';
+import { useLingui } from '@lingui/react/macro';
 
 export const RecordTableNoRecordGroupAddNew = () => {
+  const { t } = useLingui();
   const { objectMetadataItem, recordTableId } = useRecordTableContextOrThrow();
 
   const recordTableWidgetContext = useContext(RecordTableWidgetContext);
@@ -43,11 +48,17 @@ export const RecordTableNoRecordGroupAddNew = () => {
     hasAnySoftDeleteFilterOnViewComponentSelector,
   );
 
-  const totalNumberOfRecordsToVirtualize = useAtomComponentStateValue(
-    totalNumberOfRecordsToVirtualizeComponentState,
+  const store = useStore();
+
+  const totalNumberOfRowsCallbackState = useAtomComponentStateCallbackState(
+    totalNumberOfRowsComponentState,
   );
 
-  const { loadRecordsToVirtualRows } = useLoadRecordsToVirtualRows();
+  const rowIndexByRecordIdCallbackState = useAtomComponentSelectorCallbackState(
+    recordTableRowIndexByRecordIdComponentSelector,
+  );
+
+  const { loadRecordsAtRowIndexes } = useLoadRecordsAtRowIndexes();
   const { upsertRecordsInStore } = useUpsertRecordsInStore();
 
   const handleCreateRecord = useCallback(
@@ -63,18 +74,26 @@ export const RecordTableNoRecordGroupAddNew = () => {
 
       upsertRecordsInStore({ partialRecords: [createdRecord] });
 
-      if (isDefined(totalNumberOfRecordsToVirtualize)) {
-        loadRecordsToVirtualRows({
+      const isAlreadyPlaced = store
+        .get(rowIndexByRecordIdCallbackState)
+        .has(createdRecord.id);
+
+      const totalNumberOfRows = store.get(totalNumberOfRowsCallbackState);
+
+      if (!isAlreadyPlaced && isDefined(totalNumberOfRows)) {
+        loadRecordsAtRowIndexes({
           records: [createdRecord],
-          startingRealIndex: totalNumberOfRecordsToVirtualize,
+          startingRowIndex: totalNumberOfRows,
         });
       }
     },
     [
       createNewIndexRecord,
       upsertRecordsInStore,
-      loadRecordsToVirtualRows,
-      totalNumberOfRecordsToVirtualize,
+      loadRecordsAtRowIndexes,
+      rowIndexByRecordIdCallbackState,
+      store,
+      totalNumberOfRowsCallbackState,
     ],
   );
 

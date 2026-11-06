@@ -8,6 +8,7 @@ export const ROLE_FRAGMENT = gql`
     icon
     canUpdateAllSettings
     canAccessAllTools
+    canAccessAllAgentChatChannels
     isEditable
     canReadAllObjectRecords
     canUpdateAllObjectRecords
@@ -17,5 +18,6 @@ export const ROLE_FRAGMENT = gql`
     canBeAssignedToAgents
     canBeAssignedToApiKeys
     applicationId
+    universalIdentifier
   }
 `;

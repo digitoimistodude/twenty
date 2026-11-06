@@ -1,14 +1,13 @@
 import { useIsThirdPartyApplication } from '@/applications/hooks/useIsThirdPartyApplication';
 import { CoreWorkflowEditor } from '@/object-core/workflows/components/CoreWorkflowEditor';
+import { CoreWorkflowsPermissionGate } from '@/object-core/workflows/components/CoreWorkflowsPermissionGate';
 import { CoreObjectIdentifierBar } from '@/object-core/components/CoreObjectIdentifierBar';
 import { useRenameCoreWorkflow } from '@/object-core/workflows/hooks/useRenameCoreWorkflow';
 import { styled } from '@linaria/react';
 import { isNonEmptyString } from '@sniptt/guards';
-import { t } from '@lingui/core/macro';
 import { useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { AppPath } from 'twenty-shared/types';
-import { PermissionFlagType } from 'twenty-shared/constants';
 import { getAppPath, isDefined } from 'twenty-shared/utils';
 import { Button } from 'twenty-ui/primitives/input';
 import { themeCssVariables } from 'twenty-ui/theme';
@@ -21,16 +20,15 @@ import { useListenToCoreWorkflowEvents } from '@/object-core/workflows/hooks/use
 import { useCoreWorkflowVersions } from '@/object-core/workflows/versions/hooks/useCoreWorkflowVersions';
 import { invalidateCoreWorkflowVersions } from '@/object-core/workflows/versions/utils/invalidateCoreWorkflowVersions';
 import { useApolloCoreClient } from '@/object-metadata/hooks/useApolloCoreClient';
-import { CoreObjectNamePlural } from '@/object-metadata/types/CoreObjectNamePlural';
 import { RecordShowPageResourceEffect } from '@/object-record/record-show/components/RecordShowPageResourceEffect';
 import { RecordShowContainerContextStoreTargetedRecordsEffect } from '@/object-record/record-show/components/RecordShowContainerContextStoreTargetedRecordsEffect';
-import { useHasPermissionFlag } from '@/settings/roles/hooks/useHasPermissionFlag';
 import { SidePanelToggleButton } from '@/side-panel/components/SidePanelToggleButton';
 import { PageCardHeader } from '@/ui/layout/page/components/PageCardHeader';
 import { PageCardLayout } from '@/ui/layout/page/components/PageCardLayout';
 import { PageTitle } from '@/ui/utilities/page-title/components/PageTitle';
 import { getWorkflowCurrentVersion } from '@/workflow/utils/getWorkflowCurrentVersion';
 import { PageContentSkeletonLoader } from '~/loading/components/PageContentSkeletonLoader';
+import { useLingui } from '@lingui/react/macro';
 
 const StyledContainer = styled.div`
   display: flex;
@@ -48,6 +46,7 @@ const CoreWorkflowShowContent = ({
 }: {
   coreWorkflowId: string;
 }) => {
+  const { t } = useLingui();
   const client = useApolloCoreClient();
   const { record, coreWorkflow, loading, error, refetch } =
     useCoreWorkflowShowPageResource({
@@ -144,9 +143,7 @@ const CoreWorkflowShowContent = ({
             links={[
               {
                 children: t`Workflows`,
-                href: getAppPath(AppPath.RecordIndexPage, {
-                  objectNamePlural: CoreObjectNamePlural.Workflow,
-                }),
+                href: getAppPath(AppPath.WorkflowIndexPage),
               },
               {
                 children: isNonEmptyString(record.name) ? (
@@ -191,19 +188,16 @@ const CoreWorkflowShowContent = ({
 
 export const WorkflowCoreShowPage = () => {
   const { coreWorkflowId } = useParams<{ coreWorkflowId: string }>();
-  const canManageWorkflows = useHasPermissionFlag(PermissionFlagType.WORKFLOWS);
-  if (!canManageWorkflows) {
-    return (
-      <WorkspaceRouteUnavailable>{t`You do not have permission to access workflows.`}</WorkspaceRouteUnavailable>
-    );
-  }
-  if (!isDefined(coreWorkflowId)) {
-    return <WorkspaceRouteUnavailable />;
-  }
   return (
-    <CoreWorkflowShowContent
-      key={coreWorkflowId}
-      coreWorkflowId={coreWorkflowId}
-    />
+    <CoreWorkflowsPermissionGate>
+      {isDefined(coreWorkflowId) ? (
+        <CoreWorkflowShowContent
+          key={coreWorkflowId}
+          coreWorkflowId={coreWorkflowId}
+        />
+      ) : (
+        <WorkspaceRouteUnavailable />
+      )}
+    </CoreWorkflowsPermissionGate>
   );
 };

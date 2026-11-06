@@ -4,17 +4,19 @@ import { type FieldMetadataItem } from '@/object-metadata/types/FieldMetadataIte
 import { type EnrichedObjectMetadataItem } from '@/object-metadata/types/EnrichedObjectMetadataItem';
 import { getObjectPermissionsForObject } from '@/object-metadata/utils/getObjectPermissionsForObject';
 import {
-  type RecordGqlFields,
   FieldMetadataType,
-  type ObjectPermissions,
+  type ObjectRecordsPermissions,
+  type RecordGqlFields,
   RelationType,
 } from 'twenty-shared/types';
 import { isNonCompositeField } from '@/object-record/object-filter-dropdown/utils/isNonCompositeField';
 import {
+  canReachSomeRecords,
   computeMorphRelationGqlFieldName,
   computeRelationGqlFieldJoinColumnName,
   isDefined,
 } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 
 type MapFieldMetadataToGraphQLQueryArgs = {
   objectMetadataItems: EnrichedObjectMetadataItem[];
@@ -25,10 +27,7 @@ type MapFieldMetadataToGraphQLQueryArgs = {
   >;
   relationRecordGqlFields?: RecordGqlFields;
   computeReferences?: boolean;
-  objectPermissionsByObjectMetadataId: Record<
-    string,
-    ObjectPermissions & { objectMetadataId: string }
-  >;
+  objectPermissionsByObjectMetadataId: Record<string, ObjectRecordsPermissions>;
 };
 // TODO: change ObjectMetadataItems mock before refactoring with relation computed field
 export const mapFieldMetadataToGraphQLQuery = ({
@@ -79,9 +78,9 @@ export const mapFieldMetadataToGraphQLQuery = ({
       ) {
         if (!isDefined(morphRelation.targetObjectMetadata.id)) {
           throw new Error(
-            // Error text is used for locale-independent issue grouping.
-            // oxlint-disable-next-line lingui/no-unlocalized-strings
-            `Target object metadata id not found with field metadata ${fieldMetadata.name}`,
+            doNotTranslate(
+              `Target object metadata id not found with field metadata ${fieldMetadata.name}`,
+            ),
           );
         }
 
@@ -90,7 +89,12 @@ export const mapFieldMetadataToGraphQLQuery = ({
           morphRelation.targetObjectMetadata.id,
         );
 
-        if (!objectPermission.canReadObjectRecords) {
+        if (
+          !canReachSomeRecords({
+            objectRecordsPermissions: objectPermission,
+            operationType: 'select',
+          })
+        ) {
           continue;
         }
       }
@@ -100,9 +104,7 @@ export const mapFieldMetadataToGraphQLQuery = ({
           continue;
         }
 
-        // Generated GraphQL syntax must stay stable across locales.
-        // oxlint-disable-next-line lingui/no-unlocalized-strings
-        gqlMorphField += `${relationFieldName}
+        gqlMorphField += doNotTranslate(`${relationFieldName}
 {
   edges {
     node ${mapObjectMetadataToGraphQLQuery({
@@ -114,7 +116,7 @@ export const mapFieldMetadataToGraphQLQuery = ({
       objectPermissionsByObjectMetadataId,
     })}
   }
-}`;
+}`);
       }
 
       if (fieldMetadata.settings?.relationType === RelationType.MANY_TO_ONE) {
@@ -162,9 +164,9 @@ ${mapObjectMetadataToGraphQLQuery({
     ) {
       if (!isDefined(fieldMetadata.relation?.targetObjectMetadata.id)) {
         throw new Error(
-          // Error text is used for locale-independent issue grouping.
-          // oxlint-disable-next-line lingui/no-unlocalized-strings
-          `Target object metadata id not found with field metadata ${fieldMetadata.name}`,
+          doNotTranslate(
+            `Target object metadata id not found with field metadata ${fieldMetadata.name}`,
+          ),
         );
       }
 
@@ -173,7 +175,12 @@ ${mapObjectMetadataToGraphQLQuery({
         fieldMetadata.relation?.targetObjectMetadata.id,
       );
 
-      if (!objectPermission.canReadObjectRecords) {
+      if (
+        !canReachSomeRecords({
+          objectRecordsPermissions: objectPermission,
+          operationType: 'select',
+        })
+      ) {
         return '';
       }
     }
@@ -216,9 +223,9 @@ ${mapObjectMetadataToGraphQLQuery({
     ) {
       if (!isDefined(fieldMetadata.relation?.targetObjectMetadata.id)) {
         throw new Error(
-          // Error text is used for locale-independent issue grouping.
-          // oxlint-disable-next-line lingui/no-unlocalized-strings
-          `Target object metadata id not found with field metadata ${fieldMetadata.name}`,
+          doNotTranslate(
+            `Target object metadata id not found with field metadata ${fieldMetadata.name}`,
+          ),
         );
       }
 
@@ -227,14 +234,17 @@ ${mapObjectMetadataToGraphQLQuery({
         fieldMetadata.relation?.targetObjectMetadata.id,
       );
 
-      if (!objectPermission.canReadObjectRecords) {
+      if (
+        !canReachSomeRecords({
+          objectRecordsPermissions: objectPermission,
+          operationType: 'select',
+        })
+      ) {
         return '';
       }
     }
 
-    // Generated GraphQL syntax must stay stable across locales.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    return `${gqlField}
+    return doNotTranslate(`${gqlField}
 {
   edges {
     node ${mapObjectMetadataToGraphQLQuery({
@@ -246,13 +256,11 @@ ${mapObjectMetadataToGraphQLQuery({
       objectPermissionsByObjectMetadataId,
     })}
   }
-}`;
+}`);
   }
 
   if (fieldType === FieldMetadataType.LINKS) {
-    // Generated GraphQL syntax must stay stable across locales.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    return `${gqlField}
+    return doNotTranslate(`${gqlField}
 {
   primaryLinkUrl
   primaryLinkLabel
@@ -260,34 +268,28 @@ ${mapObjectMetadataToGraphQLQuery({
     label
     url
   }
-}`;
+}`);
   }
 
   if (fieldType === FieldMetadataType.CURRENCY) {
-    // Generated GraphQL syntax must stay stable across locales.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    return `${gqlField}
+    return doNotTranslate(`${gqlField}
 {
   amountMicros
   currencyCode
 }
-    `;
+    `);
   }
 
   if (fieldType === FieldMetadataType.FULL_NAME) {
-    // Generated GraphQL syntax must stay stable across locales.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    return `${gqlField}
+    return doNotTranslate(`${gqlField}
 {
   firstName
   lastName
-}`;
+}`);
   }
 
   if (fieldType === FieldMetadataType.ADDRESS) {
-    // Generated GraphQL syntax must stay stable across locales.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    return `${gqlField}
+    return doNotTranslate(`${gqlField}
 {
   addressStreet1
   addressStreet2
@@ -297,13 +299,11 @@ ${mapObjectMetadataToGraphQLQuery({
   addressPostcode
   addressLat
   addressLng
-}`;
+}`);
   }
 
   if (fieldType === FieldMetadataType.ACTOR) {
-    // Generated GraphQL syntax must stay stable across locales.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    return `${gqlField}
+    return doNotTranslate(`${gqlField}
 {
     source
     workspaceMemberId
@@ -312,23 +312,19 @@ ${mapObjectMetadataToGraphQLQuery({
       provider
       applicationId
     }
-}`;
+}`);
   }
 
   if (fieldType === FieldMetadataType.EMAILS) {
-    // Generated GraphQL syntax must stay stable across locales.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    return `${gqlField}
+    return doNotTranslate(`${gqlField}
 {
   primaryEmail
   additionalEmails
-}`;
+}`);
   }
 
   if (fieldType === FieldMetadataType.PHONES) {
-    // Generated GraphQL syntax must stay stable across locales.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    return `${gqlField}
+    return doNotTranslate(`${gqlField}
     {
       primaryPhoneNumber
       primaryPhoneCountryCode
@@ -338,29 +334,26 @@ ${mapObjectMetadataToGraphQLQuery({
         callingCode
         countryCode
       }
-    }`;
+    }`);
   }
 
   if (fieldType === FieldMetadataType.FILES) {
-    // Generated GraphQL syntax must stay stable across locales.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    return `${gqlField}
+    return doNotTranslate(`${gqlField}
     {
       fileId
       label
       extension
       url
-    }`;
+    }`);
   }
 
   if (fieldType === FieldMetadataType.RICH_TEXT) {
-    // Generated GraphQL syntax must stay stable across locales.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    return `${gqlField}
+    return doNotTranslate(`${gqlField}
 {
   blocknote
   markdown
-}`;
+  tiptap
+}`);
   }
 
   return '';

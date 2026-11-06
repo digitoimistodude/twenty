@@ -1,14 +1,14 @@
-import { t } from '@lingui/core/macro';
 import { type KeyboardEvent, useId, useMemo } from 'react';
 import { PhoneCountryPicker } from 'twenty-ui/components/input';
 
 import { useCountries } from '@/ui/input/components/internal/hooks/useCountries';
 import { DropdownContent } from '@/ui/layout/dropdown/components/DropdownContent';
 import { DropdownRoot } from '@/ui/layout/dropdown/components/DropdownRoot';
+import { useLingui } from '@lingui/react/macro';
 
 type PhoneCountryPickerDropdownButtonProps = {
   value?: string;
-  onChange: (countryCode: string) => void;
+  onChange: (countryCode: string | undefined) => void;
   disabled?: boolean;
   readOnly?: boolean;
 };
@@ -29,6 +29,7 @@ export const PhoneCountryPickerDropdownButton = ({
   disabled,
   readOnly,
 }: PhoneCountryPickerDropdownButtonProps) => {
+  const { t } = useLingui();
   const dropdownId = useId();
   const availableCountries = useCountries();
   const countries = useMemo(
@@ -43,30 +44,32 @@ export const PhoneCountryPickerDropdownButton = ({
       ),
     [availableCountries],
   );
-  const selectedCountry = countries.find((country) => country.value === value);
 
   return (
-    <DropdownRoot dropdownId={dropdownId} type="picker">
-      <PhoneCountryPicker.Trigger
-        country={selectedCountry}
-        disabled={disabled || readOnly}
-        aria-label={t`Country`}
-        onKeyDown={keepEnterAwayFromFieldHotkeys}
-      />
-      <DropdownContent
-        side="bottom"
-        align="start"
-        sideOffset={4}
-        alignOffset={0}
-      >
-        <PhoneCountryPicker.Options
-          countries={countries}
-          value={value}
-          onValueChange={onChange}
-          searchLabel={t`Search`}
-          emptyLabel={t`No results`}
+    <PhoneCountryPicker.Root
+      countries={countries}
+      value={value ?? null}
+      onValueChange={(countryCode) => onChange(countryCode ?? undefined)}
+      disabled={disabled || readOnly}
+    >
+      <DropdownRoot dropdownId={dropdownId} type="picker">
+        <PhoneCountryPicker.Trigger
+          aria-label={t`Country`}
+          onKeyDown={keepEnterAwayFromFieldHotkeys}
         />
-      </DropdownContent>
-    </DropdownRoot>
+        <DropdownContent
+          side="bottom"
+          align="start"
+          sideOffset={4}
+          alignOffset={0}
+        >
+          <PhoneCountryPicker.Options
+            searchLabel={t`Search`}
+            listLabel={t`Countries`}
+            emptyLabel={t`No results`}
+          />
+        </DropdownContent>
+      </DropdownRoot>
+    </PhoneCountryPicker.Root>
   );
 };

@@ -18,6 +18,9 @@ import { useAtomState } from '@/ui/utilities/state/jotai/hooks/useAtomState';
 const SLIDER_DROPDOWN_WIDTH_PX = 240;
 
 const StyledSliderContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${themeCssVariables.spacing[3]};
   padding: ${themeCssVariables.spacing[3]};
 `;
 
@@ -43,6 +46,10 @@ export const AiModelTierDropdown = ({
   const selectedTier = agentChatUserSelectedModelTier ?? workspaceTier;
   const selectedResolvedTier = tiers[AI_MODEL_TIERS.indexOf(selectedTier)];
 
+  const tierLabel = isDefined(selectedResolvedTier.model)
+    ? t`${selectedResolvedTier.label}: ${selectedResolvedTier.model.label}`
+    : selectedResolvedTier.label;
+
   const handleTierChange = (tier: AiModelTier) => {
     setAgentChatUserSelectedModelTier(tier === workspaceTier ? null : tier);
   };
@@ -54,11 +61,7 @@ export const AiModelTierDropdown = ({
         render={
           <AiModelTierBars
             selectedTier={selectedTier}
-            label={
-              isDefined(selectedResolvedTier.model)
-                ? t`${selectedResolvedTier.label}: ${selectedResolvedTier.model.label}`
-                : selectedResolvedTier.label
-            }
+            label={tierLabel}
             disabled={disabled}
           />
         }

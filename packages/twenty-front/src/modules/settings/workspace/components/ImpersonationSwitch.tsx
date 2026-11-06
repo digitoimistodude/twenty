@@ -4,14 +4,16 @@ import { SettingsOptionCardContentSwitch } from '@/settings/components/SettingsO
 import { useAtomState } from '@/ui/utilities/state/jotai/hooks/useAtomState';
 
 import { useMutation } from '@apollo/client/react';
-import { t } from '@lingui/core/macro';
 import { IconLifebuoy } from 'twenty-ui/icon';
 import { Card } from 'twenty-ui/primitives/surfaces';
 import { UpdateWorkspaceDocument } from '~/generated-metadata/graphql';
 
 import { useToast } from 'twenty-ui/components/feedback';
+import { doNotTranslate } from 'twenty-shared/i18n';
+import { useLingui } from '@lingui/react/macro';
 
 export const ImpersonationSwitch = () => {
+  const { t } = useLingui();
   const { enqueueToast } = useToast();
 
   const [currentWorkspace, setCurrentWorkspace] = useAtomState(
@@ -23,8 +25,7 @@ export const ImpersonationSwitch = () => {
   const handleChange = async (value: boolean) => {
     try {
       if (!currentWorkspace?.id) {
-        // oxlint-disable-next-line lingui/no-unlocalized-strings -- Keep this developer invariant stable for error grouping.
-        throw new Error('User is not logged in');
+        throw new Error(doNotTranslate('User is not logged in'));
       }
       await updateWorkspace({
         variables: {
@@ -43,7 +44,7 @@ export const ImpersonationSwitch = () => {
   };
 
   return (
-    <Card.Root rounded>
+    <Card.Root>
       <SettingsOptionCardContentSwitch
         Icon={IconLifebuoy}
         title={t`Allow Support Team Access`}

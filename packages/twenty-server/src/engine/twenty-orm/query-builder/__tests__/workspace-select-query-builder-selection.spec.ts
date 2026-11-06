@@ -1,3 +1,5 @@
+import { types } from 'pg';
+
 import { WorkspaceSelectQueryBuilder } from 'src/engine/twenty-orm/query-builder/workspace-select-query-builder';
 import {
   SCHEMA_NAME,
@@ -8,8 +10,35 @@ import {
 } from 'src/engine/twenty-orm/query-builder/__tests__/workspace-select-query-builder-test-shapes.util';
 import { buildColumnResultAlias } from 'src/engine/twenty-orm/sql/utils/build-column-result-alias.util';
 import { TwentyOrmException } from 'src/engine/twenty-orm/exceptions/twenty-orm.exception';
+import { NO_ROLE_RECORDS_PERMISSIONS } from 'src/engine/permissions/role/constants/no-role-records-permissions.constant';
 
 describe('WorkspaceSelectQueryBuilder selection', () => {
+  it('should preserve raw dates only for pagination without global parser setup', async () => {
+    const { queryBuilder, executedStatements } = buildQueryBuilder();
+    const timestamp = '2026-01-01 00:00:00.1239+00';
+
+    await queryBuilder.getRawAndEntities();
+
+    const parsers = executedStatements[0].types;
+
+    expect(parsers?.getTypeParser(types.builtins.TIMESTAMPTZ)(timestamp)).toBe(
+      timestamp,
+    );
+    expect(parsers?.getTypeParser(types.builtins.DATE)('2026-01-01')).toBe(
+      '2026-01-01',
+    );
+    expect(
+      types.getTypeParser(types.builtins.TIMESTAMPTZ)(timestamp),
+    ).toBeInstanceOf(Date);
+    expect(
+      types.getTypeParser(types.builtins.DATE)('2026-01-01'),
+    ).toBeInstanceOf(Date);
+
+    await queryBuilder.getMany();
+
+    expect(executedStatements[1].types).toBeUndefined();
+  });
+
   it('should select the requested columns with alias-prefixed output names', () => {
     const { queryBuilder } = buildQueryBuilder();
 
@@ -246,7 +275,7 @@ describe('WorkspaceSelectQueryBuilder selection', () => {
           throw new Error('connection lost');
         },
       },
-      objectRecordsPermissions: {},
+      recordsPermissions: NO_ROLE_RECORDS_PERMISSIONS,
       tableShapeByObjectMetadataId: () => companyTableShape,
       onBeforeExecute: () => undefined,
       formatResult: (records) => records as never,

@@ -58,27 +58,20 @@ const relationFilterValueSchema = jsonRelationFilterValueSchema
     ),
   );
 
-// Mirrors normalizeSelectFilterValues: a value that is not JSON is a legacy scalar option.
 const selectFilterValueSchema = nonEmptyStringFilterValueSchema.refine(
-  (value) => {
-    if (arrayOfStringsOrVariablesSchema.safeParse(value).success) {
-      return true;
-    }
-
-    try {
-      JSON.parse(value);
-    } catch {
-      return true;
-    }
-
-    return false;
-  },
+  (value) => arrayOfStringsOrVariablesSchema.safeParse(value).success,
   'Expected an array of option values',
 );
 
 const containsOperandsSchemas = {
   [ViewFilterOperand.CONTAINS]: nonEmptyStringFilterValueSchema,
   [ViewFilterOperand.DOES_NOT_CONTAIN]: nonEmptyStringFilterValueSchema,
+};
+
+const textOperandsSchemas = {
+  ...containsOperandsSchemas,
+  [ViewFilterOperand.IS]: nonEmptyStringFilterValueSchema,
+  [ViewFilterOperand.IS_NOT]: nonEmptyStringFilterValueSchema,
 };
 
 const numericOperandsSchemas = {
@@ -89,7 +82,7 @@ const numericOperandsSchemas = {
 };
 
 export const FILTER_VALUE_SCHEMAS_MAP = {
-  TEXT: containsOperandsSchemas,
+  TEXT: textOperandsSchemas,
   EMAILS: containsOperandsSchemas,
   FULL_NAME: containsOperandsSchemas,
   ADDRESS: containsOperandsSchemas,

@@ -1,6 +1,6 @@
 import { SelectOptionIcon } from '@/ui/input/components/SelectOptionIcon';
 import { styled } from '@linaria/react';
-import { plural, t } from '@lingui/core/macro';
+import { plural } from '@lingui/core/macro';
 import { useRef, useState } from 'react';
 
 import { useFilteredObjectMetadataItems } from '@/object-metadata/hooks/useFilteredObjectMetadataItems';
@@ -8,7 +8,6 @@ import { useObjectMetadataSelectHelpers } from '@/object-metadata/hooks/useObjec
 import { isAdvancedRelationTargetObjectMetadata } from '@/object-metadata/utils/isAdvancedRelationTargetObjectMetadata';
 import { isObjectMetadataEligibleAsRelationTarget } from '@/object-metadata/utils/isObjectMetadataEligibleAsRelationTarget';
 import { MultiSelectControl } from '@/ui/input/components/MultiSelectControl';
-import { getSelectDropdownInitialFocus } from '@/ui/input/components/internal/select/utils/getSelectDropdownInitialFocus';
 import { isFocusMovingWithinSelect } from '@/ui/input/components/internal/select/utils/isFocusMovingWithinSelect';
 import { type SelectCallToActionButton } from '@/ui/input/types/SelectCallToActionButton';
 import { type SelectSizeVariant } from '@/ui/input/types/SelectSizeVariant';
@@ -20,6 +19,7 @@ import { isDefined } from 'twenty-shared/utils';
 import { Dropdown } from 'twenty-ui/components/navigation';
 import { IconBox } from 'twenty-ui/icon';
 import { themeCssVariables } from 'twenty-ui/theme';
+import { useLingui } from '@lingui/react/macro';
 
 type SettingsMorphRelationMultiSelectProps = {
   className?: string;
@@ -83,6 +83,7 @@ export const SettingsMorphRelationMultiSelect = ({
   hasRightElement,
   error,
 }: SettingsMorphRelationMultiSelectProps) => {
+  const { t } = useLingui();
   const dropdownContentRef = useRef<HTMLDivElement>(null);
 
   const [searchInputValue, setSearchInputValue] = useState('');
@@ -128,20 +129,6 @@ export const SettingsMorphRelationMultiSelect = ({
     disabledFromProps ||
     (options.length <= 1 && !isDefined(callToActionButton));
 
-  const handleOptionToggle = (objectMetadataId: string) => {
-    const newSelectedObjectMetadataIds =
-      localSelectedObjectMetadataIds.includes(objectMetadataId)
-        ? localSelectedObjectMetadataIds.filter(
-            (selectedObjectMetadataId) =>
-              selectedObjectMetadataId !== objectMetadataId,
-          )
-        : [...localSelectedObjectMetadataIds, objectMetadataId];
-
-    setLocalSelectedObjectMetadataIds(newSelectedObjectMetadataIds);
-    onChange?.(newSelectedObjectMetadataIds);
-    onBlur?.();
-  };
-
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setSearchInputValue('');
@@ -151,8 +138,7 @@ export const SettingsMorphRelationMultiSelect = ({
   const renderOption = (option: (typeof options)[number]) => (
     <Dropdown.OptionItem
       key={option.objectMetadataId}
-      selected={selectedObjectMetadataIds.includes(option.objectMetadataId)}
-      onSelect={() => handleOptionToggle(option.objectMetadataId)}
+      value={option.objectMetadataId}
       startIcon={
         <SelectOptionIcon
           Icon={option.Icon ?? undefined}
@@ -206,7 +192,6 @@ export const SettingsMorphRelationMultiSelect = ({
         <DropdownRoot
           dropdownId={dropdownId}
           type="picker"
-          multiple
           onOpenChange={handleOpenChange}
         >
           <Dropdown.Trigger render={<div />} nativeButton={false}>
@@ -216,12 +201,6 @@ export const SettingsMorphRelationMultiSelect = ({
             ref={dropdownContentRef}
             width={dropdownWidthAuto ? 'var(--anchor-width)' : dropdownWidth}
             align="start"
-            initialFocus={
-              withSearchInput
-                ? undefined
-                : () =>
-                    getSelectDropdownInitialFocus(dropdownContentRef.current)
-            }
             aria-label={isNonEmptyString(label) ? label : undefined}
           >
             {withSearchInput && (
@@ -236,20 +215,33 @@ export const SettingsMorphRelationMultiSelect = ({
               <Dropdown.Separator />
             )}
             {isNonEmptyArray(matchingOptions) && (
-              <Dropdown.Section scrollable>
-                {isNonEmptyArray(regularOptions) && (
-                  <Dropdown.Section>
-                    {regularOptions.map(renderOption)}
-                  </Dropdown.Section>
-                )}
-                {isNonEmptyArray(regularOptions) &&
-                  isNonEmptyArray(advancedOptions) && <Dropdown.Separator />}
-                {isNonEmptyArray(advancedOptions) && (
-                  <Dropdown.Section label={t`Advanced`}>
-                    {advancedOptions.map(renderOption)}
-                  </Dropdown.Section>
-                )}
-              </Dropdown.Section>
+              <Dropdown.SelectionGroup
+                aria-label={isNonEmptyString(label) ? label : t`Objects`}
+                multiple
+                value={localSelectedObjectMetadataIds}
+                onValueChange={(nextSelectedObjectMetadataIds) => {
+                  setLocalSelectedObjectMetadataIds(
+                    nextSelectedObjectMetadataIds,
+                  );
+                  onChange?.(nextSelectedObjectMetadataIds);
+                  onBlur?.();
+                }}
+              >
+                <Dropdown.Section scrollable>
+                  {isNonEmptyArray(regularOptions) && (
+                    <Dropdown.Section>
+                      {regularOptions.map(renderOption)}
+                    </Dropdown.Section>
+                  )}
+                  {isNonEmptyArray(regularOptions) &&
+                    isNonEmptyArray(advancedOptions) && <Dropdown.Separator />}
+                  {isNonEmptyArray(advancedOptions) && (
+                    <Dropdown.Section label={t`Advanced`}>
+                      {advancedOptions.map(renderOption)}
+                    </Dropdown.Section>
+                  )}
+                </Dropdown.Section>
+              </Dropdown.SelectionGroup>
             )}
             {isDefined(callToActionButton) &&
               isNonEmptyArray(matchingOptions) && <Dropdown.Separator />}

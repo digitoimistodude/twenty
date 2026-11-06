@@ -5,7 +5,7 @@ import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomState
 import { styled } from '@linaria/react';
 import { isNonEmptyString } from '@sniptt/guards';
 import { useState } from 'react';
-import { useIcons } from 'twenty-ui/icon';
+import { useIcons } from 'twenty-ui/icon/provider';
 import { Card } from 'twenty-ui/primitives/surfaces';
 import { themeCssVariables } from 'twenty-ui/theme';
 import { type FeatureFlagKey } from '~/generated-metadata/graphql';
@@ -54,7 +54,6 @@ export const SettingsLabContent = () => {
         {labPublicFeatureFlagsWithImage.map((flag) => (
           <Card.Root
             key={flag.key}
-            rounded
             backgroundColor={themeCssVariables.background.secondary}
           >
             {!hasImageLoadingError[flag.key] && (
@@ -75,10 +74,7 @@ export const SettingsLabContent = () => {
         ))}
 
         {labPublicFeatureFlagsWithoutImage.length > 0 && (
-          <Card.Root
-            rounded
-            backgroundColor={themeCssVariables.background.secondary}
-          >
+          <Card.Root backgroundColor={themeCssVariables.background.secondary}>
             {labPublicFeatureFlagsWithoutImage.map((flag, index) => (
               <SettingsOptionCardContentSwitch
                 key={flag.key}

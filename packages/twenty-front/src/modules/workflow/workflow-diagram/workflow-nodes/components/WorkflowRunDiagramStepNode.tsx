@@ -28,8 +28,10 @@ import { styled } from '@linaria/react';
 import { Position } from '@xyflow/react';
 import { useContext } from 'react';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { StepStatus } from 'twenty-shared/workflow';
-import { IconCheck, IconX, useIcons } from 'twenty-ui/icon';
+import { IconCheck, IconX } from 'twenty-ui/icon';
+import { useIcons } from 'twenty-ui/icon/provider';
 import { Loader } from 'twenty-ui/primitives/feedback';
 import { themeCssVariables } from 'twenty-ui/theme';
 
@@ -121,8 +123,7 @@ export const WorkflowRunDiagramStepNode = ({
 
   const handleClick = () => {
     if (!isDefined(workflowVisualizerWorkflowId)) {
-      // oxlint-disable-next-line lingui/no-unlocalized-strings -- This message describes a developer-only invariant; keeping it stable preserves error reporting fingerprints.
-      throw new Error('Workflow ID must be defined');
+      throw new Error(doNotTranslate('Workflow ID must be defined'));
     }
 
     if (!isInSidePanel) {

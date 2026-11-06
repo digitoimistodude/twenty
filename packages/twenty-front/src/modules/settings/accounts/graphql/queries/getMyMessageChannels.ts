@@ -14,9 +14,11 @@ export const GET_MY_MESSAGE_CHANNELS = gql`
       excludeNonProfessionalEmails
       excludeGroupEmails
       isSyncEnabled
+      messagingProviderUniversalIdentifier
       syncStatus
       syncStage
       syncStageStartedAt
+      importProgress
       connectedAccountId
       connectedAccount {
         id

@@ -18,28 +18,34 @@ import {
   mockedWorkspaceMemberData,
 } from '~/testing/mock-data/users';
 
-const MY_USER_WORKSPACE_ID = '20202020-1a2b-4c3d-8e4f-000000000001';
-const TEAMMATE_USER_WORKSPACE_ID = '20202020-1a2b-4c3d-8e4f-000000000002';
-const FATHOM_APPLICATION_ID = '20202020-1a2b-4c3d-8e4f-000000000021';
-const GRANOLA_APPLICATION_ID = '20202020-1a2b-4c3d-8e4f-000000000022';
+export const MY_USER_WORKSPACE_ID = '20202020-1a2b-4c3d-8e4f-000000000001';
+export const TEAMMATE_USER_WORKSPACE_ID =
+  '20202020-1a2b-4c3d-8e4f-000000000002';
+export const FATHOM_APPLICATION_ID = '20202020-1a2b-4c3d-8e4f-000000000021';
+export const GRANOLA_APPLICATION_ID = '20202020-1a2b-4c3d-8e4f-000000000022';
 const CREATED_AT = '2026-09-01T00:00:00.000Z';
 
 export const GOOGLE_ACCOUNT_ID = '20202020-1a2b-4c3d-8e4f-000000000011';
 export const MICROSOFT_ACCOUNT_ID = '20202020-1a2b-4c3d-8e4f-000000000014';
+export const GOOGLE_MESSAGE_CHANNEL_ID = '20202020-1a2b-4c3d-8e4f-000000000031';
 export const FATHOM_ONLY_ACCOUNT_ID = '20202020-1a2b-4c3d-8e4f-000000000013';
-const FATHOM_ACCOUNT_ID = '20202020-1a2b-4c3d-8e4f-000000000012';
+export const FATHOM_ACCOUNT_ID = '20202020-1a2b-4c3d-8e4f-000000000012';
 const MY_SHARED_ACCOUNT_ID = '20202020-1a2b-4c3d-8e4f-000000000015';
 const TEAMMATE_ACCOUNT_ID = '20202020-1a2b-4c3d-8e4f-000000000016';
 const EMAIL_GROUP_ACCOUNT_ID = '20202020-1a2b-4c3d-8e4f-000000000017';
 const SECOND_GOOGLE_ACCOUNT_ID = '20202020-1a2b-4c3d-8e4f-000000000018';
 
-const buildConnectedAccount = (account: {
+export const buildConnectedAccount = (account: {
   id: string;
   handle: string;
   provider: string;
   userWorkspaceId: string;
   applicationId?: string;
-  visibility?: string;
+  connectionProviderId?: string;
+  name?: string;
+  authFailedAt?: string;
+  archivedAt?: string;
+  scope?: string;
   scopes?: string[];
 }) => ({
   __typename: 'ConnectedAccountPublicDTO',
@@ -52,7 +58,7 @@ const buildConnectedAccount = (account: {
   connectionProviderId: null,
   applicationId: null,
   name: null,
-  visibility: 'user',
+  scope: 'USER',
   lastCredentialsRefreshedAt: null,
   connectionParameters: null,
   createdAt: CREATED_AT,
@@ -77,9 +83,11 @@ const buildMessageChannel = (
   excludeNonProfessionalEmails: false,
   excludeGroupEmails: false,
   isSyncEnabled: true,
+  messagingProviderUniversalIdentifier: null,
   syncStatus: 'ACTIVE',
   syncStage: 'MESSAGE_LIST_FETCH_PENDING',
   syncStageStartedAt: null,
+  importProgress: null,
   connectedAccountId,
   connectedAccount: {
     __typename: 'ConnectedAccountHandleDTO',
@@ -97,6 +105,7 @@ const buildCalendarChannel = (id: string, connectedAccountId: string) => ({
   visibility: 'SHARE_EVERYTHING',
   isContactAutoCreationEnabled: false,
   contactAutoCreationPolicy: 'AS_PARTICIPANT_AND_ORGANIZER',
+  excludePrivateEvents: false,
   isSyncEnabled: true,
   syncStatus: 'ACTIVE',
   syncStage: 'CALENDAR_EVENT_LIST_FETCH_PENDING',
@@ -155,7 +164,7 @@ export const CONNECTED_ACCOUNTS = [
     provider: 'app',
     userWorkspaceId: MY_USER_WORKSPACE_ID,
     applicationId: FATHOM_APPLICATION_ID,
-    visibility: 'workspace',
+    scope: 'WORKSPACE',
   }),
   buildConnectedAccount({
     id: TEAMMATE_ACCOUNT_ID,
@@ -163,7 +172,7 @@ export const CONNECTED_ACCOUNTS = [
     provider: 'app',
     userWorkspaceId: TEAMMATE_USER_WORKSPACE_ID,
     applicationId: GRANOLA_APPLICATION_ID,
-    visibility: 'workspace',
+    scope: 'WORKSPACE',
   }),
   buildConnectedAccount({
     id: SECOND_GOOGLE_ACCOUNT_ID,
@@ -177,15 +186,12 @@ export const CONNECTED_ACCOUNTS = [
     handle: 'support@apple.dev',
     provider: 'email_group',
     userWorkspaceId: MY_USER_WORKSPACE_ID,
-    visibility: 'workspace',
+    scope: 'WORKSPACE',
   }),
 ];
 
-const MESSAGE_CHANNELS = [
-  buildMessageChannel(
-    '20202020-1a2b-4c3d-8e4f-000000000031',
-    GOOGLE_ACCOUNT_ID,
-  ),
+export const MESSAGE_CHANNELS = [
+  buildMessageChannel(GOOGLE_MESSAGE_CHANNEL_ID, GOOGLE_ACCOUNT_ID),
   buildMessageChannel(
     '20202020-1a2b-4c3d-8e4f-000000000032',
     FATHOM_ONLY_ACCOUNT_ID,
@@ -201,7 +207,7 @@ const MESSAGE_CHANNELS = [
   ),
 ];
 
-const CALENDAR_CHANNELS = [
+export const CALENDAR_CHANNELS = [
   buildCalendarChannel(
     '20202020-1a2b-4c3d-8e4f-000000000041',
     GOOGLE_ACCOUNT_ID,
@@ -212,9 +218,77 @@ const CALENDAR_CHANNELS = [
   ),
 ];
 
+export const FATHOM_USER_SETTINGS_MENU_ITEM_ID =
+  '20202020-1a2b-4c3d-8e4f-000000000051';
+export const FATHOM_USER_SETTINGS_FRONT_COMPONENT_ID =
+  '20202020-1a2b-4c3d-8e4f-000000000052';
+export const GRANOLA_USER_SETTINGS_MENU_ITEM_ID =
+  '20202020-1a2b-4c3d-8e4f-000000000053';
+const GRANOLA_USER_SETTINGS_FRONT_COMPONENT_ID =
+  '20202020-1a2b-4c3d-8e4f-000000000054';
+
+const buildUserSettingsApplicationPreferences = ({
+  applicationId,
+  settingsMenuItemId,
+  frontComponentId,
+  slug,
+}: {
+  applicationId: string;
+  settingsMenuItemId: string;
+  frontComponentId: string;
+  slug: string;
+}) => ({
+  __typename: 'ApplicationPreferences',
+  applicationId,
+  connectionProviders: [],
+  variables: [],
+  settingsMenuItems: [
+    {
+      __typename: 'SettingsMenuItem',
+      id: settingsMenuItemId,
+      universalIdentifier: settingsMenuItemId,
+      applicationId,
+      frontComponentId,
+      title: 'My settings',
+      icon: 'IconUser',
+      position: 1,
+      scope: 'USER',
+      slug,
+    },
+  ],
+});
+
+export const USER_SETTINGS_APPLICATION_PREFERENCES_GRAPHQL_HANDLER =
+  graphql.query('MyApplicationPreferences', () =>
+    HttpResponse.json({
+      data: {
+        myApplicationPreferences: [
+          buildUserSettingsApplicationPreferences({
+            applicationId: FATHOM_APPLICATION_ID,
+            settingsMenuItemId: FATHOM_USER_SETTINGS_MENU_ITEM_ID,
+            frontComponentId: FATHOM_USER_SETTINGS_FRONT_COMPONENT_ID,
+            slug: 'emails',
+          }),
+          buildUserSettingsApplicationPreferences({
+            applicationId: GRANOLA_APPLICATION_ID,
+            settingsMenuItemId: GRANOLA_USER_SETTINGS_MENU_ITEM_ID,
+            frontComponentId: GRANOLA_USER_SETTINGS_FRONT_COMPONENT_ID,
+            slug: 'my-settings',
+          }),
+        ],
+      },
+    }),
+  );
+
 const deletedAccountIds = new Set<string>();
 
+export const withoutDeletedAccounts = <TAccount extends { id: string }>(
+  accounts: TAccount[],
+) => accounts.filter((account) => !deletedAccountIds.has(account.id));
+
 export const deleteConnectedAccount = fn();
+export const disconnectConnectedAccount = fn();
+export const myApplicationPreferencesRequested = fn();
 
 export const ACCOUNT_GROUPS_GRAPHQL_HANDLERS = [
   graphql.query('MyConnectedAccounts', () =>
@@ -257,6 +331,23 @@ export const ACCOUNT_GROUPS_GRAPHQL_HANDLERS = [
       },
     });
   }),
+  graphql.mutation('DisconnectConnectedAccount', ({ variables }) => {
+    disconnectConnectedAccount(variables.id);
+
+    return HttpResponse.json({
+      data: {
+        disconnectConnectedAccount: {
+          __typename: 'ConnectedAccountPublicDTO',
+          id: variables.id,
+        },
+      },
+    });
+  }),
+  graphql.query('MyApplicationPreferences', () => {
+    myApplicationPreferencesRequested();
+
+    return HttpResponse.json({ data: { myApplicationPreferences: [] } });
+  }),
   graphql.query('FindManyBlocklists', () =>
     HttpResponse.json({
       data: {
@@ -275,6 +366,8 @@ export const ACCOUNT_GROUPS_GRAPHQL_HANDLERS = [
 export const seedAccountGroupsStory = async () => {
   deletedAccountIds.clear();
   deleteConnectedAccount.mockClear();
+  disconnectConnectedAccount.mockClear();
+  myApplicationPreferencesRequested.mockClear();
   await mockedApolloClient.clearStore();
 
   jotaiStore.set(isGoogleMessagingEnabledState.atom, true);
@@ -290,6 +383,7 @@ export const seedAccountGroupsStory = async () => {
         id: FATHOM_APPLICATION_ID,
         universalIdentifier: FATHOM_APPLICATION_ID,
         name: 'Fathom',
+        description: 'Records, transcribes and summarizes your meetings.',
         logoUrl: null,
         createdAt: '2024-01-01T00:00:00.000Z',
       },
@@ -297,6 +391,7 @@ export const seedAccountGroupsStory = async () => {
         id: GRANOLA_APPLICATION_ID,
         universalIdentifier: GRANOLA_APPLICATION_ID,
         name: 'Granola',
+        description: 'Takes notes during your calls.',
         logoUrl: null,
         createdAt: '2024-01-01T00:00:00.000Z',
       },

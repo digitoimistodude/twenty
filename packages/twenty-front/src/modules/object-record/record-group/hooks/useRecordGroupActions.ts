@@ -13,12 +13,12 @@ import { useAtomComponentFamilySelectorValue } from '@/ui/utilities/state/jotai/
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
 import { type ViewType } from '@/views/types/ViewType';
-import { t } from '@lingui/core/macro';
 import { isUndefined } from '@sniptt/guards';
 import { useCallback, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { SettingsPath } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import {
   IconArrowLeft,
   IconArrowRight,
@@ -27,6 +27,7 @@ import {
 } from 'twenty-ui/icon';
 import { PermissionFlagType } from '~/generated-metadata/graphql';
 import { useNavigateSettings } from '~/hooks/useNavigateSettings';
+import { useLingui } from '@lingui/react/macro';
 
 type UseRecordGroupActionsParams = {
   viewType: ViewType;
@@ -35,6 +36,7 @@ type UseRecordGroupActionsParams = {
 export const useRecordGroupActions = ({
   viewType,
 }: UseRecordGroupActionsParams) => {
+  const { t } = useLingui();
   const { recordIndexId } = useRecordIndexIdFromCurrentContextStore();
   const navigate = useNavigateSettings();
   const location = useLocation();
@@ -74,9 +76,9 @@ export const useRecordGroupActions = ({
     setNavigationMemorizedUrl(location.pathname + location.search);
 
     if (!isDefined(recordIndexGroupFieldMetadataItem)) {
-      // Error text is used for locale-independent issue grouping.
-      // oxlint-disable-next-line lingui/no-unlocalized-strings
-      throw new Error('recordGroupFieldMetadata is not a non-empty string');
+      throw new Error(
+        doNotTranslate('recordGroupFieldMetadata is not a non-empty string'),
+      );
     }
 
     navigate(SettingsPath.ObjectFieldEdit, {

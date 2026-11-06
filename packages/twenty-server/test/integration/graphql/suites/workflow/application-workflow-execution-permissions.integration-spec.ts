@@ -8,7 +8,6 @@ import { buildBaseManifest } from 'test/integration/metadata/suites/application/
 import { cleanupApplicationAndAppRegistration } from 'test/integration/metadata/suites/application/utils/cleanup-application-and-app-registration.util';
 import { setupApplicationForSync } from 'test/integration/metadata/suites/application/utils/setup-application-for-sync.util';
 import { syncApplication } from 'test/integration/metadata/suites/application/utils/sync-application.util';
-import { updateFeatureFlag } from 'test/integration/metadata/suites/utils/update-feature-flag.util';
 import { generateApplicationTokenPair } from 'test/integration/utils/generate-application-token-pair.util';
 import { getAppProviderByClassName } from 'test/integration/utils/get-app-provider-by-class-name.util';
 import {
@@ -17,7 +16,6 @@ import {
 } from 'twenty-shared/application';
 import { SystemPermissionFlag } from 'twenty-shared/constants';
 import { STANDARD_OBJECTS } from 'twenty-shared/metadata';
-import { FeatureFlagKey } from 'twenty-shared/types';
 
 import { type LogicFunctionExecutorService } from 'src/engine/core-modules/logic-function/logic-function-executor/logic-function-executor.service';
 import { LogicFunctionExecutionStatus } from 'src/engine/metadata-modules/logic-function/dtos/logic-function-execution-result.dto';
@@ -152,18 +150,33 @@ const FORM_WORKFLOW = buildTestWorkflow([
   } as WorkflowStepManifestWithoutEdges,
 ]);
 
+const DRAFT_EMAIL_WORKFLOW = buildTestWorkflow([
+  {
+    name: 'Draft an email',
+    type: 'DRAFT_EMAIL',
+    input: {
+      connectedAccountId: randomUUID(),
+      recipients: { to: 'jane@example.com', cc: '', bcc: '' },
+      subject: `${RUN_PREFIX} draft`,
+    },
+  } as WorkflowStepManifestWithoutEdges,
+]);
+
 const TEST_WORKFLOWS = [
   CREATE_COMPANY_WORKFLOW,
   CREATE_OPPORTUNITY_WORKFLOW,
   LOGIC_FUNCTION_WORKFLOW,
   DELAYED_CREATE_COMPANY_WORKFLOW,
   FORM_WORKFLOW,
+  DRAFT_EMAIL_WORKFLOW,
 ];
 
 const buildManifest = ({
   canManageCompanies,
+  canSendEmail = false,
 }: {
   canManageCompanies: boolean;
+  canSendEmail?: boolean;
 }): Manifest =>
   buildBaseManifest({
     appId: APP_ID,
@@ -190,7 +203,10 @@ const buildManifest = ({
                 },
               ]
             : [],
-          permissionFlagUniversalIdentifiers: [SystemPermissionFlag.WORKFLOWS],
+          permissionFlagUniversalIdentifiers: [
+            SystemPermissionFlag.WORKFLOWS,
+            ...(canSendEmail ? [SystemPermissionFlag.SEND_EMAIL_TOOL] : []),
+          ],
         },
       ],
       logicFunctions: [
@@ -368,12 +384,6 @@ const countRecordsByName = async (
 
 describe('application workflow execution permissions', () => {
   beforeAll(async () => {
-    await updateFeatureFlag({
-      featureFlag: FeatureFlagKey.IS_APPLICATION_WORKFLOWS_ENABLED,
-      value: true,
-      expectToFail: false,
-    });
-
     await setupApplicationForSync({
       applicationUniversalIdentifier: APP_ID,
       name: 'Application workflow permissions',
@@ -425,11 +435,6 @@ describe('application workflow execution permissions', () => {
     });
     await cleanupApplicationAndAppRegistration({
       applicationUniversalIdentifier: OTHER_APP_ID,
-    });
-    await updateFeatureFlag({
-      featureFlag: FeatureFlagKey.IS_APPLICATION_WORKFLOWS_ENABLED,
-      value: false,
-      expectToFail: false,
     });
   });
 
@@ -659,6 +664,46 @@ describe('application workflow execution permissions', () => {
       workflowRun.state.stepInfos[formStep.universalIdentifier].result,
     ).not.toHaveProperty('opportunity');
   }, 120000);
+
+  it('refuses an email step when the application role lacks the send email permission', async () => {
+    const workflowRun = await waitForRunToEnd(
+      await runWorkflow(DRAFT_EMAIL_WORKFLOW),
+    );
+    const [draftStep] = DRAFT_EMAIL_WORKFLOW.steps;
+    const draftStepInfo =
+      workflowRun.state.stepInfos[draftStep.universalIdentifier];
+
+    expect(workflowRun.status).toBe('FAILED');
+    expect(draftStepInfo.status).toBe('FAILED');
+    expect(draftStepInfo.error).toContain(
+      'This application needs the SEND_EMAIL_TOOL permission to run DRAFT_EMAIL steps',
+    );
+  }, 120000);
+
+  it('lets an email step through the permission check once the application role has it', async () => {
+    const grant = await syncApplication({
+      manifest: buildManifest({ canManageCompanies: true, canSendEmail: true }),
+    });
+
+    expect(grant.errors).toBeUndefined();
+
+    const workflowRun = await waitForRunToEnd(
+      await runWorkflow(DRAFT_EMAIL_WORKFLOW),
+    );
+    const [draftStep] = DRAFT_EMAIL_WORKFLOW.steps;
+    const draftStepInfo =
+      workflowRun.state.stepInfos[draftStep.universalIdentifier];
+
+    // The step still fails on the made-up connected account, after the permission check
+    expect(draftStepInfo.status).toBe('FAILED');
+    expect(draftStepInfo.error).not.toContain('SEND_EMAIL_TOOL');
+
+    const revocation = await syncApplication({
+      manifest: buildManifest({ canManageCompanies: true }),
+    });
+
+    expect(revocation.errors).toBeUndefined();
+  }, 150000);
 
   it('checks the current application permissions again when a delayed run resumes', async () => {
     const workflowRunId = await runWorkflow(DELAYED_CREATE_COMPANY_WORKFLOW);

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { Pill } from 'twenty-ui/data-display';
+import { Badge } from 'twenty-ui/primitives/data-display';
 import { themeCssVariables } from 'twenty-ui/theme';
 
 const StyledLabelRow = styled.div`
@@ -29,6 +29,6 @@ export const ApplicationVariableLabelRow = ({
 }: ApplicationVariableLabelRowProps) => (
   <StyledLabelRow>
     <StyledLabel htmlFor={inputId}>{variableKey}</StyledLabel>
-    {isDeprecated && <Pill label="Deprecated" />}
+    {isDeprecated && <Badge>Deprecated</Badge>}
   </StyledLabelRow>
 );

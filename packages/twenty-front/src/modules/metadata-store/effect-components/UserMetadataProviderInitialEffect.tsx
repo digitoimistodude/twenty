@@ -2,7 +2,10 @@ import { useIsLogged } from '@/auth/hooks/useIsLogged';
 import { toOpenRecordInPreference } from '@/workspace-member/utils/toOpenRecordInPreference';
 import { availableWorkspacesState } from '@/auth/states/availableWorkspacesState';
 import { currentUserState } from '@/auth/states/currentUserState';
-import { currentUserWorkspaceState } from '@/auth/states/currentUserWorkspaceState';
+import {
+  type CurrentUserWorkspace,
+  currentUserWorkspaceState,
+} from '@/auth/states/currentUserWorkspaceState';
 import { currentWorkspaceDeletedMembersState } from '@/auth/states/currentWorkspaceDeletedMembersState';
 import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
 import { currentWorkspaceMembersState } from '@/auth/states/currentWorkspaceMembersState';
@@ -15,8 +18,8 @@ import { enUS } from 'date-fns/locale';
 import { useStore } from 'jotai';
 import { useCallback, useEffect, useState } from 'react';
 import { type APP_LOCALES, SOURCE_LOCALE } from 'twenty-shared/translations';
-import { type CurrentUserWorkspaceObjectPermissions } from '@/auth/types/CurrentUserWorkspaceObjectPermissions';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { useQuery } from '@apollo/client/react';
 import {
   type WorkspaceMember,
@@ -110,9 +113,9 @@ export const UserMetadataProviderInitialEffect = () => {
         twoFactorAuthenticationMethodSummary:
           userQueryData.currentUser.currentUserWorkspace
             .twoFactorAuthenticationMethodSummary ?? [],
-        objectsPermissions:
+        objectRecordsPermissions:
           (userQueryData.currentUser.currentUserWorkspace
-            .objectsPermissions as CurrentUserWorkspaceObjectPermissions[]) ??
+            .objectRecordsPermissions as CurrentUserWorkspace['objectRecordsPermissions']) ??
           [],
         isImpersonating:
           userQueryData.currentUser.currentUserWorkspace.isImpersonating ??
@@ -132,10 +135,11 @@ export const UserMetadataProviderInitialEffect = () => {
     ) => {
       return {
         ...workspaceMember,
-        // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is a persisted color-scheme identifier.
-        colorScheme: (workspaceMember.colorScheme as ColorScheme) ?? 'System',
-        // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is a persisted UI-scale identifier.
-        uiScale: (workspaceMember.uiScale as UiScale) ?? 'Default',
+        colorScheme:
+          (workspaceMember.colorScheme as ColorScheme) ??
+          doNotTranslate('System'),
+        uiScale:
+          (workspaceMember.uiScale as UiScale) ?? doNotTranslate('Default'),
         openRecordIn: toOpenRecordInPreference(workspaceMember.openRecordIn),
         locale:
           (workspaceMember.locale as keyof typeof APP_LOCALES) ?? SOURCE_LOCALE,

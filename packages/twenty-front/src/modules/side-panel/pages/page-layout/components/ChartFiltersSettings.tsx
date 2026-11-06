@@ -1,4 +1,4 @@
-import { ChartFiltersDeletedFieldsWarning } from '@/side-panel/pages/page-layout/components/ChartFiltersDeletedFieldsWarning';
+import { SidePanelRecordFiltersDeletedFieldsWarning } from '@/side-panel/components/SidePanelRecordFiltersDeletedFieldsWarning';
 import { ChartFiltersSettingsInitializeStateEffect } from '@/side-panel/pages/page-layout/components/ChartFiltersSettingsInitializeStateEffect';
 import { usePageLayoutSidePanelTarget } from '@/side-panel/pages/page-layout/hooks/usePageLayoutSidePanelTarget';
 import { useUpdateCurrentWidgetConfig } from '@/side-panel/pages/page-layout/hooks/useUpdateCurrentWidgetConfig';
@@ -13,13 +13,14 @@ import { RecordFilterGroupsComponentInstanceContext } from '@/object-record/reco
 import { currentRecordFilterGroupsComponentState } from '@/object-record/record-filter-group/states/currentRecordFilterGroupsComponentState';
 import { RecordFiltersComponentInstanceContext } from '@/object-record/record-filter/states/context/RecordFiltersComponentInstanceContext';
 import { currentRecordFiltersComponentState } from '@/object-record/record-filter/states/currentRecordFiltersComponentState';
+import { mapRecordFiltersToPersistedRecordFilters } from '@/object-record/record-filter/utils/mapRecordFiltersToPersistedRecordFilters';
 import { InputLabel } from '@/ui/input/components/internal/InputLabel/InputLabel';
 import { useAtomComponentStateCallbackState } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateCallbackState';
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 import { useStore } from 'jotai';
 import { useMemo } from 'react';
 import { themeCssVariables } from 'twenty-ui/theme';
+import { useLingui } from '@lingui/react/macro';
 
 const StyledChartFiltersPageContainer = styled.div`
   display: flex;
@@ -39,6 +40,7 @@ export const ChartFiltersSettings = ({
   objectMetadataItem,
   widget,
 }: ChartFiltersSettingsProps) => {
+  const { t } = useLingui();
   const { instanceId } = getChartFiltersSettingsInstanceId({
     widgetId: widget.id,
     objectMetadataItemId: objectMetadataItem.id,
@@ -81,7 +83,9 @@ export const ChartFiltersSettings = ({
       recordFilterGroups: sanitizedRecordFilterGroups,
     } = sanitizeChartRecordFilters({
       chartFilters: {
-        recordFilters: existingRecordFilters,
+        recordFilters: mapRecordFiltersToPersistedRecordFilters(
+          existingRecordFilters,
+        ),
         recordFilterGroups: existingRecordFilterGroups,
       },
       fieldMetadataItems: objectMetadataItem.fields,
@@ -108,7 +112,7 @@ export const ChartFiltersSettings = ({
           <RecordFiltersComponentInstanceContext.Provider
             value={{ instanceId }}
           >
-            <ChartFiltersDeletedFieldsWarning
+            <SidePanelRecordFiltersDeletedFieldsWarning
               validFieldMetadataIds={validFieldMetadataIds}
             />
             <AdvancedFilterSidePanelContainer

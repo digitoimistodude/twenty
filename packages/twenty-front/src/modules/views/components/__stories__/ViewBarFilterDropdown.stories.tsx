@@ -2,7 +2,7 @@ import { type Meta, type StoryObj } from '@storybook/react-vite';
 import { useEffect, useMemo, useState } from 'react';
 
 import { contextStoreCurrentViewIdComponentState } from '@/context-store/states/contextStoreCurrentViewIdComponentState';
-import { CoreObjectNamePlural } from '@/object-metadata/types/CoreObjectNamePlural';
+import { StandardObjectNamePlural } from '@/object-metadata/types/StandardObjectNamePlural';
 import { ObjectFilterDropdownComponentInstanceContext } from '@/object-record/object-filter-dropdown/states/contexts/ObjectFilterDropdownComponentInstanceContext';
 import { RecordIndexContextProvider } from '@/object-record/record-index/contexts/RecordIndexContext';
 import { RecordTableComponentInstanceContext } from '@/object-record/record-table/states/context/RecordTableComponentInstanceContext';
@@ -10,7 +10,7 @@ import { useSetAtomComponentState } from '@/ui/utilities/state/jotai/hooks/useSe
 import { ViewBarFilterDropdown } from '@/views/components/ViewBarFilterDropdown';
 import { ViewComponentInstanceContext } from '@/views/states/contexts/ViewComponentInstanceContext';
 import {
-  CoreObjectNameSingular,
+  StandardObjectNameSingular,
   RecordFilterGroupLogicalOperator,
   ViewFilterOperand,
 } from 'twenty-shared/types';
@@ -24,7 +24,7 @@ import { currentRecordFiltersComponentState } from '@/object-record/record-filte
 import { useRecordIndexFieldMetadataDerivedStates } from '@/object-record/record-index/hooks/useRecordIndexFieldMetadataDerivedStates';
 import { jotaiStore } from '@/ui/utilities/state/jotai/jotaiStore';
 import { ViewBarFilterDropdownIds } from '@/views/constants/ViewBarFilterDropdownIds';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { ComponentDecorator } from 'twenty-ui/testing';
 import { ContextStoreDecorator } from '~/testing/decorators/ContextStoreDecorator';
 import { IconsProviderDecorator } from '~/testing/decorators/IconsProviderDecorator';
@@ -41,7 +41,7 @@ const meta: Meta<typeof ViewBarFilterDropdown> = {
     (Story) => {
       const companyObjectMetadataItem =
         getTestEnrichedObjectMetadataItemsMock().find(
-          (item) => item.nameSingular === CoreObjectNameSingular.Company,
+          (item) => item.nameSingular === StandardObjectNameSingular.Company,
         )!;
       const instanceId = companyObjectMetadataItem.id;
 
@@ -106,8 +106,8 @@ const meta: Meta<typeof ViewBarFilterDropdown> = {
             objectPermissionsByObjectMetadataId: {},
             indexIdentifierUrl: () => '',
             onIndexRecordsLoaded: () => {},
-            objectNamePlural: CoreObjectNamePlural.Company,
-            objectNameSingular: CoreObjectNameSingular.Company,
+            objectNamePlural: StandardObjectNamePlural.Company,
+            objectNameSingular: StandardObjectNameSingular.Company,
             objectMetadataItem: companyObjectMetadataItem,
             recordIndexId: instanceId,
             viewBarInstanceId: instanceId,
@@ -153,8 +153,14 @@ export const Default: Story = {
     const canvas = within(canvasElement.ownerDocument.body);
 
     const filterButton = await canvas.findByText('Filter');
+    const filterTrigger = filterButton.closest('button');
 
+    await expect(filterTrigger).toBeInstanceOf(HTMLButtonElement);
+    await expect(filterTrigger).not.toHaveAttribute('data-popup-open');
     await userEvent.click(filterButton);
+    await waitFor(() =>
+      expect(filterTrigger).toHaveAttribute('data-popup-open', ''),
+    );
 
     const textFilter = await canvas.findByText('Tagline');
 
@@ -167,6 +173,10 @@ export const Default: Story = {
     const containsOption = await canvas.findByText("Doesn't contain");
 
     await userEvent.click(containsOption);
+    await userEvent.click(filterButton);
+    await waitFor(() =>
+      expect(filterTrigger).not.toHaveAttribute('data-popup-open'),
+    );
   },
 };
 
@@ -205,7 +215,7 @@ export const AdvancedFilterCountBadge: Story = {
     (Story) => {
       const companyObjectMetadataItem =
         getTestEnrichedObjectMetadataItemsMock().find(
-          (item) => item.nameSingular === CoreObjectNameSingular.Company,
+          (item) => item.nameSingular === StandardObjectNameSingular.Company,
         )!;
       const instanceId = companyObjectMetadataItem.id;
 
@@ -290,8 +300,8 @@ export const AdvancedFilterCountBadge: Story = {
 
     await expect(badge).toBeVisible();
     await expect(badge).toHaveStyle({
-      backgroundColor: badgeStyle.getPropertyValue('--t-color-blue3'),
-      color: badgeStyle.getPropertyValue('--t-color-blue'),
+      backgroundColor: badgeStyle.getPropertyValue('--t-accent-tertiary'),
+      color: badgeStyle.getPropertyValue('--t-accent-accent11'),
     });
   },
 };

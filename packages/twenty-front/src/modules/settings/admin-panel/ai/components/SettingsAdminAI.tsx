@@ -3,7 +3,6 @@ import { useToast } from 'twenty-ui/components/feedback';
 import { Section } from 'twenty-ui/components/layout';
 
 import { useMutation, useQuery } from '@apollo/client/react';
-import { t } from '@lingui/core/macro';
 import { AI_MODEL_TIERS, type AiModelTier } from 'twenty-shared/ai';
 import { SettingsPath } from 'twenty-shared/types';
 import { getSettingsPath, isDefined } from 'twenty-shared/utils';
@@ -46,6 +45,7 @@ import {
   AiModelTier as GraphqlAiModelTier,
 } from '~/generated-admin/graphql';
 import { OrganizationAdornment } from '@/settings/enterprise/components/OrganizationAdornment';
+import { useLingui } from '@lingui/react/macro';
 
 const USAGE_TABLE_GRID_TEMPLATE_COLUMNS = '1fr 120px';
 
@@ -56,6 +56,7 @@ type UsageBreakdownItem = {
 };
 
 export const SettingsAdminAI = () => {
+  const { t } = useLingui();
   const apolloAdminClient = useApolloAdminClient();
   const { enqueueToast } = useToast();
   const { refetch: refetchClientConfig } = useClientConfig();
@@ -203,7 +204,7 @@ export const SettingsAdminAI = () => {
             description={t`The model behind each mode for every workspace. Workspaces can pin their own.`}
           />
 
-          <Card.Root rounded>
+          <Card.Root>
             <StyledSettingsSelectGroup controlWidth={260}>
               {AI_MODEL_TIERS.map((tier, index) => (
                 <SettingsOptionCardContentSelect
@@ -278,7 +279,7 @@ export const SettingsAdminAI = () => {
               ))}
             </Table>
           ) : (
-            <Card.Root rounded>
+            <Card.Root>
               <TableRow gridTemplateColumns="1fr">
                 <TableCell
                   color={themeCssVariables.font.color.tertiary}

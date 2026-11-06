@@ -17,17 +17,22 @@ import { Field } from 'twenty-ui/primitives/input';
 import { Dropdown } from '@/ui/layout/dropdown/components/Dropdown';
 import { GenericDropdownContentWidth } from '@/ui/layout/dropdown/constants/GenericDropdownContentWidth';
 import { useCloseDropdown } from '@/ui/layout/dropdown/hooks/useCloseDropdown';
+import { useOpenDropdown } from '@/ui/layout/dropdown/hooks/useOpenDropdown';
 import { useSetAtomComponentState } from '@/ui/utilities/state/jotai/hooks/useSetAtomComponentState';
 import { isStandaloneVariableString } from 'twenty-shared/workflow';
+import { hasFullFormFieldBorder } from '@/ui/input/utils/hasFullFormFieldBorder';
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
-import { useCallback, useId } from 'react';
+import { type KeyboardEvent, useCallback, useId, useState } from 'react';
 import { CustomError, isDefined, isValidUuid } from 'twenty-shared/utils';
+import { Key } from 'ts-key-enum';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { IconChevronDown, IconForbid } from 'twenty-ui/icon';
 import { useTheme, themeCssVariables } from 'twenty-ui/theme';
+import { useLingui } from '@lingui/react/macro';
 
 const StyledFormSelectContainerWrapper = styled.div<{
   readonly?: boolean;
+  hasOutline?: boolean;
   $variant?: FormFieldInputVariant;
 }>`
   cursor: ${({ readonly }) => (readonly ? 'default' : 'pointer')};
@@ -35,6 +40,7 @@ const StyledFormSelectContainerWrapper = styled.div<{
   height: ${({ $variant }) =>
     $variant === 'transparent' ? themeCssVariables.spacing[6] : '32px'};
   min-width: 0;
+  outline: ${({ hasOutline = true }) => (hasOutline ? 'revert' : 'none')};
   width: 100%;
 `;
 
@@ -108,6 +114,7 @@ export const FormSingleRecordPicker = ({
   dropdownId: dropdownIdFromProps,
   variant,
 }: FormSingleRecordPickerProps) => {
+  const { t } = useLingui();
   const theme = useTheme();
 
   const resolvedObjectNameSingular =
@@ -122,9 +129,9 @@ export const FormSingleRecordPicker = ({
 
   if (objectNameSingulars.length === 0) {
     throw new CustomError(
-      // Error text is used for locale-independent issue grouping.
-      // oxlint-disable-next-line lingui/no-unlocalized-strings
-      'Object is missing while building form single record picker',
+      doNotTranslate(
+        'Object is missing while building form single record picker',
+      ),
       'FORM_SINGLE_RECORD_PICKER_OBJECT_NAME_SINGULAR_IS_MISSING',
     );
   }
@@ -142,8 +149,12 @@ export const FormSingleRecordPicker = ({
   const componentId = useId();
   const dropdownId = dropdownIdFromProps ?? `form-record-picker-${componentId}`;
   const variablesDropdownId = `form-record-picker-${componentId}-variables`;
+  const triggerId = `form-record-picker-${componentId}-trigger`;
+  const hasRightElement = isDefined(VariablePicker) && !disabled;
+  const [isTriggerFocused, setIsTriggerFocused] = useState(false);
 
   const { closeDropdown } = useCloseDropdown();
+  const { openDropdown } = useOpenDropdown();
 
   const setSingleRecordPickerSearchFilter = useSetAtomComponentState(
     singleRecordPickerSearchFilterComponentState,
@@ -152,7 +163,11 @@ export const FormSingleRecordPicker = ({
 
   const handleCloseRelationPickerDropdown = useCallback(() => {
     setSingleRecordPickerSearchFilter('');
-  }, [setSingleRecordPickerSearchFilter]);
+
+    if (document.activeElement === document.body) {
+      document.getElementById(triggerId)?.focus();
+    }
+  }, [setSingleRecordPickerSearchFilter, triggerId]);
 
   const handleMorphItemSelected = (
     selectedMorphItem: RecordPickerPickableMorphItem | null | undefined,
@@ -211,6 +226,19 @@ export const FormSingleRecordPicker = ({
     }
   };
 
+  const handleTriggerKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (
+      event.target !== event.currentTarget ||
+      (event.key !== Key.Enter && event.key !== ' ')
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    openDropdown({ dropdownComponentInstanceIdFromProps: dropdownId });
+  };
+
   return (
     <FormFieldInputContainer data-testid={testId}>
       {label ? <Field.Label>{label}</Field.Label> : null}
@@ -244,10 +272,29 @@ export const FormSingleRecordPicker = ({
                 y: parseInt(theme.spacing[1], 10),
               }}
               clickableComponent={
-                <StyledFormSelectContainerWrapper $variant={variant}>
+                <StyledFormSelectContainerWrapper
+                  id={triggerId}
+                  $variant={variant}
+                  hasOutline={
+                    !hasFullFormFieldBorder({
+                      hasRightElement,
+                      variant,
+                    })
+                  }
+                  tabIndex={0}
+                  onKeyDown={handleTriggerKeyDown}
+                  onFocus={(event) =>
+                    setIsTriggerFocused(
+                      event.target === event.currentTarget &&
+                        event.currentTarget.matches(':focus-visible'),
+                    )
+                  }
+                  onBlur={() => setIsTriggerFocused(false)}
+                >
                   <FormFieldInputInnerContainer
                     formFieldInputInstanceId={componentId}
-                    hasRightElement={isDefined(VariablePicker) && !disabled}
+                    hasRightElement={hasRightElement}
+                    isFocused={isTriggerFocused}
                     hoverable
                     preventFocusStackUpdate={true}
                     variant={variant}

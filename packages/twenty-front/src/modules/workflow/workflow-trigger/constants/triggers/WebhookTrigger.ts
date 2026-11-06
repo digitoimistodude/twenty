@@ -1,12 +1,12 @@
 import { type WorkflowTriggerType } from '@/workflow/types/Workflow';
+import { WORKFLOW_TRIGGER_DEFAULT_NAMES } from 'twenty-shared/workflow';
 
 export const WEBHOOK_TRIGGER: {
   defaultLabel: string;
   type: WorkflowTriggerType;
   icon: string;
 } = {
-  // oxlint-disable-next-line lingui/no-unlocalized-strings -- Persisted trigger names are translated by getWorkflowStepDisplayName.
-  defaultLabel: 'Webhook',
+  defaultLabel: WORKFLOW_TRIGGER_DEFAULT_NAMES.WEBHOOK,
   type: 'WEBHOOK',
   icon: 'IconWebhook',
 };

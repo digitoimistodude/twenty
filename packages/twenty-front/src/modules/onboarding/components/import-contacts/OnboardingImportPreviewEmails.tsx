@@ -7,10 +7,11 @@ import {
   IMPORT_CONTACTS_PREVIEW_EMAILS,
 } from '@/onboarding/constants/ImportContactsPreviewEmails';
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 import { isString } from '@sniptt/guards';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { MOBILE_VIEWPORT, themeCssVariables } from 'twenty-ui/theme';
+import { useLingui } from '@lingui/react/macro';
 
 const EVENT_CARD_WIDTH = 160;
 
@@ -171,23 +172,26 @@ const EVENT_CARD_POSITIONS: Record<
   },
 };
 
-const EmailRow = ({ email }: { email: ImportContactsPreviewEmail }) => (
-  <StyledEmailRow>
-    <StyledEmailCheckbox data-selected={email.isSelected} />
-    <StyledEmailStar data-selected={email.isSelected} />
-    <StyledEmailSender
-      data-medium={email.isSenderMedium}
-      style={{ color: SENDER_COLORS[email.senderColor] }}
-    >
-      {email.sender}
-    </StyledEmailSender>
-    {isDefined(email.subject) && (
-      <StyledEmailSubject>
-        {isString(email.subject) ? email.subject : t(email.subject)}
-      </StyledEmailSubject>
-    )}
-  </StyledEmailRow>
-);
+const EmailRow = ({ email }: { email: ImportContactsPreviewEmail }) => {
+  const { t } = useLingui();
+  return (
+    <StyledEmailRow>
+      <StyledEmailCheckbox data-selected={email.isSelected} />
+      <StyledEmailStar data-selected={email.isSelected} />
+      <StyledEmailSender
+        data-medium={email.isSenderMedium}
+        style={{ color: SENDER_COLORS[email.senderColor] }}
+      >
+        {email.sender}
+      </StyledEmailSender>
+      {isDefined(email.subject) && (
+        <StyledEmailSubject>
+          {isString(email.subject) ? email.subject : t(email.subject)}
+        </StyledEmailSubject>
+      )}
+    </StyledEmailRow>
+  );
+};
 
 const EventCard = ({
   event,
@@ -204,8 +208,9 @@ const EventCard = ({
           top: position.top,
           left: position.left,
           '--event-card-transform': `rotate(${position.rotate}deg)`,
-          // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is a CSS value or browser media query, not UI copy.
-          '--event-card-entry-transform': `translate(${position.entry.x}px, ${position.entry.y}px) rotate(${position.entry.rotate}deg) scale(${position.entry.scale})`,
+          '--event-card-entry-transform': doNotTranslate(
+            `translate(${position.entry.x}px, ${position.entry.y}px) rotate(${position.entry.rotate}deg) scale(${position.entry.scale})`,
+          ),
         } as React.CSSProperties
       }
     >

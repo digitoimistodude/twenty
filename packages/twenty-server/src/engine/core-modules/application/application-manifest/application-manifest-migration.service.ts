@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 
 import { type Manifest } from 'twenty-shared/application';
 import { ALL_METADATA_NAME } from 'twenty-shared/metadata';
-import { FeatureFlagKey } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
 import { ComputeApplicationManifestAllUniversalFlatEntityMapsService } from 'src/engine/core-modules/application/application-manifest/services/compute-application-manifest-all-universal-flat-entity-maps.service';
 import { buildApplicationWorkflowCronTriggerCacheEntries } from 'src/engine/core-modules/application/application-manifest/utils/build-application-workflow-cron-trigger-cache-entries.util';
+import { addValidationRuleManifestsToFlatEntityMapsOrThrow } from 'src/engine/core-modules/application/application-manifest/utils/add-validation-rule-manifests-to-flat-entity-maps-or-throw.util';
 import { addWorkflowManifestsToFlatEntityMapsOrThrow } from 'src/engine/core-modules/application/application-manifest/utils/add-workflow-manifests-to-flat-entity-maps-or-throw.util';
 import { preallocateWorkflowReferenceIds } from 'src/engine/core-modules/application/application-manifest/utils/preallocate-workflow-reference-ids.util';
 import { buildAllFlatEntityOperationRecordByMetadataNameFromFromTo } from 'src/engine/core-modules/application/application-manifest/utils/build-all-flat-entity-operation-record-by-metadata-name-from-from-to.util';
@@ -22,6 +22,8 @@ import { ApplicationService } from 'src/engine/core-modules/application/applicat
 import { type FlatApplication } from 'src/engine/core-modules/application/types/flat-application.type';
 import { LoggerService } from 'src/engine/core-modules/logger/logger.service';
 import { WorkflowVersionCoreSyncService } from 'src/engine/core-modules/workflow/services/workflow-version-core-sync.service';
+import { ConnectedAccountMetadataService } from 'src/engine/metadata-modules/connected-account/connected-account-metadata.service';
+import { findFlatEntityByUniversalIdentifierOrThrow } from 'src/engine/metadata-modules/flat-entity/utils/find-flat-entity-by-universal-identifier-or-throw.util';
 import { getMetadataFlatEntityMapsKey } from 'src/engine/metadata-modules/flat-entity/utils/get-metadata-flat-entity-maps-key.util';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
 import { TWENTY_STANDARD_APPLICATION } from 'src/engine/workspace-manager/twenty-standard-application/constants/twenty-standard-applications';
@@ -38,6 +40,7 @@ export class ApplicationManifestMigrationService {
     private readonly computeManifestFlatEntityMapsService: ComputeApplicationManifestAllUniversalFlatEntityMapsService,
     private readonly logger: LoggerService,
     private readonly workflowVersionCoreSyncService: WorkflowVersionCoreSyncService,
+    private readonly connectedAccountMetadataService: ConnectedAccountMetadataService,
   ) {}
 
   async syncPreInstallLogicFunctionFromManifest({
@@ -103,10 +106,15 @@ export class ApplicationManifestMigrationService {
       [
         ...Object.values(ALL_METADATA_NAME).map(getMetadataFlatEntityMapsKey),
         'featureFlagsMap',
+        'billingEntitlements',
       ],
     );
 
-    const { featureFlagsMap, ...existingAllFlatEntityMaps } = cacheResult;
+    const {
+      featureFlagsMap,
+      billingEntitlements,
+      ...existingAllFlatEntityMaps
+    } = cacheResult;
 
     const fromAllFlatEntityMaps = getApplicationSubAllFlatEntityMaps({
       applicationIds: [ownerFlatApplication.id],
@@ -119,7 +127,6 @@ export class ApplicationManifestMigrationService {
         ownerFlatApplication,
         fromAllFlatEntityMaps,
         now,
-        workspaceId,
       });
 
     const dependencyAllFlatEntityMaps = getApplicationSubAllFlatEntityMaps({
@@ -146,7 +153,7 @@ export class ApplicationManifestMigrationService {
           }),
           workspaceId,
           dependencyAllFlatEntityMaps,
-          additionalCacheDataMaps: { featureFlagsMap },
+          additionalCacheDataMaps: { featureFlagsMap, billingEntitlements },
         },
       );
 
@@ -169,12 +176,14 @@ export class ApplicationManifestMigrationService {
     ownerFlatApplication,
     dryRun = false,
     inferDeletionFromMissingEntities = true,
+    shouldDeferActions,
   }: {
     manifest: Manifest;
     workspaceId: string;
     ownerFlatApplication: FlatApplication;
     dryRun?: boolean;
     inferDeletionFromMissingEntities?: boolean;
+    shouldDeferActions?: boolean;
   }): Promise<{
     workspaceMigration: WorkspaceMigration;
     hasSchemaMetadataChanged: boolean;
@@ -182,21 +191,17 @@ export class ApplicationManifestMigrationService {
     const now = new Date().toISOString();
 
     const recomputeStart = performance.now();
-    const cacheResult = await this.workspaceCacheService.getOrRecompute(
-      workspaceId,
-      [
-        ...Object.values(ALL_METADATA_NAME).map(getMetadataFlatEntityMapsKey),
-        'featureFlagsMap',
-      ],
-    );
+    const existingAllFlatEntityMaps =
+      await this.workspaceCacheService.getOrRecompute(
+        workspaceId,
+        Object.values(ALL_METADATA_NAME).map(getMetadataFlatEntityMapsKey),
+      );
     const recomputeMs = performance.now() - recomputeStart;
 
     this.logger.perf(
       `[install-perf] syncMetadataFromManifest ALL_METADATA_NAME getOrRecompute flat-maps took ${recomputeMs.toFixed(1)}ms (logicFunctions=${manifest.logicFunctions.length})`,
       ApplicationManifestMigrationService.name,
     );
-
-    const { featureFlagsMap, ...existingAllFlatEntityMaps } = cacheResult;
 
     const fromAllFlatEntityMaps = getApplicationSubAllFlatEntityMaps({
       applicationIds: [ownerFlatApplication.id],
@@ -209,7 +214,6 @@ export class ApplicationManifestMigrationService {
         ownerFlatApplication,
         fromAllFlatEntityMaps,
         now,
-        workspaceId,
       });
 
     assertConnectionProviderLogicFunctionsAreOwn({
@@ -220,13 +224,28 @@ export class ApplicationManifestMigrationService {
       inferDeletionFromMissingEntities,
     });
 
-    const idByUniversalIdentifierByMetadataName =
-      (manifest.workflows ?? []).length > 0
-        ? preallocateWorkflowReferenceIds({
-            fromAllFlatEntityMaps,
-            toAllUniversalFlatEntityMaps,
-          })
-        : {};
+    const hasWorkflows = (manifest.workflows ?? []).length > 0;
+
+    const workspaceCustomFlatApplication = hasWorkflows
+      ? (
+          await this.applicationService.findWorkspaceTwentyStandardAndCustomApplicationOrThrow(
+            { workspaceId },
+          )
+        ).workspaceCustomFlatApplication
+      : undefined;
+
+    const idByUniversalIdentifierByMetadataName = hasWorkflows
+      ? preallocateWorkflowReferenceIds({
+          fromAllFlatEntityMaps,
+          toAllUniversalFlatEntityMaps,
+        })
+      : {};
+
+    const connectedAccounts = hasWorkflows
+      ? await this.connectedAccountMetadataService.findAllForWorkflowStepResolution(
+          { workspaceId },
+        )
+      : [];
 
     const applicationWorkflows = addWorkflowManifestsToFlatEntityMapsOrThrow({
       workflows: manifest.workflows ?? [],
@@ -235,8 +254,18 @@ export class ApplicationManifestMigrationService {
       toAllUniversalFlatEntityMaps,
       existingAllFlatEntityMaps,
       idByUniversalIdentifierByMetadataName,
-      isApplicationWorkflowsEnabled:
-        featureFlagsMap[FeatureFlagKey.IS_APPLICATION_WORKFLOWS_ENABLED],
+      isWorkspaceCustomApplication:
+        ownerFlatApplication.id === workspaceCustomFlatApplication?.id,
+      connectedAccounts,
+      now,
+    });
+
+    addValidationRuleManifestsToFlatEntityMapsOrThrow({
+      validationRules: manifest.validationRules ?? [],
+      ownerFlatApplication,
+      inferDeletionFromMissingEntities,
+      existingAllFlatEntityMaps,
+      toAllUniversalFlatEntityMaps,
       now,
     });
 
@@ -254,32 +283,55 @@ export class ApplicationManifestMigrationService {
         },
       });
 
-    const validateBuildRunStart = performance.now();
-    const validateAndBuildResult =
-      await this.workspaceMigrationValidateBuildAndRunService.validateBuildAndRunWorkspaceMigrationFromRecord(
-        {
-          allFlatEntityOperationRecordByMetadataName,
-          workspaceId,
-          isSystemBuild: false,
-          applicationUniversalIdentifier:
-            ownerFlatApplication.universalIdentifier,
-          idByUniversalIdentifierByMetadataName,
-          dryRun,
-        },
+    const connectionProviderIdsToDelete = Object.values(
+      allFlatEntityOperationRecordByMetadataName.connectionProvider
+        ?.flatEntityToDelete ?? {},
+    )
+      .filter(isDefined)
+      .map(
+        ({ universalIdentifier }) =>
+          findFlatEntityByUniversalIdentifierOrThrow({
+            flatEntityMaps: fromAllFlatEntityMaps.flatConnectionProviderMaps,
+            universalIdentifier,
+          }).id,
       );
+
+    const shouldDeleteConnectedAccounts =
+      !dryRun && connectionProviderIdsToDelete.length > 0;
+
+    const validateBuildAndRunMigration = (isDryRun: boolean) =>
+      this.validateBuildAndRunOrThrow({
+        allFlatEntityOperationRecordByMetadataName,
+        workspaceId,
+        isSystemBuild: false,
+        applicationUniversalIdentifier:
+          ownerFlatApplication.universalIdentifier,
+        applicationDefaultRoleUniversalIdentifier:
+          manifest.application.defaultRoleUniversalIdentifier,
+        idByUniversalIdentifierByMetadataName,
+        dryRun: isDryRun,
+        shouldDeferActions,
+      });
+
+    const validateBuildRunStart = performance.now();
+    let validateAndBuildResult = await validateBuildAndRunMigration(
+      dryRun || shouldDeleteConnectedAccounts,
+    );
+
+    // Deleting runs disconnect hooks and revokes tokens, so the plan is validated before anything is released
+    if (shouldDeleteConnectedAccounts) {
+      await this.connectedAccountMetadataService.deleteManyByConnectionProviderIds(
+        { connectionProviderIds: connectionProviderIdsToDelete, workspaceId },
+      );
+
+      validateAndBuildResult = await validateBuildAndRunMigration(false);
+    }
     const validateBuildRunMs = performance.now() - validateBuildRunStart;
 
     this.logger.perf(
-      `[install-perf] syncMetadataFromManifest validateBuildAndRunWorkspaceMigrationFromTo took ${validateBuildRunMs.toFixed(1)}ms (dryRun=${dryRun}, actions=${validateAndBuildResult.status === 'success' ? validateAndBuildResult.workspaceMigration.actions.length : 'n/a-failed'})`,
+      `[install-perf] syncMetadataFromManifest validateBuildAndRunWorkspaceMigrationFromTo took ${validateBuildRunMs.toFixed(1)}ms (dryRun=${dryRun}, actions=${validateAndBuildResult.workspaceMigration.actions.length})`,
       ApplicationManifestMigrationService.name,
     );
-
-    if (validateAndBuildResult.status === 'fail') {
-      throw new WorkspaceMigrationBuilderException(
-        validateAndBuildResult,
-        'Validation errors occurred while syncing application manifest metadata',
-      );
-    }
 
     this.logger.log(
       `Metadata migration ${dryRun ? 'plan computed (dry run)' : 'completed'} for application ${ownerFlatApplication.universalIdentifier}`,
@@ -306,6 +358,26 @@ export class ApplicationManifestMigrationService {
       workspaceMigration: validateAndBuildResult.workspaceMigration,
       hasSchemaMetadataChanged: validateAndBuildResult.hasSchemaMetadataChanged,
     };
+  }
+
+  private async validateBuildAndRunOrThrow(
+    args: Parameters<
+      WorkspaceMigrationValidateBuildAndRunService['validateBuildAndRunWorkspaceMigrationFromRecord']
+    >[0],
+  ) {
+    const validateAndBuildResult =
+      await this.workspaceMigrationValidateBuildAndRunService.validateBuildAndRunWorkspaceMigrationFromRecord(
+        args,
+      );
+
+    if (validateAndBuildResult.status === 'fail') {
+      throw new WorkspaceMigrationBuilderException(
+        validateAndBuildResult,
+        'Validation errors occurred while syncing application manifest metadata',
+      );
+    }
+
+    return validateAndBuildResult;
   }
 
   private async syncApplicationReferencesFromManifest({
@@ -403,7 +475,12 @@ export class ApplicationManifestMigrationService {
         : {}),
       ...(isDefined(healthCheckLogicFunctionId) ||
       inferDeletionFromMissingEntities
-        ? { healthCheckLogicFunctionId }
+        ? {
+            healthCheckLogicFunctionId,
+            isUserHealthCheckEnabled:
+              manifest.application.healthCheckLogicFunction
+                ?.runOnUserPreferences ?? false,
+          }
         : {}),
       ...(isDefined(defaultRoleId) ? { defaultRoleId } : {}),
     });

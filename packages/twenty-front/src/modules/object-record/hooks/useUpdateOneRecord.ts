@@ -23,6 +23,7 @@ import { sanitizeRecordInput } from '@/object-record/utils/sanitizeRecordInput';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { isNull } from '@sniptt/guards';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { buildRecordFromKeysWithSameValue } from '~/utils/array/buildRecordFromKeysWithSameValue';
 
 type UpdateOneRecordArgs<UpdatedObjectRecord> = {
@@ -58,11 +59,28 @@ export const useUpdateOneRecord = () => {
 
     if (!objectMetadataItem) {
       throw new Error(
-        // Error text is used for locale-independent issue grouping.
-        // oxlint-disable-next-line lingui/no-unlocalized-strings
-        `Object metadata item not found for ${objectNameSingular}`,
+        doNotTranslate(
+          `Object metadata item not found for ${objectNameSingular}`,
+        ),
       );
     }
+
+    const dispatchUpdateOneRecordOperation = (
+      updatedRecordFields: Record<string, unknown>,
+    ) =>
+      dispatchObjectRecordOperationBrowserEvent({
+        objectMetadataItem,
+        operation: {
+          type: 'update-one',
+          result: {
+            updateInput: {
+              recordId: idToUpdate,
+              updatedFields:
+                getUpdatedFieldsFromRecordInput(updatedRecordFields),
+            },
+          },
+        },
+      });
 
     const optimisticRecordInput =
       optimisticRecord ??
@@ -263,6 +281,16 @@ export const useUpdateOneRecord = () => {
           ],
         });
 
+        // Views that lay records out by field value, like board columns, only re-sync on update events
+        dispatchUpdateOneRecordOperation(
+          Object.fromEntries(
+            Object.keys(updateOneRecordInput).map((fieldName) => [
+              fieldName,
+              cachedRecord?.[fieldName] ?? null,
+            ]),
+          ),
+        );
+
         throw error;
       });
 
@@ -274,19 +302,7 @@ export const useUpdateOneRecord = () => {
       (updatedRecord?.data as Record<string, any>)?.[mutationResponseField] ??
       null;
 
-    dispatchObjectRecordOperationBrowserEvent({
-      objectMetadataItem,
-      operation: {
-        type: 'update-one',
-        result: {
-          updateInput: {
-            recordId: idToUpdate,
-            updatedFields:
-              getUpdatedFieldsFromRecordInput(updateOneRecordInput),
-          },
-        },
-      },
-    });
+    dispatchUpdateOneRecordOperation(updateOneRecordInput);
 
     return resultRecord;
   };

@@ -1,3 +1,4 @@
+import { MOCKED_DATE } from '~/testing/constants/MockedDate';
 import { parse, type FieldNode } from 'graphql';
 import { graphql, http, HttpResponse, type GraphQLQuery } from 'msw';
 import { getOperationName } from '~/utils/getOperationName';
@@ -15,6 +16,7 @@ import { mockedPublicWorkspaceDataBySubdomain } from '~/testing/mock-data/public
 import { mockedUserData } from '~/testing/mock-data/users';
 
 import { GET_PUBLIC_WORKSPACE_DATA_BY_DOMAIN } from '@/auth/graphql/queries/getPublicWorkspaceDataByDomain';
+import { BILLING_PARTNER_CODE } from '@/settings/billing/graphql/queries/billingPartnerCode';
 import { BILLING_PORTAL_SESSION } from '@/settings/billing/graphql/queries/billingPortalSession';
 import { GET_RESOURCE_CREDIT_USAGE } from '@/settings/billing/graphql/queries/getResourceCreditUsage';
 import { LIST_PLANS } from '@/settings/billing/graphql/queries/listPlans';
@@ -552,13 +554,26 @@ export const graphqlMocks = {
             {
               __typename: 'BillingResourceCreditUsage',
               productKey: 'RESOURCE_CREDIT',
-              usedCredits: 1000,
-              grantedCredits: 500000,
-              rolloverCredits: 0,
-              totalGrantedCredits: 500000,
+              workspaceCreditsUsed: 1000,
+              workspaceCreditsGranted: 500000,
+              workspaceCreditsGrantedForSeats: 0,
+              workspaceCreditsSeats: 0,
+              workspaceCreditsExtraGranted: 0,
+              workspaceCreditsTotalGranted: 500000,
               unitPriceCents: 1,
             },
           ],
+        },
+      });
+    }),
+    graphql.query(getOperationName(BILLING_PARTNER_CODE) ?? '', () => {
+      return HttpResponse.json({
+        data: {
+          billingPartnerCode: {
+            __typename: 'BillingPartnerCode',
+            partnerCode: null,
+            isEditable: true,
+          },
         },
       });
     }),
@@ -646,7 +661,7 @@ export const graphqlMocks = {
             id: variables.input?.id,
             name: 'Zapier Integration',
             expiresAt: '2100-11-06T23:59:59.825Z',
-            revokedAt: new Date().toISOString(),
+            revokedAt: MOCKED_DATE,
             role: {
               __typename: 'Role',
               id: '1',
@@ -687,6 +702,25 @@ export const graphqlMocks = {
               operations: ['*.created', '*.updated'],
               description: 'Slack notifications for lead updates',
               secret: 'sample-secret',
+              role: {
+                __typename: 'Role',
+                id: '20202020-1c25-4d02-bf25-6aeccf7ea419',
+              },
+            },
+          ],
+        },
+      });
+    }),
+    metadataGraphql.query('GetApiKeyRoles', () => {
+      return HttpResponse.json({
+        data: {
+          getApiKeyRoles: [
+            {
+              __typename: 'Role',
+              id: '20202020-1c25-4d02-bf25-6aeccf7ea419',
+              label: 'Admin',
+              icon: 'IconUserCog',
+              canBeAssignedToApiKeys: true,
             },
           ],
         },
@@ -704,6 +738,10 @@ export const graphqlMocks = {
             operations: ['*.created', '*.updated'],
             description: 'Slack notifications for lead updates',
             secret: 'sample-secret',
+            role: {
+              __typename: 'Role',
+              id: '20202020-1c25-4d02-bf25-6aeccf7ea419',
+            },
           },
         },
       });

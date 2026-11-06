@@ -1,11 +1,11 @@
 import React from 'react';
 import { Tag } from 'twenty-ui/primitives/data-display';
-import { t } from '@lingui/core/macro';
 import { BILLING_PLAN_LABELS } from '@/settings/billing/constants/BillingPlanLabels';
 import { BILLING_PLAN_TAG_COLORS } from '@/settings/billing/constants/BillingPlanTagColors';
 import { type BillingPlanKey } from '~/generated-metadata/graphql';
 import { styled } from '@linaria/react';
 import { themeCssVariables } from 'twenty-ui/theme';
+import { useLingui } from '@lingui/react/macro';
 
 type PlansTagsProps = {
   plan: BillingPlanKey;
@@ -17,20 +17,17 @@ const StyledTagsWrapper = styled.div`
   gap: ${themeCssVariables.spacing[1]};
 `;
 
-const StyledTrialTag = styled(Tag)`
-  min-width: fit-content;
-`;
-
 export const PlansTags = ({ plan, isTrialPeriod = false }: PlansTagsProps) => {
+  const { t } = useLingui();
   return (
     <StyledTagsWrapper>
       <Tag color={BILLING_PLAN_TAG_COLORS[plan]}>
         {t(BILLING_PLAN_LABELS[plan])}
       </Tag>
       {isTrialPeriod && (
-        <StyledTrialTag color="blue" truncate={false}>
+        <Tag color="blue" truncate={false}>
           {t`Trial`}
-        </StyledTrialTag>
+        </Tag>
       )}
     </StyledTagsWrapper>
   );

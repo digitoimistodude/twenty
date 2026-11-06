@@ -1,0 +1,238 @@
+import { type WorkflowManifest } from 'twenty-shared/application';
+import { WORKFLOW_AI_AGENT_STEP_CONFIG_ISSUE_MESSAGES } from 'twenty-shared/workflow';
+
+import { defineWorkflow } from '@/sdk/define/workflows/define-workflow';
+
+const STEP_ID = '44444444-4444-4444-8444-444444444444';
+
+const workflow: WorkflowManifest = {
+  universalIdentifier: '11111111-1111-4111-8111-111111111111',
+  name: 'Application greeting',
+  version: {
+    trigger: {
+      universalIdentifier: '33333333-3333-4333-8333-333333333333',
+      type: 'MANUAL',
+      nextStepIds: [STEP_ID],
+    },
+    steps: [
+      {
+        universalIdentifier: STEP_ID,
+        name: 'Greet',
+        type: 'LOGIC_FUNCTION',
+        logicFunctionUniversalIdentifier:
+          '55555555-5555-4555-8555-555555555555',
+        input: { greeting: 'Hello' },
+        nextStepIds: [],
+      },
+    ],
+  },
+};
+
+const withStep = (step: Record<string, unknown>) => ({
+  ...workflow,
+  version: {
+    ...workflow.version,
+    steps: [{ ...workflow.version.steps[0], ...step }],
+  },
+});
+
+const withSendEmailStep = (input: Record<string, unknown>) => ({
+  ...workflow,
+  version: {
+    ...workflow.version,
+    steps: [
+      {
+        universalIdentifier: STEP_ID,
+        name: 'Email',
+        type: 'SEND_EMAIL',
+        input: { recipients: { to: 'jane@example.com' }, ...input },
+        nextStepIds: [],
+      },
+    ],
+  },
+});
+
+describe('defineWorkflow', () => {
+  it('accepts a manual workflow', () => {
+    expect(defineWorkflow(workflow)).toEqual({
+      success: true,
+      config: workflow,
+      errors: [],
+      warnings: [],
+    });
+  });
+
+  it('accepts the trigger state a workflow built in the workflow builder pulls with', () => {
+    const { universalIdentifier: _universalIdentifier, ...trigger } =
+      workflow.version.trigger;
+    const pulled = {
+      ...workflow,
+      version: {
+        ...workflow.version,
+        trigger: {
+          ...trigger,
+          name: 'Launch manually',
+          position: null,
+          outputSchema: {},
+        },
+      },
+    };
+
+    expect(defineWorkflow(pulled).errors).toEqual([]);
+  });
+
+  it('accepts a workflow flagged as system', () => {
+    const systemWorkflow = { ...workflow, isSystem: true };
+
+    expect(defineWorkflow(systemWorkflow)).toMatchObject({
+      success: true,
+      config: systemWorkflow,
+    });
+  });
+
+  it('accepts an email step naming its account by handle', () => {
+    const definition = withSendEmailStep({
+      connectedAccountHandle: 'sales@example.com',
+    }) as WorkflowManifest;
+
+    expect(defineWorkflow(definition).errors).toEqual([]);
+  });
+
+  it('accepts a code step with its source', () => {
+    const definition: WorkflowManifest = {
+      ...workflow,
+      version: {
+        ...workflow.version,
+        steps: [
+          {
+            universalIdentifier: STEP_ID,
+            name: 'Format the name',
+            type: 'CODE',
+            input: {
+              code: 'export const main = async () => ({ ok: true });',
+              logicFunctionInput: {},
+            },
+            nextStepIds: [],
+          },
+        ],
+      },
+    };
+
+    expect(defineWorkflow(definition).errors).toEqual([]);
+  });
+
+  it.each([
+    {
+      problem: 'an email step naming its account by both id and handle',
+      definition: withSendEmailStep({
+        connectedAccountId: '{{trigger.accountId}}',
+        connectedAccountHandle: 'sales@example.com',
+      }),
+      error:
+        'version.steps.0.input.connectedAccountHandle: Set exactly one of connectedAccountId and connectedAccountHandle',
+    },
+    {
+      problem: 'a step type applications cannot use',
+      definition: withStep({ type: 'TRANSLATE' }),
+      error:
+        'version.steps.0.type: Unsupported step type. Application workflows support: LOGIC_FUNCTION, CODE, HTTP_REQUEST, CLASSIFY, ITERATOR, DELAY, WAIT_FOR_EVENT, EMPTY, CREATE_RECORD, UPDATE_RECORD, UPSERT_RECORD, DELETE_RECORD, FIND_RECORDS, PICK_RECORD, FILTER, IF_ELSE, FORM, SEND_EMAIL, DRAFT_EMAIL, CREATE_CALENDAR_EVENT, SEND_CHAT_MESSAGE, AI_AGENT',
+    },
+    {
+      problem: 'an unknown trigger type',
+      definition: {
+        ...workflow,
+        version: {
+          ...workflow.version,
+          trigger: { ...workflow.version.trigger, type: 'UNKNOWN' },
+        },
+      },
+      error: expect.stringMatching(/^version\.trigger\.type: .*MANUAL/),
+    },
+    {
+      problem: 'an isSystem that is not a boolean',
+      definition: { ...workflow, isSystem: 'true' },
+      error: 'isSystem: Invalid input: expected boolean, received string',
+    },
+    {
+      problem: 'a cycle',
+      definition: withStep({ nextStepIds: [STEP_ID] }),
+      error: `Workflow contains a cycle at step ${STEP_ID}`,
+    },
+  ])('rejects $problem', ({ definition, error }) => {
+    const result = defineWorkflow(definition as WorkflowManifest);
+
+    expect(result.success).toBe(false);
+    expect(result.errors).toEqual([error]);
+  });
+
+  const withAiAgentStep = (
+    input: Extract<
+      WorkflowManifest['version']['steps'][number],
+      { type: 'AI_AGENT' }
+    >['input'],
+  ): WorkflowManifest => ({
+    ...workflow,
+    version: {
+      ...workflow.version,
+      steps: [
+        {
+          universalIdentifier: STEP_ID,
+          name: 'Qualify',
+          type: 'AI_AGENT',
+          input,
+          nextStepIds: [],
+        },
+      ],
+    },
+  });
+
+  it('accepts an AI agent step that carries its own config', () => {
+    expect(
+      defineWorkflow(
+        withAiAgentStep({
+          instructions: 'Qualify the lead.',
+          scope: { canReadAllObjectRecords: true },
+          prompt: 'Qualify {{trigger.name}}',
+        }),
+      ).success,
+    ).toBe(true);
+  });
+
+  it('refuses an AI agent step that runs an agent with its own config', () => {
+    expect(
+      defineWorkflow(
+        withAiAgentStep({
+          agentUniversalIdentifier: '66666666-6666-4666-8666-666666666666',
+          modelId: 'model-id',
+        }),
+      ).success,
+    ).toBe(false);
+  });
+
+  it('refuses a conversation on an AI agent step without an agent', () => {
+    expect(
+      defineWorkflow(
+        withAiAgentStep({
+          instructions: 'Qualify the lead.',
+          prompt: 'Qualify {{trigger.name}}',
+          conversation: { scope: 'RUN' },
+        }),
+      ).errors,
+    ).toEqual([
+      `version.steps.0.input.agentUniversalIdentifier: ${WORKFLOW_AI_AGENT_STEP_CONFIG_ISSUE_MESSAGES.GENERATE_STEP_HAS_CONVERSATION_CONFIG}`,
+    ]);
+  });
+
+  it('accepts a conversation on an AI agent step running an agent', () => {
+    expect(
+      defineWorkflow(
+        withAiAgentStep({
+          agentUniversalIdentifier: '66666666-6666-4666-8666-666666666666',
+          prompt: 'Qualify {{trigger.name}}',
+          humanInputInstructions: 'Ask when the company is unclear',
+          conversation: { scope: 'RUN' },
+        }),
+      ).success,
+    ).toBe(true);
+  });
+});

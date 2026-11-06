@@ -8,6 +8,7 @@ import {
   computeRecordGqlOperationFilter,
   isDefined,
 } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import {
   type AggregateChartConfiguration,
   type BarChartConfiguration,
@@ -38,8 +39,7 @@ export const useGraphWidgetQueryCommon = ({
   });
 
   if (!isDefined(aggregateField)) {
-    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This message describes a developer-only invariant; keeping it stable preserves error reporting fingerprints.
-    throw new Error('Aggregate field not found');
+    throw new Error(doNotTranslate('Aggregate field not found'));
   }
 
   const { filterValueDependencies } = useFilterValueDependencies();
@@ -56,7 +56,10 @@ export const useGraphWidgetQueryCommon = ({
   const gqlOperationFilter = computeRecordGqlOperationFilter({
     fieldMetadataItems: flattenedFieldMetadataItems,
     filterValueDependencies,
-    recordFilters: sanitizedRecordFilters ?? [],
+    recordFilters: (sanitizedRecordFilters ?? []).map((recordFilter) => ({
+      ...recordFilter,
+      value: recordFilter.value ?? '',
+    })),
     recordFilterGroups: configuration.filter?.recordFilterGroups ?? [],
   });
 

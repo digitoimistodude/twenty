@@ -1,10 +1,11 @@
 import { useColorLabels } from '@/ui/input/hooks/useColorLabels';
-import { t } from '@lingui/core/macro';
 import { isNonEmptyString } from '@sniptt/guards';
 import { useState } from 'react';
+import { isDefined } from 'twenty-shared/utils';
 import { Dropdown } from 'twenty-ui/components/navigation';
 import { ColorSample } from 'twenty-ui/primitives/data-display';
 import { type ThemeColor, MAIN_COLOR_NAMES } from 'twenty-ui/theme';
+import { useLingui } from '@lingui/react/macro';
 
 type ThemeColorPickerMenuProps = {
   selectedColor: ThemeColor;
@@ -15,6 +16,7 @@ export const ThemeColorPickerMenu = ({
   selectedColor,
   onSelectColor,
 }: ThemeColorPickerMenuProps) => {
+  const { t } = useLingui();
   const colorLabels = useColorLabels();
   const [searchValue, setSearchValue] = useState('');
   const query = searchValue.trim().toLowerCase();
@@ -35,18 +37,31 @@ export const ThemeColorPickerMenu = ({
         onValueChange={setSearchValue}
       />
       <Dropdown.Separator />
-      <Dropdown.Section scrollable>
-        {filteredColorNames.map((colorName) => (
-          <Dropdown.OptionItem
-            key={colorName}
-            selected={colorName === selectedColor}
-            onSelect={() => onSelectColor(colorName)}
-            startIcon={<ColorSample colorName={colorName} />}
-          >
-            {colorLabels[colorName]}
-          </Dropdown.OptionItem>
-        ))}
-      </Dropdown.Section>
+      <Dropdown.SelectionGroup
+        aria-label={t`Colors`}
+        value={selectedColor}
+        onValueChange={(selectedColorName) => {
+          const colorName = MAIN_COLOR_NAMES.find(
+            (colorName) => colorName === selectedColorName,
+          );
+
+          if (isDefined(colorName)) {
+            onSelectColor(colorName);
+          }
+        }}
+      >
+        <Dropdown.Section scrollable>
+          {filteredColorNames.map((colorName) => (
+            <Dropdown.OptionItem
+              key={colorName}
+              value={colorName}
+              startIcon={<ColorSample colorName={colorName} />}
+            >
+              {colorLabels[colorName]}
+            </Dropdown.OptionItem>
+          ))}
+        </Dropdown.Section>
+      </Dropdown.SelectionGroup>
     </>
   );
 };

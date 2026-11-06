@@ -13,14 +13,15 @@ import { i18n } from '@lingui/core';
 import { msg, t } from '@lingui/core/macro';
 import { useLingui } from '@lingui/react/macro';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { useToast } from 'twenty-ui/components/feedback';
 import {
   IconLock,
   IconSend,
   IconUser,
-  useIcons,
   type IconComponent,
 } from 'twenty-ui/icon';
+import { useIcons } from 'twenty-ui/icon/provider';
 import { Button } from 'twenty-ui/primitives/input';
 import { MOBILE_VIEWPORT, themeCssVariables } from 'twenty-ui/theme';
 
@@ -184,8 +185,9 @@ export const WorkspaceInviteTeam = ({ roles }: WorkspaceInviteTeamProps) => {
               return (
                 <SettingsTextInput
                   instanceId="workspace-invite-team-emails"
-                  // oxlint-disable-next-line lingui/no-unlocalized-strings
-                  placeholder="tim@apple.com, jony.ive@apple.dev"
+                  placeholder={doNotTranslate(
+                    'tim@apple.com, jony.ive@apple.dev',
+                  )}
                   value={value}
                   onChange={onChange}
                   error={error?.message}

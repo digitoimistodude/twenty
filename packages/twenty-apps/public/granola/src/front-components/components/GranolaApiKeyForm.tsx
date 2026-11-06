@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import { isNonEmptyString } from '@sniptt/guards';
 import { useId, useState } from 'react';
 import { t } from 'twenty-sdk/front-component';
-import { Button } from 'twenty-ui/input';
+import { Button } from 'twenty-ui/primitives/input';
 import { themeCssVariables } from 'twenty-ui/theme';
 
 import { LabelledSettingsField } from 'src/front-components/components/LabelledSettingsField';
@@ -58,12 +58,14 @@ export const GranolaApiKeyForm = ({
           />
           <Button
             type="submit"
-            title={t('Connect')}
-            accent="blue"
+            variant="solid"
+            color="accent"
             disabled={
               isConnectDisabled || !isNonEmptyString(trimmedApiKeyDraft)
             }
-          />
+          >
+            {t('Connect')}
+          </Button>
         </StyledKeyRow>
       </LabelledSettingsField>
     </form>

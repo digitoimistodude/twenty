@@ -1,21 +1,21 @@
 import { useQuery } from '@apollo/client/react';
-import { t } from '@lingui/core/macro';
 import { useParams } from 'react-router-dom';
 import { isDefined } from 'twenty-shared/utils';
 import { Section } from 'twenty-ui/components/layout';
-import { useIcons } from 'twenty-ui/icon';
+import { useIcons } from 'twenty-ui/icon/provider';
 import { useTheme } from 'twenty-ui/theme';
 
 import { SettingsPageContainer } from '@/settings/components/SettingsPageContainer';
 import { SettingsPageLayout } from '@/settings/components/layout/SettingsPageLayout';
 import { SkeletonLine } from '@/ui/feedback/skeleton/components/SkeletonLine';
-import { LEGACY_SKELETON_COLORS } from '@/ui/feedback/skeleton/constants/LEGACY_SKELETON_COLORS';
 import { FindOneSkillDocument } from '~/generated-metadata/graphql';
 import { SettingsSkillFormContent } from '~/pages/settings/ai/components/SettingsSkillFormContent';
 import { useNavigateToNotFoundOnLoadFailure } from '~/pages/settings/ai/hooks/useNavigateToNotFoundOnLoadFailure';
 import { getSettingsAiBreadcrumbLinks } from '~/pages/settings/ai/utils/getSettingsAiBreadcrumbLinks';
+import { useLingui } from '@lingui/react/macro';
 
 export const SettingsSkillForm = ({ mode }: { mode: 'create' | 'edit' }) => {
+  const { t } = useLingui();
   const theme = useTheme();
   const { getIcon } = useIcons();
   const { skillId = '' } = useParams<{ skillId: string }>();
@@ -55,12 +55,7 @@ export const SettingsSkillForm = ({ mode }: { mode: 'create' | 'edit' }) => {
       >
         <SettingsPageContainer>
           <Section.Root>
-            <SkeletonLine
-              baseColor={LEGACY_SKELETON_COLORS.base}
-              highlightColor={LEGACY_SKELETON_COLORS.highlight}
-              height={400}
-              borderRadius={4}
-            />
+            <SkeletonLine height={400} />
           </Section.Root>
         </SettingsPageContainer>
       </SettingsPageLayout>

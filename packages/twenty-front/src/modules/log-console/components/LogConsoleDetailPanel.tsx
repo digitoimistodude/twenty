@@ -4,6 +4,7 @@ import { isNonEmptyString, isString } from '@sniptt/guards';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { JsonTree } from 'twenty-ui/components/data-display';
 import { IconButton, LightButton } from 'twenty-ui/components/input';
 import { Section } from 'twenty-ui/components/layout';
@@ -38,6 +39,10 @@ import { dateLocaleState } from '@/localization/states/dateLocaleState';
 import { getAbsoluteImageUrl } from '~/utils/image/getAbsoluteImageUrl';
 
 const COLLAPSED_MESSAGE_STACK_LINE_COUNT = 1;
+
+const StyledShowMoreContainer = styled.div`
+  align-self: flex-start;
+`;
 
 const StyledPanel = styled.aside`
   border-left: 1px solid ${themeCssVariables.border.color.medium};
@@ -146,15 +151,15 @@ export const LogConsoleDetailPanel = () => {
         })
       : undefined;
 
-  const DetailIcon = source.DetailIcon ?? source.Icon;
+  const DetailIcon = source.getDetailIcon?.(entry) ?? source.Icon;
 
   const title = isDefined(recordIdentifier)
     ? recordIdentifier.name
     : source.getDetailTitle(entry, { objectMetadataItem });
 
-  const timeWithMillisecondsFormat =
-    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is a date format or time-zone identifier.
-    timeFormat === TimeFormat.HOUR_12 ? 'h:mm:ss.SSS aa' : 'HH:mm:ss.SSS';
+  const timeWithMillisecondsFormat = doNotTranslate(
+    timeFormat === TimeFormat.HOUR_12 ? 'h:mm:ss.SSS aa' : 'HH:mm:ss.SSS',
+  );
 
   const formattedTimestamp = formatInTimeZone(
     entry.timestamp,
@@ -273,10 +278,12 @@ export const LogConsoleDetailPanel = () => {
                 </StyledMessageStackLine>
               ))}
               {hiddenMessageStackLineCount > 0 && (
-                <FieldWidgetShowMoreButton
-                  remainingCount={hiddenMessageStackLineCount}
-                  onClick={() => setEntryWithExpandedMessage(entry)}
-                />
+                <StyledShowMoreContainer>
+                  <FieldWidgetShowMoreButton
+                    remainingCount={hiddenMessageStackLineCount}
+                    onClick={() => setEntryWithExpandedMessage(entry)}
+                  />
+                </StyledShowMoreContainer>
               )}
             </StyledMessageCard>
           </Section.Root>

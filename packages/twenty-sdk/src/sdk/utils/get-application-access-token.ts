@@ -1,9 +1,14 @@
 import {
   DEFAULT_APP_ACCESS_TOKEN_NAME,
   DEFAULT_APP_APPLICATION_ACCESS_TOKEN_NAME,
-} from 'twenty-shared/application';
+} from 'twenty-shared/application-runtime';
 
 // These reach the application's own resources, so prefer the application token when the runtime injects one
 export const getApplicationAccessToken = (): string | undefined =>
   process.env[DEFAULT_APP_APPLICATION_ACCESS_TOKEN_NAME] ??
   process.env[DEFAULT_APP_ACCESS_TOKEN_NAME];
+
+// acts as whoever triggered the run, like the client SDK's default runAs
+export const getCallerAccessToken = (): string | undefined =>
+  process.env[DEFAULT_APP_ACCESS_TOKEN_NAME] ??
+  process.env[DEFAULT_APP_APPLICATION_ACCESS_TOKEN_NAME];

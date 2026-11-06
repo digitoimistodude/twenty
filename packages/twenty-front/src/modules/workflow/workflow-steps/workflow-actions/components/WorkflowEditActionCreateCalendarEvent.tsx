@@ -17,7 +17,6 @@ import { WorkflowStepBody } from '@/workflow/workflow-steps/components/WorkflowS
 import { WorkflowStepFooter } from '@/workflow/workflow-steps/components/WorkflowStepFooter';
 import { useCalendarEventForm } from '@/workflow/workflow-steps/workflow-actions/hooks/useCalendarEventForm';
 import { WorkflowVariablePicker } from '@/workflow/workflow-variables/components/WorkflowVariablePicker';
-import { t } from '@lingui/core/macro';
 import { useEffect } from 'react';
 import { SettingsPath } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
@@ -26,6 +25,7 @@ import { IconPlus } from 'twenty-ui/icon';
 import { type SelectOption } from 'twenty-ui/primitives/input';
 import { PermissionFlagType } from '~/generated-metadata/graphql';
 import { useNavigateSettings } from '~/hooks/useNavigateSettings';
+import { useLingui } from '@lingui/react/macro';
 
 type WorkflowEditActionCreateCalendarEventProps = {
   action: WorkflowCreateCalendarEventAction;
@@ -43,6 +43,7 @@ export const WorkflowEditActionCreateCalendarEvent = ({
   action,
   actionOptions,
 }: WorkflowEditActionCreateCalendarEventProps) => {
+  const { t } = useLingui();
   const { formData, handleFieldChange, saveAction } = useCalendarEventForm({
     action,
     onActionUpdate:
@@ -136,7 +137,7 @@ export const WorkflowEditActionCreateCalendarEvent = ({
             description={
               hasConnectedAccountsPermission
                 ? t`This account is connected, but we don't have permission to create calendar events on your behalf yet. You'll be redirected to approve this access.`
-                : t`Ask a workspace admin for the Sync Account permission to reconnect this account.`
+                : t`Ask a workspace admin for the User Apps permission to reconnect this account.`
             }
             action={
               hasConnectedAccountsPermission ? (

@@ -3,7 +3,7 @@ import { useStore } from 'jotai';
 import { HttpResponse, graphql } from 'msw';
 import { useEffect, useState } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
-import { CoreObjectNameSingular } from 'twenty-shared/types';
+import { StandardObjectNameSingular } from 'twenty-shared/types';
 import { ComponentDecorator } from 'twenty-ui/testing';
 
 import { SidePanelComposeCalendarEventPage } from '@/side-panel/pages/compose-calendar-event/components/SidePanelComposeCalendarEventPage';
@@ -42,7 +42,7 @@ const storyConnectedAccounts = [
     connectionProviderId: null,
     applicationId: null,
     name: 'Tim Apple',
-    visibility: 'SHARE_EVERYTHING',
+    scope: 'USER',
     lastCredentialsRefreshedAt: '2026-08-24T08:00:00.000Z',
     connectionParameters: null,
     createdAt: '2026-02-27T01:17:25.392Z',
@@ -62,7 +62,7 @@ const storyConnectedAccounts = [
     connectionProviderId: null,
     applicationId: null,
     name: 'Tim Apple',
-    visibility: 'SHARE_EVERYTHING',
+    scope: 'USER',
     lastCredentialsRefreshedAt: '2026-08-23T08:00:00.000Z',
     connectionParameters: null,
     createdAt: '2026-03-12T01:17:25.392Z',
@@ -77,6 +77,7 @@ const storyCalendarChannels = storyConnectedAccounts.map((account, index) => ({
   visibility: 'SHARE_EVERYTHING',
   isContactAutoCreationEnabled: false,
   contactAutoCreationPolicy: 'AS_PARTICIPANT_AND_ORGANIZER',
+  excludePrivateEvents: false,
   isSyncEnabled: true,
   syncStatus: 'ACTIVE',
   syncStage: 'CALENDAR_EVENTS_IMPORT_ONGOING',
@@ -107,7 +108,7 @@ const useInitializeSidePanelComposerStory = ({
         {
           connectedAccountId: GOOGLE_ACCOUNT_ID,
           contextRecord: {
-            objectNameSingular: CoreObjectNameSingular.Person,
+            objectNameSingular: StandardObjectNameSingular.Person,
             recordId: KIMBERLY_PERSON_ID,
           },
           defaultAttendees: 'Kimberly Gordon <kimberly.gordon@apple.dev>',
@@ -324,7 +325,7 @@ export const CalendarEventWithoutAccountPermission: Story = {
 
     expect(
       await canvas.findByText(
-        'Ask a workspace admin for the Sync Account permission to connect a calendar account.',
+        'Ask a workspace admin for the User Apps permission to connect a calendar account.',
       ),
     ).toBeVisible();
     expect(

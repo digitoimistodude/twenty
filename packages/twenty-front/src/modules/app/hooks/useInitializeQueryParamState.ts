@@ -25,7 +25,6 @@ export const useInitializeQueryParamState = () => {
           if (
             typeof parsedValue === 'object' &&
             parsedValue !== null &&
-            'plan' in parsedValue &&
             'interval' in parsedValue &&
             'requirePaymentMethod' in parsedValue &&
             !isDeeplyEqual(billingCheckoutSession, parsedValue)
@@ -52,7 +51,7 @@ export const useInitializeQueryParamState = () => {
           store.set(returnToPathState.atom, value);
         }
       },
-      partner: (value: string) => {
+      via: (value: string) => {
         const partner = normalizePartner(value);
 
         if (isDefined(partner)) {

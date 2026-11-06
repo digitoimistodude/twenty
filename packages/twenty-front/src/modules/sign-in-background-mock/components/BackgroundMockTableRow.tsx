@@ -1,6 +1,4 @@
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
-
 import { type BackgroundMockCompany } from '@/sign-in-background-mock/constants/BackgroundMockCompanies';
 import { BACKGROUND_MOCK_COLUMN_WIDTHS } from '@/sign-in-background-mock/constants/BackgroundMockColumnWidths';
 import { BACKGROUND_MOCK_TABLE_DIMENSIONS } from '@/sign-in-background-mock/constants/BackgroundMockTableDimensions';
@@ -11,6 +9,7 @@ import { IconLink } from 'twenty-ui/icon';
 import { useTheme, themeCssVariables } from 'twenty-ui/theme';
 
 import { getLogoUrlFromDomainName } from 'twenty-shared/utils';
+import { useLingui } from '@lingui/react/macro';
 
 const StyledRow = styled.div`
   display: flex;
@@ -82,12 +81,11 @@ const PersonChip = ({ fullName }: { fullName: string | null }) => {
   return (
     <Chip
       size="sm"
-      variant="ghost"
+      variant="plain"
       color="primary"
       startElement={
         <Avatar shape="circle" name={fullName} colorSeed={fullName} size="md" />
       }
-      style={{ paddingInlineStart: 0 }}
     >
       {fullName}
     </Chip>
@@ -97,6 +95,7 @@ const PersonChip = ({ fullName }: { fullName: string | null }) => {
 export const BackgroundMockTableRow = ({
   company,
 }: BackgroundMockTableRowProps) => {
+  const { t } = useLingui();
   const theme = useTheme();
 
   const logoUrl = getLogoUrlFromDomainName(company.domainName);
@@ -110,7 +109,7 @@ export const BackgroundMockTableRow = ({
       <StyledCell width={BACKGROUND_MOCK_COLUMN_WIDTHS.Name}>
         <Chip
           size="sm"
-          variant="ghost"
+          variant="plain"
           color="primary"
           startElement={
             <Avatar
@@ -121,7 +120,6 @@ export const BackgroundMockTableRow = ({
               size="md"
             />
           }
-          style={{ paddingInlineStart: 0 }}
         >
           {company.name}
         </Chip>
@@ -129,7 +127,7 @@ export const BackgroundMockTableRow = ({
       <StyledCell width={BACKGROUND_MOCK_COLUMN_WIDTHS.Domain}>
         <Chip
           size="sm"
-          variant="ghost"
+          variant="plain"
           color="secondary"
           weight="medium"
           startElement={
@@ -139,7 +137,6 @@ export const BackgroundMockTableRow = ({
               color={theme.font.color.tertiary}
             />
           }
-          style={{ paddingInlineStart: 0 }}
         >
           {company.domainName}
         </Chip>

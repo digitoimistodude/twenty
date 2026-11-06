@@ -9,7 +9,6 @@ import { useUsageAnalyticsData } from '@/settings/usage/hooks/useUsageAnalyticsD
 import { useUsageValueFormatter } from '@/settings/usage/hooks/useUsageValueFormatter';
 import { SettingsPageLayout } from '@/settings/components/layout/SettingsPageLayout';
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
 
 import { useParams } from 'react-router-dom';
@@ -43,6 +42,7 @@ const StyledUserCredits = styled.span`
 `;
 
 export const SettingsUsageUserDetail = () => {
+  const { t } = useLingui();
   const { t: tLingui } = useLingui();
   const { userWorkspaceId } = useParams<{ userWorkspaceId: string }>();
   const { formatUsageValue } = useUsageValueFormatter();
@@ -58,7 +58,7 @@ export const SettingsUsageUserDetail = () => {
 
   const totalCredits = analytics
     ? analytics.usageByOperationType.reduce(
-        (sum, item) => sum + item.creditsUsed,
+        (sum, item) => sum + item.workspaceCreditsUsed,
         0,
       )
     : 0;
@@ -91,7 +91,11 @@ export const SettingsUsageUserDetail = () => {
       <SettingsPageLayout title={tLingui`User Usage`} links={breadcrumbLinks}>
         <SettingsPageContainer>
           <StyledUserHeader>
-            <SkeletonLine width={40} height={40} borderRadius={8} />
+            <SkeletonLine
+              width={40}
+              height={40}
+              borderRadius={themeCssVariables.border.radius.mdRound}
+            />
             <StyledUserInfo>
               <SkeletonLine width={160} height={16} />
               <SkeletonLine width={100} height={13} />
@@ -110,7 +114,7 @@ export const SettingsUsageUserDetail = () => {
         <StyledUserHeader>
           <Avatar
             shape="circle"
-            size="xl"
+            size="xxl"
             name={displayName}
             colorSeed={userWorkspaceId}
           />

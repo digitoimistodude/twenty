@@ -1,4 +1,3 @@
-import { t } from '@lingui/core/macro';
 import { FieldInputEventContext } from '@/object-record/record-field/ui/contexts/FieldInputEventContext';
 
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
@@ -15,9 +14,12 @@ import { useAvailableComponentInstanceIdOrThrow } from '@/ui/utilities/state/com
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
 import { useContext } from 'react';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { IconForbid } from 'twenty-ui/icon';
+import { useLingui } from '@lingui/react/macro';
 
 export const MorphRelationManyToOneFieldInput = () => {
+  const { t } = useLingui();
   const { fieldDefinition, recordId } = useContext(FieldContext);
 
   const { onCancel } = useContext(FieldInputEventContext);
@@ -51,9 +53,7 @@ export const MorphRelationManyToOneFieldInput = () => {
     );
 
     if (!isDefined(targetObjectMetadataItem)) {
-      // Error text is used for locale-independent issue grouping.
-      // oxlint-disable-next-line lingui/no-unlocalized-strings
-      throw new Error('TargetObjectMetadataItem is required');
+      throw new Error(doNotTranslate('TargetObjectMetadataItem is required'));
     }
 
     await persistMorphManyToOne({

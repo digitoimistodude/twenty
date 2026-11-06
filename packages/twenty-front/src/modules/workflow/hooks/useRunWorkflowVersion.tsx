@@ -5,7 +5,7 @@ import { useOpenRecordInSidePanel } from '@/side-panel/hooks/useOpenRecordInSide
 import { useApolloCoreClient } from '@/object-metadata/hooks/useApolloCoreClient';
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
-import { CoreObjectNameSingular } from 'twenty-shared/types';
+import { StandardObjectNameSingular } from 'twenty-shared/types';
 import { useCreateOneRecordInCache } from '@/object-record/cache/hooks/useCreateOneRecordInCache';
 import { useUpsertFindOneRecordQueryInCache } from '@/object-record/cache/hooks/useUpsertFindOneRecordQueryInCache';
 import { getObjectTypename } from '@/object-record/cache/utils/getObjectTypename';
@@ -23,6 +23,7 @@ import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomState
 import { useCallback } from 'react';
 import { useMutation } from '@apollo/client/react';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { v4 } from 'uuid';
 import { useStore } from 'jotai';
 
@@ -35,7 +36,7 @@ export const useRunWorkflowVersion = () => {
   const { upsertRecordsInStore } = useUpsertRecordsInStore();
 
   const { objectMetadataItem } = useObjectMetadataItem({
-    objectNameSingular: CoreObjectNameSingular.WorkflowRun,
+    objectNameSingular: StandardObjectNameSingular.WorkflowRun,
   });
 
   const { objectMetadataItems } = useObjectMetadataItems();
@@ -46,7 +47,7 @@ export const useRunWorkflowVersion = () => {
   const currentWorkspaceMember = useAtomStateValue(currentWorkspaceMemberState);
 
   const computedRecordGqlFields = useGenerateDepthRecordGqlFieldsFromObject({
-    objectNameSingular: CoreObjectNameSingular.WorkflowRun,
+    objectNameSingular: StandardObjectNameSingular.WorkflowRun,
     depth: 1,
   });
 
@@ -112,8 +113,9 @@ export const useRunWorkflowVersion = () => {
     });
 
     if (!isDefined(recordNodeCreatedInCache)) {
-      // oxlint-disable-next-line lingui/no-unlocalized-strings -- This message describes a developer-only invariant; keeping it stable preserves error reporting fingerprints.
-      throw new Error('The record should have been created in cache');
+      throw new Error(
+        doNotTranslate('The record should have been created in cache'),
+      );
     }
 
     upsertFindOneRecordQueryInCache({
@@ -135,7 +137,7 @@ export const useRunWorkflowVersion = () => {
 
     const sseQueryId = getWorkflowRunSseQueryId(workflowRunId);
     const sseOperationSignature = {
-      objectNameSingular: CoreObjectNameSingular.WorkflowRun,
+      objectNameSingular: StandardObjectNameSingular.WorkflowRun,
       variables: {
         filter: { id: { eq: workflowRunId } },
       },
@@ -159,7 +161,7 @@ export const useRunWorkflowVersion = () => {
     }
 
     openRecordInSidePanel({
-      objectNameSingular: CoreObjectNameSingular.WorkflowRun,
+      objectNameSingular: StandardObjectNameSingular.WorkflowRun,
       recordId: workflowRunId,
     });
   };

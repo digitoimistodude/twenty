@@ -1,10 +1,12 @@
-import { t } from '@lingui/core/macro';
-import { CoreObjectNameSingular } from 'twenty-shared/types';
+import { useApolloClient } from '@apollo/client/react';
+import { StandardObjectNameSingular } from 'twenty-shared/types';
 
+import { PREVIEW_MESSAGE_CAMPAIGN_SEND } from '@/activities/emails/graphql/metadata-queries/previewMessageCampaignSend';
 import { type MessageCampaign } from '@/activities/emails/types/MessageCampaign';
 import { useUpdateOneRecord } from '@/object-record/hooks/useUpdateOneRecord';
 import { useRecordSeededDraft } from '@/object-record/record-seeded-draft/hooks/useRecordSeededDraft';
 import { useToast } from 'twenty-ui/components/feedback';
+import { useLingui } from '@lingui/react/macro';
 
 type UsePersistedCampaignDraftArgs<TDraft extends object> = {
   campaignId: string;
@@ -19,21 +21,30 @@ export const usePersistedCampaignDraft = <TDraft extends object>({
   initialDraft,
   toUpdateOneRecordInput,
 }: UsePersistedCampaignDraftArgs<TDraft>) => {
+  const { t } = useLingui();
   const { updateOneRecord } = useUpdateOneRecord();
   const { enqueueToast } = useToast();
+  const apolloClient = useApolloClient();
 
   const { draft, updateDraft, flush, draftResyncKey } = useRecordSeededDraft({
     upstreamDraft: initialDraft(),
     onPersist: (nextDraft) => {
       updateOneRecord<MessageCampaign>({
-        objectNameSingular: CoreObjectNameSingular.MessageCampaign,
+        objectNameSingular: StandardObjectNameSingular.MessageCampaign,
         idToUpdate: campaignId,
         updateOneRecordInput: toUpdateOneRecordInput(nextDraft),
-      }).catch(() =>
-        enqueueToast({
-          status: 'error',
-          children: t`Failed to save the campaign`,
-        }),
+      }).then(
+        () =>
+          apolloClient
+            .refetchQueries({
+              include: [PREVIEW_MESSAGE_CAMPAIGN_SEND],
+            })
+            .catch(() => undefined),
+        () =>
+          enqueueToast({
+            status: 'error',
+            children: t`Failed to save the campaign`,
+          }),
       );
     },
   });

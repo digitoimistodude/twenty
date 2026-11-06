@@ -1,8 +1,7 @@
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
-import { useId, useRef } from 'react';
+import { useId } from 'react';
 import {
-  CoreObjectNameSingular,
+  StandardObjectNameSingular,
   MessageChannelType,
 } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
@@ -13,21 +12,19 @@ import { type SelectOption } from 'twenty-ui/primitives/input';
 import { themeCssVariables } from 'twenty-ui/theme';
 
 import { ComposerFieldRow } from '@/activities/components/ComposerFieldRow';
-import { StyledComposerTextInput } from '@/activities/components/ComposerTextInput';
 import { CampaignEnvelopeBox } from '@/activities/emails/components/CampaignEnvelopeBox';
+import { CampaignVariablePicker } from '@/activities/emails/components/CampaignVariablePicker';
 import { useCampaignDetailsState } from '@/activities/emails/hooks/useCampaignDetailsState';
 import { useUnsubscribeTopics } from '@/activities/emails/hooks/useUnsubscribeTopics';
 import { type MessageCampaign } from '@/activities/emails/types/MessageCampaign';
 import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';
+import { FormTextFieldInput } from '@/object-record/record-field/ui/form-types/components/FormTextFieldInput';
 import { useMyMessageChannels } from '@/settings/accounts/hooks/useMyMessageChannels';
 import { FormSingleRecordPicker } from '@/object-record/record-field/ui/form-types/components/FormSingleRecordPicker';
 import { Select } from '@/ui/input/components/Select';
 import { GenericDropdownContentWidth } from '@/ui/layout/dropdown/constants/GenericDropdownContentWidth';
 import { useOpenDropdown } from '@/ui/layout/dropdown/hooks/useOpenDropdown';
-import { usePushFocusItemToFocusStack } from '@/ui/utilities/focus/hooks/usePushFocusItemToFocusStack';
-import { useRemoveFocusItemFromFocusStackById } from '@/ui/utilities/focus/hooks/useRemoveFocusItemFromFocusStackById';
-import { useRemoveFocusItemFromFocusStackOnUnmount } from '@/ui/utilities/focus/hooks/useRemoveFocusItemFromFocusStackOnUnmount';
-import { FocusComponentType } from '@/ui/utilities/focus/types/FocusComponentType';
+import { useLingui } from '@lingui/react/macro';
 
 const StyledWarningContainer = styled.div`
   padding: ${themeCssVariables.spacing[2]} ${themeCssVariables.spacing[3]};
@@ -43,42 +40,18 @@ type CampaignDetailsFieldsProps = {
 export const CampaignDetailsFields = ({
   campaign,
 }: CampaignDetailsFieldsProps) => {
+  const { t } = useLingui();
   const detailsState = useCampaignDetailsState({ campaign });
   const instanceId = useId();
-  const subjectFocusId = `campaign-subject-input-${instanceId}`;
   const listDropdownId = `campaign-list-picker-${instanceId}`;
-  const subjectInputRef = useRef<HTMLInputElement>(null);
   const { openDropdown } = useOpenDropdown();
 
   const openDropdownById = (dropdownId: string) =>
     openDropdown({ dropdownComponentInstanceIdFromProps: dropdownId });
-  const { pushFocusItemToFocusStack } = usePushFocusItemToFocusStack();
-  const { removeFocusItemFromFocusStackById } =
-    useRemoveFocusItemFromFocusStackById();
-  useRemoveFocusItemFromFocusStackOnUnmount({
-    focusId: subjectFocusId,
-    isEnabled: true,
-  });
-
-  const handleSubjectFocus = () =>
-    pushFocusItemToFocusStack({
-      focusId: subjectFocusId,
-      component: {
-        type: FocusComponentType.FORM_FIELD_INPUT,
-        instanceId: subjectFocusId,
-      },
-      globalHotkeysConfig: {
-        enableGlobalHotkeysConflictingWithKeyboard: false,
-      },
-    });
-
-  const handleSubjectBlur = () =>
-    removeFocusItemFromFocusStackById({ focusId: subjectFocusId });
-
   const { channels } = useMyMessageChannels();
   const { unsubscribeTopics } = useUnsubscribeTopics();
   const { createOneRecord: createMessageList } = useCreateOneRecord({
-    objectNameSingular: CoreObjectNameSingular.MessageList,
+    objectNameSingular: StandardObjectNameSingular.MessageList,
   });
 
   const handleCreateList = async (searchInput?: string) => {
@@ -171,7 +144,7 @@ export const CampaignDetailsFields = ({
           key={`list-${detailsState.draftResyncKey}`}
           dropdownId={listDropdownId}
           variant="transparent"
-          objectNameSingulars={[CoreObjectNameSingular.MessageList]}
+          objectNameSingulars={[StandardObjectNameSingular.MessageList]}
           defaultValue={detailsState.listId}
           onChange={detailsState.setListId}
           onCreate={handleCreateList}
@@ -204,20 +177,15 @@ export const CampaignDetailsFields = ({
           />
         </ComposerFieldRow>
       )}
-      <ComposerFieldRow
-        label={t`Subject`}
-        onClick={() => subjectInputRef.current?.focus()}
-      >
-        <StyledComposerTextInput
+      <ComposerFieldRow label={t`Subject`} hasDivider={false}>
+        <FormTextFieldInput
           key={`subject-${detailsState.draftResyncKey}`}
-          ref={subjectInputRef}
-          type="text"
-          aria-label={t`Subject`}
+          ariaLabel={t`Subject`}
           placeholder={t`Add a subject`}
           defaultValue={detailsState.subject}
-          onChange={(event) => detailsState.setSubject(event.target.value)}
-          onFocus={handleSubjectFocus}
-          onBlur={handleSubjectBlur}
+          onChange={detailsState.setSubject}
+          VariablePicker={CampaignVariablePicker}
+          enableTemplateVariableFallback
         />
       </ComposerFieldRow>
     </CampaignEnvelopeBox>

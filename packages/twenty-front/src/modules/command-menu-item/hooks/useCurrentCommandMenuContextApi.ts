@@ -1,9 +1,12 @@
 import { agentChatThreadParticipantsState } from '@/ai/states/agentChatThreadParticipantsState';
+import { agentChatShownChannelViewSelector } from '@/ai/states/selectors/agentChatShownChannelViewSelector';
 import { agentChatThreadInboxStatusByThreadIdFamilySelector } from '@/ai/states/selectors/agentChatThreadInboxStatusByThreadIdFamilySelector';
 import { currentUserState } from '@/auth/states/currentUserState';
 import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
 import { EMPTY_COMMAND_MENU_CONTEXT_API } from '@/command-menu-item/constants/EmptyCommandMenuContextApi';
 import { commandMenuTargetObjectPermissionsSelector } from '@/command-menu-item/states/commandMenuTargetObjectPermissionsSelector';
+import { getCommandMenuContextApiObjectPermissions } from '@/command-menu-item/utils/getCommandMenuContextApiObjectPermissions';
+import { contextStoreCurrentCoreObjectNameComponentState } from '@/context-store/states/contextStoreCurrentCoreObjectNameComponentState';
 import { contextStoreCurrentObjectMetadataItemIdComponentState } from '@/context-store/states/contextStoreCurrentObjectMetadataItemIdComponentState';
 import { MAIN_CONTEXT_STORE_INSTANCE_ID } from '@/context-store/constants/MainContextStoreInstanceId';
 import { useContextStoreInstanceId } from '@/context-store/hooks/useContextStoreInstanceId';
@@ -33,18 +36,26 @@ import { isNonEmptyArray } from '@sniptt/guards';
 import { useAtomValue } from 'jotai';
 import {
   ContextStorePageType,
-  CoreObjectNameSingular,
+  StandardObjectNameSingular,
   type CommandMenuContextApi,
 } from 'twenty-shared/types';
 import { isDefined, resolveObjectMetadataLabel } from 'twenty-shared/utils';
+import { useLocation } from 'react-router-dom';
+
+import { isAiChatInboxPath } from '~/utils/isAiChatInboxPath';
 
 export const useCurrentCommandMenuContextApi = (): CommandMenuContextApi => {
   const workspaceSurface = useWorkspaceSurface();
   const isInSidePanel = workspaceSurface.type === 'side-panel';
   const contextStoreInstanceId = useContextStoreInstanceId();
+  const location = useLocation();
 
   const contextStoreCurrentObjectMetadataItemId = useAtomComponentStateValue(
     contextStoreCurrentObjectMetadataItemIdComponentState,
+  );
+
+  const contextStoreCurrentCoreObjectName = useAtomComponentStateValue(
+    contextStoreCurrentCoreObjectNameComponentState,
   );
 
   const contextStoreTargetedRecordsRule = useAtomComponentStateValue(
@@ -100,13 +111,23 @@ export const useCurrentCommandMenuContextApi = (): CommandMenuContextApi => {
   );
   const inboxStatusThreadIds =
     objectMetadataItem?.nameSingular ===
-      CoreObjectNameSingular.AgentChatThread &&
+      StandardObjectNameSingular.AgentChatThread &&
     isDefined(agentChatThreadParticipants)
       ? (recordIds ?? [])
       : [];
+  const agentChatShownChannelView = useAtomStateValue(
+    agentChatShownChannelViewSelector,
+  );
   const agentChatThreadInboxStatusByThreadId = useAtomFamilySelectorValue(
     agentChatThreadInboxStatusByThreadIdFamilySelector,
-    { threadIds: inboxStatusThreadIds },
+    {
+      threadIds: inboxStatusThreadIds,
+      // Every menu on the inbox page, the open chat's included, files the
+      // chats of the channel on screen for the channel
+      channelId: isAiChatInboxPath(location.pathname)
+        ? (agentChatShownChannelView?.channelId ?? null)
+        : null,
+    },
   );
 
   // Records shared below the role's access level carry their own permissions, which availability expressions read per record
@@ -129,7 +150,10 @@ export const useCurrentCommandMenuContextApi = (): CommandMenuContextApi => {
     objectMetadataItem?.id ?? '',
   );
   const objectPermissions = isDefined(objectMetadataItem)
-    ? currentObjectPermissions
+    ? getCommandMenuContextApiObjectPermissions({
+        objectMetadataId: objectMetadataItem.id,
+        objectRecordsPermissions: currentObjectPermissions,
+      })
     : EMPTY_COMMAND_MENU_CONTEXT_API.objectPermissions;
 
   const contextStoreCurrentViewId = useAtomComponentStateValue(
@@ -213,5 +237,6 @@ export const useCurrentCommandMenuContextApi = (): CommandMenuContextApi => {
     canAccessFullAdminPanel,
     objectMetadataItem: objectMetadataItem ?? {},
     objectMetadataLabel,
+    coreObjectName: contextStoreCurrentCoreObjectName,
   };
 };

@@ -1,13 +1,12 @@
-import { css } from '@linaria/core';
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 import { isNonEmptyString } from '@sniptt/guards';
 import { type ReactElement, useMemo, useRef, useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
 import { getIconTileColorShades } from 'twenty-ui/components/data-display';
 import { IconButton, LightIconButton } from 'twenty-ui/components/input';
 import { Dropdown } from 'twenty-ui/components/navigation';
-import { IconApps, type IconComponent, useIcons } from 'twenty-ui/icon';
+import { IconApps, type IconComponent } from 'twenty-ui/icon';
+import { useIcons } from 'twenty-ui/icon/provider';
 import { ColorSample } from 'twenty-ui/primitives/data-display';
 import {
   type ButtonSize,
@@ -25,6 +24,7 @@ import { getIconPickerSearchScore } from '@/ui/input/utils/getIconPickerSearchSc
 import { DropdownContent } from '@/ui/layout/dropdown/components/DropdownContent';
 import { DropdownRoot } from '@/ui/layout/dropdown/components/DropdownRoot';
 import { useAtomFamilyState } from '@/ui/utilities/state/jotai/hooks/useAtomFamilyState';
+import { useLingui } from '@lingui/react/macro';
 
 type IconPickerProps = {
   disabled?: boolean;
@@ -58,21 +58,15 @@ const StyledSearchRow = styled.div`
   gap: ${themeCssVariables.spacing[1]};
   padding-right: ${themeCssVariables.spacing[2]};
   width: 100%;
+`;
 
-  > :first-child {
-    flex: 1;
-    min-width: 0;
-  }
+const StyledSearchContainer = styled.div`
+  flex: 1;
+  min-width: 0;
 `;
 
 const StyledPopupContent = styled.div`
   display: contents;
-`;
-
-const iconButtonStyles = css`
-  &[data-selected] {
-    background: ${themeCssVariables.background.transparent.medium};
-  }
 `;
 
 export const IconPicker = ({
@@ -92,6 +86,7 @@ export const IconPicker = ({
   iconColorPicker,
   iconColor,
 }: IconPickerProps) => {
+  const { t } = useLingui();
   const [searchString, setSearchString] = useState('');
   const [visibleCount, setVisibleCount] = useAtomFamilyState(
     iconPickerVisibleCountState,
@@ -187,12 +182,14 @@ export const IconPicker = ({
         >
           <StyledPopupContent data-click-outside-id={dropdownId}>
             <StyledSearchRow>
-              <Dropdown.Search
-                aria-label={t`Search icon`}
-                placeholder={t`Search icon`}
-                value={searchString}
-                onValueChange={setSearchString}
-              />
+              <StyledSearchContainer>
+                <Dropdown.Search
+                  aria-label={t`Search icon`}
+                  placeholder={t`Search icon`}
+                  value={searchString}
+                  onValueChange={setSearchString}
+                />
+              </StyledSearchContainer>
               {isDefined(iconColorPicker) && (
                 <DropdownRoot dropdownId={colorDropdownId} type="picker">
                   <Dropdown.Trigger
@@ -223,49 +220,59 @@ export const IconPicker = ({
               )}
             </StyledSearchRow>
             <Dropdown.Separator />
-            <Dropdown.Section
-              scrollable
-              ref={scrollContainerRef}
+            <Dropdown.SelectionGroup
               aria-label={t`Icons`}
-            >
-              <Dropdown.Section columns={columns}>
-                {visibleIconKeys.map((iconKey) => {
-                  const Icon = getIcon(iconKey);
+              value={selectedIconKey ?? null}
+              onValueChange={(iconKey) => {
+                if (!isDefined(iconKey)) {
+                  return;
+                }
 
-                  return (
-                    <Dropdown.OptionItem
-                      key={iconKey}
-                      aria-label={getIconPickerLabel(iconKey)}
-                      title={iconKey}
-                      selected={iconKey === selectedIconKey}
-                      indicator="none"
-                      nativeButton
-                      className={iconButtonStyles}
-                      render={
-                        <LightIconButton
-                          size="md"
-                          aria-label={getIconPickerLabel(iconKey)}
-                        >
-                          <Icon color={displayColor} />
-                        </LightIconButton>
-                      }
-                      onSelect={() => onChange({ iconKey, Icon })}
-                    />
-                  );
-                })}
+                onChange({ iconKey, Icon: getIcon(iconKey) });
+              }}
+            >
+              <Dropdown.Section
+                scrollable
+                ref={scrollContainerRef}
+                aria-label={t`Icons`}
+              >
+                <Dropdown.Section columns={columns}>
+                  {visibleIconKeys.map((iconKey) => {
+                    const Icon = getIcon(iconKey);
+
+                    return (
+                      <Dropdown.OptionItem
+                        key={iconKey}
+                        aria-label={getIconPickerLabel(iconKey)}
+                        title={iconKey}
+                        value={iconKey}
+                        indicator="none"
+                        nativeButton
+                        render={
+                          <LightIconButton
+                            size="md"
+                            aria-label={getIconPickerLabel(iconKey)}
+                          >
+                            <Icon color={displayColor} />
+                          </LightIconButton>
+                        }
+                      />
+                    );
+                  })}
+                </Dropdown.Section>
+                <div ref={sentinelRef}>
+                  {isLoadingMore && (
+                    <Dropdown.Loading>{t`Loading more...`}</Dropdown.Loading>
+                  )}
+                </div>
+                <IconPickerScrollEffect
+                  dropdownId={dropdownId}
+                  sentinelRef={sentinelRef}
+                  scrollContainerRef={scrollContainerRef}
+                  enabled={isLoadingMore}
+                />
               </Dropdown.Section>
-              <div ref={sentinelRef}>
-                {isLoadingMore && (
-                  <Dropdown.Loading>{t`Loading more...`}</Dropdown.Loading>
-                )}
-              </div>
-              <IconPickerScrollEffect
-                dropdownId={dropdownId}
-                sentinelRef={sentinelRef}
-                scrollContainerRef={scrollContainerRef}
-                enabled={isLoadingMore}
-              />
-            </Dropdown.Section>
+            </Dropdown.SelectionGroup>
           </StyledPopupContent>
         </DropdownContent>
       </DropdownRoot>

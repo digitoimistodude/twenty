@@ -5,7 +5,7 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import {
   Callout,
   Dropdown,
-  MenuItem,
+  ListItemButton,
   SearchInput,
   Toaster,
   ToastProvider,
@@ -63,11 +63,9 @@ export const ShortcutLabels: Story = {
       <ListItem shortcut={[['G'], ['S']]} shortcutJoinLabel="followed by">
         Supplied shortcut
       </ListItem>
-      <MenuItem
-        text="Legacy shortcut"
-        shortcut={[['G'], ['L']]}
-        shortcutJoinLabel="next"
-      />
+      <ListItemButton shortcut={[['G'], ['L']]} shortcutJoinLabel="next">
+        Action shortcut
+      </ListItemButton>
     </>
   ),
   play: async ({ canvasElement }) => {
@@ -128,7 +126,17 @@ export const NativeNames: Story = {
 };
 
 export const DropdownShortcutLabels: Story = {
-  parameters: { a11y: DROPDOWN_STORY_A11Y_PARAMETERS },
+  parameters: {
+    a11y: {
+      ...A11Y_DEFER_COLOR_CONTRAST,
+      config: {
+        rules: [
+          ...DROPDOWN_STORY_A11Y_PARAMETERS.config.rules,
+          ...A11Y_DEFER_COLOR_CONTRAST.config.rules,
+        ],
+      },
+    },
+  },
   render: () => (
     <Dropdown.Root type="menu">
       <Dropdown.Trigger render={<Button>Open shortcuts</Button>} />

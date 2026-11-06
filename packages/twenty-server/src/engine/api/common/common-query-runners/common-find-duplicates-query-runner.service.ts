@@ -30,7 +30,7 @@ import { CommonSelectedFieldsResult } from 'src/engine/api/common/types/common-s
 import { getPageInfo } from 'src/engine/api/common/utils/get-page-info.util';
 import { buildColumnsToSelect } from 'src/engine/api/graphql/graphql-query-runner/utils/build-columns-to-select';
 import { buildDuplicateSourceColumnsToSelect } from 'src/engine/api/common/common-query-runners/utils/build-duplicate-source-columns-to-select.util';
-import { buildDuplicateConditions } from 'src/engine/api/utils/build-duplicate-conditions.utils';
+import { buildDuplicateConditions } from 'src/engine/api/utils/build-duplicate-conditions.util';
 import { FlatEntityMaps } from 'src/engine/metadata-modules/flat-entity/types/flat-entity-maps.type';
 import { type OrmFlatFieldMetadata } from 'src/engine/metadata-modules/flat-field-metadata/types/orm-flat-field-metadata.type';
 import { buildFieldMapsFromFlatObjectMetadata } from 'src/engine/metadata-modules/flat-field-metadata/utils/build-field-maps-from-flat-object-metadata.util';
@@ -53,7 +53,6 @@ export class CommonFindDuplicatesQueryRunnerService extends CommonBaseQueryRunne
       flatFieldMetadataMaps,
       commonQueryParser,
       authContext,
-      rolePermissionConfig,
     } = queryRunnerContext;
 
     const readRepository = this.getReadRepository(queryRunnerContext);
@@ -78,7 +77,7 @@ export class CommonFindDuplicatesQueryRunnerService extends CommonBaseQueryRunne
         flatObjectMetadata,
         flatFieldMetadataMaps,
         restrictedFields:
-          readRepository.objectRecordsPermissions?.[flatObjectMetadata.id]
+          readRepository.recordsPermissions.objects[flatObjectMetadata.id]
             ?.restrictedFields ?? {},
       });
 
@@ -178,7 +177,6 @@ export class CommonFindDuplicatesQueryRunnerService extends CommonBaseQueryRunne
         >,
         limit: QUERY_MAX_RECORDS_FROM_RELATION,
         authContext,
-        rolePermissionConfig,
         selectedFields: args.selectedFieldsResult.select,
         ...this.getNestedRelationsReadPathOptions(),
       });
@@ -225,6 +223,12 @@ export class CommonFindDuplicatesQueryRunnerService extends CommonBaseQueryRunne
         shouldBackfillPositionIfUndefined: false,
       }),
     };
+  }
+
+  protected getResultRecords(
+    results: CommonFindDuplicatesOutputItem[],
+  ): ObjectRecord[] {
+    return results.flatMap((duplicates) => duplicates.records);
   }
 
   async processQueryResult(

@@ -4,7 +4,8 @@ import { MCP_PROTOCOL_VERSION } from 'src/engine/api/mcp/constants/mcp-protocol-
 
 describe('MCP Controller (integration)', () => {
   const baseUrl = `http://localhost:${APP_PORT}`;
-  const endpoint = '/mcp';
+  // Meta mode: the call-every-listed-tool test below must not reach direct mode's write tools
+  const endpoint = '/mcp?mode=meta';
 
   const postMcp = (
     body: any,
@@ -55,6 +56,25 @@ describe('MCP Controller (integration)', () => {
           result: {},
         });
         expect(res.body.error).toBeUndefined();
+      });
+  });
+
+  it('should return method not found for an unsupported method', async () => {
+    await postMcp({
+      jsonrpc: '2.0',
+      method: 'sampling/createMessage',
+      id: 'unsupported-method',
+    })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toEqual({
+          id: 'unsupported-method',
+          jsonrpc: '2.0',
+          error: {
+            code: -32601,
+            message: "Method 'sampling/createMessage' not found",
+          },
+        });
       });
   });
 

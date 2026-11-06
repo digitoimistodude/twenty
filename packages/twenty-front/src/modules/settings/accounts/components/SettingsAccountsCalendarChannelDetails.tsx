@@ -4,12 +4,12 @@ import { useMutation } from '@apollo/client/react';
 import { SettingsAccountsEventVisibilitySettingsCard } from '@/settings/accounts/components/SettingsAccountsCalendarVisibilitySettingsCard';
 import { SettingsOptionCardContentSwitch } from '@/settings/components/SettingsOptions/SettingsOptionCardContentSwitch';
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 import { Section } from 'twenty-ui/components/layout';
-import { IconUserPlus } from 'twenty-ui/icon';
+import { IconEyeOff, IconUserPlus } from 'twenty-ui/icon';
 import { Card } from 'twenty-ui/primitives/surfaces';
 import { themeCssVariables } from 'twenty-ui/theme';
 import { type CalendarChannelVisibility } from '~/generated-metadata/graphql';
+import { useLingui } from '@lingui/react/macro';
 
 const StyledDetailsContainer = styled.div`
   display: flex;
@@ -20,13 +20,18 @@ const StyledDetailsContainer = styled.div`
 type SettingsAccountsCalendarChannelDetailsProps = {
   calendarChannel: Pick<
     CalendarChannel,
-    'id' | 'visibility' | 'isContactAutoCreationEnabled' | 'isSyncEnabled'
+    | 'id'
+    | 'visibility'
+    | 'isContactAutoCreationEnabled'
+    | 'excludePrivateEvents'
+    | 'isSyncEnabled'
   >;
 };
 
 export const SettingsAccountsCalendarChannelDetails = ({
   calendarChannel,
 }: SettingsAccountsCalendarChannelDetailsProps) => {
+  const { t } = useLingui();
   const [updateMetadataChannel] = useMutation(UPDATE_CALENDAR_CHANNEL);
 
   const updateChannel = (update: Record<string, unknown>) => {
@@ -41,6 +46,10 @@ export const SettingsAccountsCalendarChannelDetails = ({
 
   const handleContactAutoCreationToggle = (value: boolean) => {
     updateChannel({ isContactAutoCreationEnabled: value });
+  };
+
+  const handleIsPrivateEventExcludedToggle = (value: boolean) => {
+    updateChannel({ excludePrivateEvents: value });
   };
 
   return (
@@ -60,7 +69,7 @@ export const SettingsAccountsCalendarChannelDetails = ({
           title={t`Contact auto-creation`}
           description={t`Automatically create contacts for people you've participated in an event with.`}
         />
-        <Card.Root rounded>
+        <Card.Root>
           <SettingsOptionCardContentSwitch
             Icon={IconUserPlus}
             title={t`Auto-creation`}
@@ -71,6 +80,25 @@ export const SettingsAccountsCalendarChannelDetails = ({
                 !calendarChannel.isContactAutoCreationEnabled,
               );
             }}
+          />
+        </Card.Root>
+      </Section.Root>
+      <Section.Root>
+        <Section.Header
+          title={t`Options`}
+          description={t`Configure what events should get synced`}
+        />
+        <Card.Root>
+          <SettingsOptionCardContentSwitch
+            Icon={IconEyeOff}
+            title={t`Exclude private events`}
+            description={t`Don't import events marked as private`}
+            checked={calendarChannel.excludePrivateEvents}
+            onChange={() =>
+              handleIsPrivateEventExcludedToggle(
+                !calendarChannel.excludePrivateEvents,
+              )
+            }
           />
         </Card.Root>
       </Section.Root>

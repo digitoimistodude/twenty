@@ -4,16 +4,18 @@ import { getRelationIdFieldNames } from '@/object-metadata/utils/getRelationIdFi
 import { mapFieldMetadataToGraphQLQuery } from '@/object-metadata/utils/mapFieldMetadataToGraphQLQuery';
 import { shouldFieldBeQueried } from '@/object-metadata/utils/shouldFieldBeQueried';
 import {
-  type RecordGqlFields,
   FieldMetadataType,
+  type ObjectRecordsPermissions,
+  type RecordGqlFields,
   RelationType,
-  type ObjectPermissions,
 } from 'twenty-shared/types';
 import { isRecordGqlFieldsNode } from '@/object-record/graphql/utils/isRecordGraphlFieldsNode';
 import {
+  canReachSomeRecords,
   computeMorphRelationGqlFieldName,
   isDefined,
 } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 
 type MapObjectMetadataToGraphQLQueryArgs = {
   objectMetadataItems: EnrichedObjectMetadataItem[];
@@ -24,10 +26,7 @@ type MapObjectMetadataToGraphQLQueryArgs = {
   recordGqlFields?: RecordGqlFields;
   computeReferences?: boolean;
   isRootLevel?: boolean;
-  objectPermissionsByObjectMetadataId: Record<
-    string,
-    ObjectPermissions & { objectMetadataId: string }
-  >;
+  objectPermissionsByObjectMetadataId: Record<string, ObjectRecordsPermissions>;
 };
 
 export const mapObjectMetadataToGraphQLQuery = ({
@@ -47,7 +46,12 @@ export const mapObjectMetadataToGraphQLQuery = ({
       objectPermissionsByObjectMetadataId,
       objectMetadataItem.id,
     );
-    if (!objectPermission.canReadObjectRecords) {
+    if (
+      !canReachSomeRecords({
+        objectRecordsPermissions: objectPermission,
+        operationType: 'select',
+      })
+    ) {
       return '';
     }
   }
@@ -129,11 +133,9 @@ export const mapObjectMetadataToGraphQLQuery = ({
     );
 
   if (!isRootLevel && computeReferences) {
-    // Generated GraphQL syntax must stay stable across locales.
-    // oxlint-disable-next-line lingui/no-unlocalized-strings
-    return `{
+    return doNotTranslate(`{
       __ref
-    }`;
+    }`);
   }
   const mappedFields = gqlFieldWithFieldMetadataThatSouldBeQueried
     .map((gqlFieldWithFieldMetadata) => {
@@ -156,10 +158,8 @@ export const mapObjectMetadataToGraphQLQuery = ({
     .filter((field) => field !== '')
     .join('\n');
 
-  // Generated GraphQL syntax must stay stable across locales.
-  // oxlint-disable-next-line lingui/no-unlocalized-strings
-  return `{
+  return doNotTranslate(`{
 __typename
 ${mappedFields}
-}`;
+}`);
 };

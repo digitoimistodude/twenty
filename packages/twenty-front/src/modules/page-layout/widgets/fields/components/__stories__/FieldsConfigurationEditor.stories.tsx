@@ -10,7 +10,7 @@ import { jotaiStore } from '@/ui/utilities/state/jotai/jotaiStore';
 import { type Meta, type StoryObj } from '@storybook/react-vite';
 import { type ReactNode, StrictMode, useRef } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-import { CoreObjectNameSingular } from 'twenty-shared/types';
+import { StandardObjectNameSingular } from 'twenty-shared/types';
 import { ComponentDecorator } from 'twenty-ui/testing';
 import { ContextStoreDecorator } from '~/testing/decorators/ContextStoreDecorator';
 import { MemoryRouterDecorator } from '~/testing/decorators/MemoryRouterDecorator';
@@ -24,7 +24,7 @@ const WIDGET_ID = 'story-fields-widget';
 const closeSidePanel = fn();
 
 const companyObjectMetadataItem = getMockObjectMetadataItemOrThrow(
-  CoreObjectNameSingular.Company,
+  StandardObjectNameSingular.Company,
 );
 
 const GROUPS: FieldsWidgetGroup[] = [
@@ -342,5 +342,26 @@ export const AddAGroupOpensItsRenamePanel: Story = {
       expect(body.queryByRole('dialog')).not.toBeInTheDocument(),
     );
     expect(getGroupNames()).toEqual(['General', 'Social', 'Details']);
+  },
+};
+
+export const AddAGroupWithKeyboard: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const addGroup = await canvas.findByRole('button', { name: 'Add a Group' });
+
+    addGroup.focus();
+    await userEvent.keyboard('{Enter}');
+
+    const renamePanel = await body.findByRole('dialog', {
+      name: 'Rename group',
+    });
+    const groupNameInput = within(renamePanel).getByRole('textbox', {
+      name: 'Group name',
+    });
+
+    await waitFor(() => expect(groupNameInput).toHaveFocus());
+    expect(getGroupNames()).toEqual(['General', 'Details', 'New Group']);
   },
 };

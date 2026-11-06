@@ -1,7 +1,7 @@
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
 import { SettingsDnsRecordsTable } from '@/settings/components/SettingsDnsRecordsTable';
-import { t } from '@lingui/core/macro';
 import { Section } from 'twenty-ui/components/layout';
 import { type ThemeColor } from 'twenty-ui/theme';
 import {
@@ -9,21 +9,26 @@ import {
   type DomainValidRecords,
 } from '~/generated-metadata/graphql';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { useLingui } from '@lingui/react/macro';
 
 export const SettingsDomainRecords = ({
   records,
 }: {
   records: DomainValidRecords['records'];
 }) => {
+  const { t } = useLingui();
   const currentWorkspace = useAtomStateValue(currentWorkspaceState);
 
-  // These names are only used in developer errors and keep their fingerprints stable.
-  // oxlint-disable lingui/no-unlocalized-strings
   const rowsDefinitions = [
-    { name: 'Domain Setup', validationType: 'redirection' as const },
-    { name: 'Secure Connection', validationType: 'ssl' as const },
+    {
+      name: doNotTranslate('Domain Setup'),
+      validationType: 'redirection' as const,
+    },
+    {
+      name: doNotTranslate('Secure Connection'),
+      validationType: 'ssl' as const,
+    },
   ];
-  // oxlint-enable lingui/no-unlocalized-strings
 
   const defaultValues: { status: string; statusColor: ThemeColor } =
     currentWorkspace?.customDomain
@@ -44,8 +49,7 @@ export const SettingsDomainRecords = ({
     );
 
     if (!record) {
-      // oxlint-disable-next-line lingui/no-unlocalized-strings -- Keep this developer invariant stable for error grouping.
-      throw new Error(`Record ${row.name} not found`);
+      throw new Error(doNotTranslate(`Record ${row.name} not found`));
     }
 
     return {

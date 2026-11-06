@@ -1,5 +1,9 @@
 import {
+  CONNECTION_PROVIDER_SCOPES,
+  type ConnectionProviderScope,
   type ConnectionProviderType,
+  DEFAULT_CONNECTION_PROVIDER_SCOPE,
+  type StoredCustomConnectionProviderConfig,
   type StoredOAuthConnectionProviderConfig,
 } from 'twenty-shared/application';
 import {
@@ -44,8 +48,27 @@ export class ConnectionProviderEntity
   @Column({ nullable: false, type: 'varchar' })
   type: ConnectionProviderType;
 
+  @Column({
+    nullable: false,
+    type: 'enum',
+    enum: CONNECTION_PROVIDER_SCOPES,
+    default: DEFAULT_CONNECTION_PROVIDER_SCOPE,
+  })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      '2.49.0_AddConnectionProviderScopeFastInstanceCommand_1792162723868',
+  })
+  scope: ConnectionProviderScope;
+
   @Column({ nullable: true, type: 'jsonb' })
   oauthConfig: StoredOAuthConnectionProviderConfig | null;
+
+  @Column({ nullable: true, type: 'jsonb' })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      '2.52.0_AddCustomConfigToConnectionProviderFastInstanceCommand_1793032438836',
+  })
+  customConfig: StoredCustomConnectionProviderConfig | null;
 
   @Column({ nullable: true, type: 'uuid' })
   @WasIntroducedInUpgrade({

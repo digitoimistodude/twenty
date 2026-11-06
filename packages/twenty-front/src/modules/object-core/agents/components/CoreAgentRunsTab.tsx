@@ -1,6 +1,5 @@
 import { useQuery } from '@apollo/client/react';
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 import { useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
 import { themeCssVariables } from 'twenty-ui/theme';
@@ -12,11 +11,11 @@ import { groupCoreAgentRunsByConversation } from '@/object-core/agents/utils/gro
 import { AnimatedPlaceholder } from '@/ui/feedback/empty-state/components/AnimatedPlaceholder/AnimatedPlaceholder';
 import { EmptyState } from '@/ui/feedback/empty-state/components/EmptyState';
 import { SkeletonLine } from '@/ui/feedback/skeleton/components/SkeletonLine';
-import { LEGACY_SKELETON_COLORS } from '@/ui/feedback/skeleton/constants/LEGACY_SKELETON_COLORS';
 import { Table } from '@/ui/layout/table/components/Table';
 import { TableHeader } from '@/ui/layout/table/components/TableHeader';
 import { TableRow } from '@/ui/layout/table/components/TableRow';
 import { GetAgentRunsDocument } from '~/generated-metadata/graphql';
+import { useLingui } from '@lingui/react/macro';
 
 const RUNS_POLL_INTERVAL_MS = 10000;
 
@@ -45,6 +44,7 @@ type CoreAgentRunsTabProps = {
 };
 
 export const CoreAgentRunsTab = ({ agentId }: CoreAgentRunsTabProps) => {
+  const { t } = useLingui();
   const [expandedRunIds, setExpandedRunIds] = useState<Set<string>>(new Set());
   const [expandedThreadIds, setExpandedThreadIds] = useState<Set<string>>(
     new Set(),
@@ -79,13 +79,7 @@ export const CoreAgentRunsTab = ({ agentId }: CoreAgentRunsTabProps) => {
         <Table>
           {header}
           {Array.from({ length: 3 }).map((_, index) => (
-            <SkeletonLine
-              baseColor={LEGACY_SKELETON_COLORS.base}
-              highlightColor={LEGACY_SKELETON_COLORS.highlight}
-              height={32}
-              borderRadius={4}
-              key={index}
-            />
+            <SkeletonLine height={32} key={index} />
           ))}
         </Table>
       </StyledTableContainer>

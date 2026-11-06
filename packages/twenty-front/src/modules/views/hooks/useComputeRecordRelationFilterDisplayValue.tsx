@@ -7,8 +7,6 @@ import { useCombinedFindManyRecords } from '@/object-record/multiple-objects/hoo
 import { getTargetObjectMetadataIdsFromField } from '@/object-record/record-field/ui/utils/junction/getTargetObjectMetadataIdsFromField';
 import { type RecordFilter } from '@/object-record/record-filter/types/RecordFilter';
 import { computeRelationFilterDisplayValue } from '@/views/utils/computeRelationFilterDisplayValue';
-
-import { t } from '@lingui/core/macro';
 import { type RecordGqlOperationSignature } from 'twenty-shared/types';
 import {
   arrayOfUuidOrVariableSchema,
@@ -16,6 +14,8 @@ import {
   isNonEmptyArray,
   jsonRelationFilterValueSchema,
 } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
+import { useLingui } from '@lingui/react/macro';
 
 type UseComputeRecordRelationFilterDisplayValueParams = {
   recordFilter: RecordFilter;
@@ -25,11 +25,13 @@ type UseComputeRecordRelationFilterDisplayValueParams = {
 export const useComputeRecordRelationFilterDisplayValue = ({
   recordFilter,
 }: UseComputeRecordRelationFilterDisplayValueParams) => {
+  const { t } = useLingui();
   const { objectMetadataItems } = useObjectMetadataItems();
 
   if (!isDefined(recordFilter.fieldMetadataId)) {
-    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This message describes a developer-only invariant; keeping it stable preserves error reporting fingerprints.
-    throw new Error('recordFilter.fieldMetadataId is not defined');
+    throw new Error(
+      doNotTranslate('recordFilter.fieldMetadataId is not defined'),
+    );
   }
 
   // Nested relation filters resolve records from the leaf relation's target object, direct filters from the source.

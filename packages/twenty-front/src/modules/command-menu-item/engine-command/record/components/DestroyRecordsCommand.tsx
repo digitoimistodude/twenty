@@ -6,16 +6,18 @@ import { useRemoveSelectedRecordsFromRecordBoard } from '@/object-record/record-
 import { PLACEHOLDER_RECORD_INDEX_ID } from '@/object-record/record-index/constants/PlaceholderRecordIndexId';
 import { useResetRecordSelection } from '@/object-record/record-selection/hooks/useResetRecordSelection';
 import { useSidePanelMenu } from '@/side-panel/hooks/useSidePanelMenu';
-import { t } from '@lingui/core/macro';
 import {
   AppPath,
-  CoreObjectNameSingular,
+  StandardObjectNameSingular,
   type RecordGqlOperationFilter,
 } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { useNavigateApp } from '~/hooks/useNavigateApp';
+import { useLingui } from '@lingui/react/macro';
 
 export const DestroyRecordsCommand = () => {
+  const { t } = useLingui();
   const {
     recordIndexId,
     objectMetadataItem,
@@ -25,8 +27,9 @@ export const DestroyRecordsCommand = () => {
   } = useHeadlessCommandContextApi();
 
   if (!isDefined(objectMetadataItem)) {
-    // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is an internal command precondition diagnostic.
-    throw new Error('Object metadata is required to destroy records');
+    throw new Error(
+      doNotTranslate('Object metadata is required to destroy records'),
+    );
   }
 
   const isSingleRecord = selectedRecords.length === 1;
@@ -80,7 +83,8 @@ export const DestroyRecordsCommand = () => {
     if (
       !isSingleRecord ||
       isInSidePanel ||
-      objectMetadataItem.nameSingular === CoreObjectNameSingular.AgentChatThread
+      objectMetadataItem.nameSingular ===
+        StandardObjectNameSingular.AgentChatThread
     ) {
       return;
     }

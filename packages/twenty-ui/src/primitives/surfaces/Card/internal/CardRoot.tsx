@@ -11,8 +11,10 @@ import styles from '../Card.module.scss';
 export const CardRoot = ({
   className,
   fullWidth,
-  rounded,
   backgroundColor,
+  variant = 'default',
+  borderStyle = 'solid',
+  isSelected = false,
   style,
   render,
   ref,
@@ -25,7 +27,9 @@ export const CardRoot = ({
       ...props,
       className: clsx(styles.card, className),
       'data-full-width': fullWidth || undefined,
-      'data-rounded': rounded || undefined,
+      'data-variant': variant,
+      'data-border-style': borderStyle,
+      'data-selected': isSelected || undefined,
       style: isDefined(backgroundColor)
         ? ({
             ...style,

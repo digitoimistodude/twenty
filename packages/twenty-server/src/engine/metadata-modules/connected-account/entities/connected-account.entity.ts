@@ -16,6 +16,7 @@ import { type ConnectedAccountProvider } from 'twenty-shared/types';
 
 import { ApplicationEntity } from 'src/engine/core-modules/application/application.entity';
 import { ConnectionProviderEntity } from 'src/engine/core-modules/application/connection-provider/connection-provider.entity';
+import { ADD_ACCESS_TOKEN_EXPIRES_AT_TO_CONNECTED_ACCOUNT_UPGRADE_COMMAND_NAME } from 'src/database/commands/upgrade-version-command/2-54/add-access-token-expires-at-to-connected-account-upgrade-command-name.constant';
 import { type EncryptedImapSmtpCaldavParams } from 'src/engine/core-modules/imap-smtp-caldav-connection/types/imap-smtp-caldav-connection.type';
 import { type EncryptedString } from 'src/engine/core-modules/secret-encryption/branded-strings/encrypted-string.type';
 import { WasIntroducedInUpgrade } from 'src/engine/core-modules/upgrade/decorators/was-introduced-in-upgrade.decorator';
@@ -24,7 +25,7 @@ import { EXTERNAL_ACCOUNT_ID_MAX_LENGTH } from 'src/engine/metadata-modules/conn
 import { type MessageChannelEntity } from 'src/engine/metadata-modules/message-channel/entities/message-channel.entity';
 import { WorkspaceRelatedEntity } from 'src/engine/workspace-manager/types/workspace-related-entity.type';
 
-export type ConnectedAccountVisibility = 'user' | 'workspace';
+export type ConnectedAccountScope = 'USER' | 'WORKSPACE';
 
 @Entity({ name: 'connectedAccount', schema: 'core' })
 @Index('IDX_CONNECTED_ACCOUNT_CONNECTION_PROVIDER_ID', ['connectionProviderId'])
@@ -75,6 +76,13 @@ export class ConnectedAccountEntity extends WorkspaceRelatedEntity {
 
   @Column({ type: 'timestamptz', nullable: true })
   lastCredentialsRefreshedAt: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      ADD_ACCESS_TOKEN_EXPIRES_AT_TO_CONNECTED_ACCOUNT_UPGRADE_COMMAND_NAME,
+  })
+  accessTokenExpiresAt: Date | null;
 
   @Column({ type: 'timestamptz', nullable: true })
   authFailedAt: Date | null;
@@ -130,8 +138,22 @@ export class ConnectedAccountEntity extends WorkspaceRelatedEntity {
   @Column({ type: 'varchar', nullable: true })
   name: string | null;
 
-  @Column({ type: 'varchar', nullable: false, default: 'user' })
-  visibility: ConnectedAccountVisibility;
+  @Column({ type: 'varchar', nullable: false, default: 'USER' })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      '2.49.0_AddConnectedAccountScopeFastInstanceCommand_1792170228100',
+  })
+  scope: ConnectedAccountScope;
+
+  // TODO: drop with the sync trigger next release; only previous-release servers use it
+  @Column({
+    type: 'varchar',
+    nullable: false,
+    select: false,
+    insert: false,
+    update: false,
+  })
+  visibility: 'user' | 'workspace';
 
   @OneToMany(
     'MessageChannelEntity',

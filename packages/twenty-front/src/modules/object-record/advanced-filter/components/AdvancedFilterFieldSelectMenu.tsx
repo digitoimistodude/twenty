@@ -12,7 +12,7 @@ import { useLingui } from '@lingui/react/macro';
 import { Fragment, useContext } from 'react';
 import { isDefined, isNonEmptyArray } from 'twenty-shared/utils';
 import { Dropdown, useDropdownPage } from 'twenty-ui/components/navigation';
-import { useIcons } from 'twenty-ui/icon';
+import { useIcons } from 'twenty-ui/icon/provider';
 
 type AdvancedFilterFieldSelectMenuProps = {
   recordFilterId: string;
@@ -113,9 +113,9 @@ export const AdvancedFilterFieldSelectMenu = ({
         aria-label={t`Search fields`}
         onValueChange={onSearchInputChange}
       />
-      {sections.map((section, index) => (
+      {sections.map((section) => (
         <Fragment key={section.id}>
-          {index > 0 && <Dropdown.Separator />}
+          <Dropdown.Separator />
           <Dropdown.Section label={section.label}>
             {section.fields.map((fieldMetadataItem) => (
               <Dropdown.OptionItem

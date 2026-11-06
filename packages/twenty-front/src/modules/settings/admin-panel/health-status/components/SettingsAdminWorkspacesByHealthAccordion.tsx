@@ -1,5 +1,4 @@
 import { styled } from '@linaria/react';
-import { t } from '@lingui/core/macro';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SettingsPath } from 'twenty-shared/types';
@@ -9,6 +8,7 @@ import { Collapsible } from 'twenty-ui/primitives/layout';
 import { ListItem } from 'twenty-ui/primitives/navigation';
 import { Card } from 'twenty-ui/primitives/surfaces';
 import { themeCssVariables } from 'twenty-ui/theme';
+import { useLingui } from '@lingui/react/macro';
 
 const StyledAccordionHeader = styled(Card.Content)`
   align-items: center;
@@ -50,18 +50,19 @@ export const SettingsAdminWorkspacesByHealthAccordion = ({
   workspaces,
   defaultExpanded = false,
 }: SettingsAdminWorkspacesByHealthAccordionProps) => {
+  const { t } = useLingui();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   if (workspaces.length === 0) {
     return (
-      <Card.Root rounded={true}>
+      <Card.Root>
         <StyledAccordionHeader>{emptyLabel}</StyledAccordionHeader>
       </Card.Root>
     );
   }
 
   return (
-    <Card.Root rounded={true}>
+    <Card.Root>
       <Collapsible.Root open={isExpanded} onOpenChange={setIsExpanded}>
         <StyledAccordionHeader render={<Collapsible.Trigger />}>
           <span>{filledLabel}</span>

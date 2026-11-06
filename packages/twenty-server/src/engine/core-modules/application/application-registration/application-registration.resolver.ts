@@ -2,12 +2,14 @@ import { UseFilters, UseGuards, UsePipes } from '@nestjs/common';
 import {
   Args,
   Context,
+  Info,
   Mutation,
   Parent,
   Query,
   ResolveField,
 } from '@nestjs/graphql';
 
+import { type GraphQLResolveInfo } from 'graphql';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import { PermissionFlagType } from 'twenty-shared/constants';
 import { FileFolder } from 'twenty-shared/types';
@@ -26,6 +28,7 @@ import { ApplicationRegistrationAssetUrlService } from 'src/engine/core-modules/
 import { ApplicationRegistrationEntity } from 'src/engine/core-modules/application/application-registration/application-registration.entity';
 import { ApplicationRegistrationLookupService } from 'src/engine/core-modules/application/application-registration/application-registration-lookup/application-registration-lookup.service';
 import { ApplicationRegistrationService } from 'src/engine/core-modules/application/application-registration/application-registration.service';
+import { isCreditsUsedRequested } from 'src/engine/core-modules/application/application-registration/utils/is-credits-used-requested.util';
 import { ApplicationTarballService } from 'src/engine/core-modules/application/application-registration/application-tarball.service';
 import { ApplicationRegistrationClaimService } from 'src/engine/core-modules/application/application-registration/application-registration-claim.service';
 import { ApplicationRegistrationClaimInput } from 'src/engine/core-modules/application/application-registration/dtos/application-registration-claim.input';
@@ -52,8 +55,6 @@ import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorat
 import { AdminPanelGuard } from 'src/engine/guards/admin-panel-guard';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { PublicEndpointGuard } from 'src/engine/guards/public-endpoint.guard';
-import { AuthPrincipalGuard } from 'src/engine/guards/auth-principal.guard';
-import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { StreamSizeExceededError } from 'src/utils/stream-size-exceeded-error';
 import { streamToBuffer } from 'src/utils/stream-to-buffer';
@@ -69,6 +70,83 @@ import {
   ApplicationRegistrationExceptionCode,
 } from 'src/engine/core-modules/application/application-registration/application-registration.exception';
 import { ApplicationTargetGuard } from 'src/engine/guards/application-target.guard';
+import { AccessPolicyGuard } from 'src/engine/guards/access-policy.guard';
+import { type AccessPolicy } from 'src/engine/guards/types/access-policy.type';
+
+const APPLICATION_REGISTRATION_READ_ACCESS_POLICY: AccessPolicy = {
+  authPrincipals: {
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  },
+  requiredPermissionFlags: [PermissionFlagType.API_KEYS_AND_WEBHOOKS],
+};
+
+const APPLICATION_REGISTRATION_WRITE_ACCESS_POLICY: AccessPolicy = {
+  authPrincipals: {
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: false,
+  },
+  requiredPermissionFlags: [PermissionFlagType.API_KEYS_AND_WEBHOOKS],
+};
+
+const APPLICATION_TARBALL_UPLOAD_ACCESS_POLICY: AccessPolicy = {
+  authPrincipals: {
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: false,
+  },
+  requiredPermissionFlags: [PermissionFlagType.MARKETPLACE_APPS],
+};
+
+const APPLICATION_REGISTRATION_CLAIM_ACCESS_POLICY: AccessPolicy = {
+  authPrincipals: {
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: true,
+    oauthClient: true,
+    application: true,
+  },
+  requiredPermissionFlags: [PermissionFlagType.APPLICATIONS],
+};
+
+const APPLICATION_REGISTRATION_OWNERSHIP_ACCESS_POLICY: AccessPolicy = {
+  authPrincipals: {
+    userSession: {
+      standard: true,
+      impersonated: true,
+      playground: true,
+      workspaceAgnostic: false,
+    },
+    apiKey: false,
+    oauthClient: false,
+    application: false,
+  },
+  requiredPermissionFlags: [PermissionFlagType.APPLICATIONS],
+};
 
 @UsePipes(ResolverValidationPipe)
 @MetadataResolver(() => ApplicationRegistrationEntity)
@@ -100,18 +178,20 @@ export class ApplicationRegistrationResolver {
   }
 
   @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
+    AccessPolicyGuard({
+      authPrincipals: {
+        userSession: {
+          standard: true,
+          impersonated: true,
+          playground: true,
+          workspaceAgnostic: false,
+        },
+        apiKey: true,
+        oauthClient: true,
+        application: true,
       },
-      apiKey: true,
-      oauthClient: true,
-      application: true,
+      requiredPermissionFlags: [],
     }),
-    NoPermissionGuard,
     ApplicationTargetGuard,
   )
   @Query(() => ApplicationRegistrationEntity, { nullable: true })
@@ -127,20 +207,7 @@ export class ApplicationRegistrationResolver {
     );
   }
 
-  @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: true,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.API_KEYS_AND_WEBHOOKS),
-  )
+  @UseGuards(AccessPolicyGuard(APPLICATION_REGISTRATION_READ_ACCESS_POLICY))
   @Query(() => [ApplicationRegistrationEntity])
   async findManyApplicationRegistrations(
     @AuthWorkspace() { id: workspaceId }: WorkspaceEntity,
@@ -164,18 +231,7 @@ export class ApplicationRegistrationResolver {
   }
 
   @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: true,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.API_KEYS_AND_WEBHOOKS),
+    AccessPolicyGuard(APPLICATION_REGISTRATION_READ_ACCESS_POLICY),
     ApplicationTargetGuard,
   )
   @Query(() => ApplicationRegistrationEntity)
@@ -194,18 +250,7 @@ export class ApplicationRegistrationResolver {
   }
 
   @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: true,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.API_KEYS_AND_WEBHOOKS),
+    AccessPolicyGuard(APPLICATION_REGISTRATION_READ_ACCESS_POLICY),
     ApplicationTargetGuard,
   )
   @Query(() => ApplicationRegistrationStatsDTO)
@@ -216,27 +261,22 @@ export class ApplicationRegistrationResolver {
     })
     applicationRegistrationId: string,
     @AuthWorkspace() { id: workspaceId }: WorkspaceEntity,
+    @Info() info: GraphQLResolveInfo,
+    @Args('periodStart', { type: () => Date, nullable: true })
+    periodStart?: Date,
+    @Args('periodEnd', { type: () => Date, nullable: true })
+    periodEnd?: Date,
   ): Promise<ApplicationRegistrationStatsDTO> {
     return this.applicationRegistrationService.getStats({
       applicationRegistrationId,
       ownerWorkspaceId: workspaceId,
+      periodStart,
+      periodEnd,
+      includeCreditsUsed: isCreditsUsedRequested(info),
     });
   }
 
-  @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: false,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.API_KEYS_AND_WEBHOOKS),
-  )
+  @UseGuards(AccessPolicyGuard(APPLICATION_REGISTRATION_WRITE_ACCESS_POLICY))
   @Mutation(() => CreateApplicationRegistrationDTO)
   async createApplicationRegistration(
     @Args('input') input: CreateApplicationRegistrationInput,
@@ -251,18 +291,7 @@ export class ApplicationRegistrationResolver {
   }
 
   @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: false,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.API_KEYS_AND_WEBHOOKS),
+    AccessPolicyGuard(APPLICATION_REGISTRATION_WRITE_ACCESS_POLICY),
     ApplicationTargetGuard,
   )
   @Mutation(() => ApplicationRegistrationEntity)
@@ -279,18 +308,7 @@ export class ApplicationRegistrationResolver {
   }
 
   @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: false,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.API_KEYS_AND_WEBHOOKS),
+    AccessPolicyGuard(APPLICATION_REGISTRATION_WRITE_ACCESS_POLICY),
     ApplicationTargetGuard,
   )
   @Mutation(() => Boolean)
@@ -309,19 +327,23 @@ export class ApplicationRegistrationResolver {
   }
 
   @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
+    AccessPolicyGuard({
+      authPrincipals: {
+        userSession: {
+          standard: true,
+          impersonated: true,
+          playground: true,
+          workspaceAgnostic: false,
+        },
+        apiKey: true,
+        oauthClient: true,
+        application: false,
       },
-      apiKey: true,
-      oauthClient: true,
-      application: false,
+      requiredPermissionFlags: [
+        PermissionFlagType.API_KEYS_AND_WEBHOOKS,
+        PermissionFlagType.ROLES,
+      ],
     }),
-    SettingsPermissionGuard(PermissionFlagType.API_KEYS_AND_WEBHOOKS),
-    SettingsPermissionGuard(PermissionFlagType.ROLES),
     ApplicationTargetGuard,
   )
   @Mutation(() => RotateClientSecretDTO)
@@ -343,18 +365,7 @@ export class ApplicationRegistrationResolver {
   }
 
   @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: true,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.API_KEYS_AND_WEBHOOKS),
+    AccessPolicyGuard(APPLICATION_REGISTRATION_READ_ACCESS_POLICY),
     ApplicationTargetGuard,
   )
   @Query(() => [ApplicationRegistrationVariableDTO])
@@ -371,20 +382,7 @@ export class ApplicationRegistrationResolver {
     );
   }
 
-  @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: false,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.API_KEYS_AND_WEBHOOKS),
-  )
+  @UseGuards(AccessPolicyGuard(APPLICATION_REGISTRATION_WRITE_ACCESS_POLICY))
   @Mutation(() => ApplicationRegistrationVariableDTO)
   async updateApplicationRegistrationVariable(
     @Args('input') input: UpdateApplicationRegistrationVariableInput,
@@ -399,20 +397,7 @@ export class ApplicationRegistrationResolver {
     });
   }
 
-  @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: false,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.MARKETPLACE_APPS),
-  )
+  @UseGuards(AccessPolicyGuard(APPLICATION_TARBALL_UPLOAD_ACCESS_POLICY))
   @Mutation(() => ApplicationRegistrationEntity)
   async completeAppTarballUpload(
     @Args({ name: 'fileId', type: () => UUIDScalarType }) fileId: string,
@@ -424,20 +409,7 @@ export class ApplicationRegistrationResolver {
     });
   }
 
-  @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: false,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.MARKETPLACE_APPS),
-  )
+  @UseGuards(AccessPolicyGuard(APPLICATION_TARBALL_UPLOAD_ACCESS_POLICY))
   @Mutation(() => ApplicationRegistrationEntity, {
     deprecationReason:
       'Use createFileUpload with the AppTarball folder and completeAppTarballUpload, which send the tarball straight to file storage.',
@@ -479,18 +451,7 @@ export class ApplicationRegistrationResolver {
   }
 
   @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: true,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.API_KEYS_AND_WEBHOOKS),
+    AccessPolicyGuard(APPLICATION_REGISTRATION_READ_ACCESS_POLICY),
     ApplicationTargetGuard,
   )
   @Query(() => String, { nullable: true })
@@ -522,20 +483,7 @@ export class ApplicationRegistrationResolver {
     });
   }
 
-  @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: true,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.APPLICATIONS),
-  )
+  @UseGuards(AccessPolicyGuard(APPLICATION_REGISTRATION_CLAIM_ACCESS_POLICY))
   @Query(() => ClaimableApplicationRegistrationDTO, { nullable: true })
   async findClaimableApplicationRegistration(
     @Args()
@@ -551,19 +499,8 @@ export class ApplicationRegistrationResolver {
   }
 
   @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: false,
-      oauthClient: false,
-      application: false,
-    }),
+    AccessPolicyGuard(APPLICATION_REGISTRATION_OWNERSHIP_ACCESS_POLICY),
     AdminPanelGuard,
-    SettingsPermissionGuard(PermissionFlagType.APPLICATIONS),
   )
   @Mutation(() => ApplicationRegistrationEntity)
   async claimApplicationRegistrationOwnership(
@@ -578,18 +515,7 @@ export class ApplicationRegistrationResolver {
   }
 
   @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: true,
-      oauthClient: true,
-      application: true,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.APPLICATIONS),
+    AccessPolicyGuard(APPLICATION_REGISTRATION_CLAIM_ACCESS_POLICY),
     ApplicationTargetGuard,
   )
   @Query(() => String)
@@ -613,18 +539,7 @@ export class ApplicationRegistrationResolver {
   }
 
   @UseGuards(
-    AuthPrincipalGuard({
-      userSession: {
-        standard: true,
-        impersonated: true,
-        playground: true,
-        workspaceAgnostic: false,
-      },
-      apiKey: false,
-      oauthClient: false,
-      application: false,
-    }),
-    SettingsPermissionGuard(PermissionFlagType.APPLICATIONS),
+    AccessPolicyGuard(APPLICATION_REGISTRATION_OWNERSHIP_ACCESS_POLICY),
     ApplicationTargetGuard,
   )
   @Mutation(() => ApplicationRegistrationEntity)

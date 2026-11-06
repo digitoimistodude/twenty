@@ -22,8 +22,6 @@ import {
 } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
-import { type ViewFilterValue } from 'src/engine/metadata-modules/view-filter/types/view-filter-value.type';
-
 type Option = FieldMetadataDefaultOption | FieldMetadataComplexOption;
 
 const generateOption = (index: number): Option => ({
@@ -307,54 +305,24 @@ describe('update-one-field-metadata-view-filters-side-effect-v2', () => {
       },
     );
 
-    it('should update a related view filter with a scalar option value', async () => {
+    it('should reject a view filter with a bare option value', async () => {
       const { createOneField, createdView } =
         await createObjectSelectFieldAndView({
           options: ALL_OPTIONS,
           type: fieldType,
         });
 
-      const {
-        data: { createViewFilter: createdViewFilter },
-      } = await createOneViewFilter({
+      const { errors } = await createOneViewFilter({
         input: {
           viewId: createdView.id,
           fieldMetadataId: createOneField.id,
           operand: operandForFieldType,
           value: ALL_OPTIONS[0].value,
         },
-        expectToFail: false,
-        gqlFields: `
-          id
-        `,
+        expectToFail: true,
       });
 
-      const optionsWithIds = createOneField.options;
-
-      if (!isDefined(optionsWithIds)) {
-        throw new Error('optionsWithIds is not defined');
-      }
-
-      const updatedOption = fakeOptionUpdate(optionsWithIds[0]);
-
-      await updateOneFieldMetadata({
-        expectToFail: false,
-        input: {
-          idToUpdate: createOneField.id,
-          updatePayload: {
-            options: [updatedOption, ...optionsWithIds.slice(1)],
-          },
-        },
-        gqlFields: `
-          id
-        `,
-      });
-
-      const updatedViewFilter = await findViewFilterWithRestApi(
-        createdViewFilter.id,
-      );
-
-      expect(updatedViewFilter?.value).toEqual([updatedOption.value]);
+      expect(errors).toHaveLength(1);
     });
 
     it('should leave a value-less view filter unchanged', async () => {
@@ -440,7 +408,7 @@ describe('update-one-field-metadata-view-filters-side-effect-v2', () => {
             viewId: createdView.id,
             fieldMetadataId: createOneField.id,
             operand: operandForFieldType,
-            value: createViewFilterValue as unknown as ViewFilterValue,
+            value: createViewFilterValue,
           },
           expectToFail: true,
           gqlFields: `

@@ -4,7 +4,7 @@ import { type Task } from '@/activities/types/Task';
 import { useApolloCoreClient } from '@/object-metadata/hooks/useApolloCoreClient';
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
-import { type CoreObjectNameSingular } from 'twenty-shared/types';
+import { type StandardObjectNameSingular } from 'twenty-shared/types';
 import { useGetRecordFromCache } from '@/object-record/cache/hooks/useGetRecordFromCache';
 import { useUpsertFindManyRecordsQueryInCache } from '@/object-record/cache/hooks/useUpsertFindManyRecordsQueryInCache';
 import { getRecordFromCache } from '@/object-record/cache/utils/getRecordFromCache';
@@ -16,13 +16,14 @@ import { getJunctionRecordsFromRecord } from '@/object-record/record-field/ui/ut
 import { getRelatedRecordIdFromJunction } from '@/object-record/record-field/ui/utils/junction/getRelatedRecordIdFromJunction';
 import { type ObjectRecord } from '@/object-record/types/ObjectRecord';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
 import { sortByAscString } from '~/utils/array/sortByAscString';
 import { useMemo } from 'react';
 
 export const usePrepareFindManyActivitiesQuery = ({
   activityObjectNameSingular,
 }: {
-  activityObjectNameSingular: CoreObjectNameSingular;
+  activityObjectNameSingular: StandardObjectNameSingular;
 }) => {
   const { objectMetadataItem: objectMetadataItemActivity } =
     useObjectMetadataItem({
@@ -75,8 +76,9 @@ export const usePrepareFindManyActivitiesQuery = ({
 
     if (!targetableObjectMetadataItem) {
       throw new Error(
-        // oxlint-disable-next-line lingui/no-unlocalized-strings -- This is an internal activity metadata or attachment-path diagnostic.
-        `Cannot find object metadata item for targetable object ${targetableObject.targetObjectNameSingular}`,
+        doNotTranslate(
+          `Cannot find object metadata item for targetable object ${targetableObject.targetObjectNameSingular}`,
+        ),
       );
     }
 

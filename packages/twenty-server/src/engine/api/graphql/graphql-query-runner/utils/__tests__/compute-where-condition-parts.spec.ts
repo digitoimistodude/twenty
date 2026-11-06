@@ -8,6 +8,21 @@ jest.mock('crypto', () => ({
 }));
 
 describe('computeWhereConditionParts', () => {
+  it('should keep a hostile key and object name inside quoted identifiers and out of the parameter name', () => {
+    expect(
+      computeWhereConditionParts({
+        operator: 'eq',
+        objectNameSingular: 'pe"rson',
+        key: 'name" OR 1=1 --',
+        value: 'Ada',
+        fieldMetadataType: FieldMetadataType.TEXT,
+      }),
+    ).toEqual({
+      sql: `"pe""rson"."name"" OR 1=1 --" = :nameOR110000000000`,
+      params: { nameOR110000000000: 'Ada' },
+    });
+  });
+
   describe('isEmptyArray', () => {
     it.each([FieldMetadataType.ARRAY, FieldMetadataType.MULTI_SELECT])(
       'should match NULL and empty %s values when true',
@@ -125,5 +140,51 @@ describe('computeWhereConditionParts', () => {
         });
       },
     );
+  });
+
+  describe('DATE_TIME precision', () => {
+    it.each([
+      '2020-01-01 00:00:00.1239+00',
+      '2020-01-01T00:00:00.123900Z',
+      '2020-01-01T00:00:00.123Z',
+    ])('uses exact cursor comparisons for %s', (value) => {
+      const condition = {
+        objectNameSingular: 'person',
+        key: 'createdAt',
+        value,
+        fieldMetadataType: FieldMetadataType.DATE_TIME,
+      };
+
+      expect(
+        computeWhereConditionParts({
+          ...condition,
+          operator: 'gtStrict',
+        }),
+      ).toEqual({
+        sql: `"person"."createdAt" > :createdAt0000000000`,
+        params: { createdAt0000000000: value },
+      });
+      expect(
+        computeWhereConditionParts({
+          ...condition,
+          operator: 'eqStrict',
+        }),
+      ).toEqual({
+        sql: `"person"."createdAt" = :createdAt0000000000`,
+        params: { createdAt0000000000: value },
+      });
+      expect(
+        computeWhereConditionParts({ ...condition, operator: 'gt' }),
+      ).toEqual({
+        sql: `"person"."createdAt" >= :createdAt0000000000::timestamptz + interval '1 millisecond'`,
+        params: { createdAt0000000000: value },
+      });
+      expect(
+        computeWhereConditionParts({ ...condition, operator: 'eq' }),
+      ).toEqual({
+        sql: `("person"."createdAt" >= :createdAt0000000000 AND "person"."createdAt" < :createdAt0000000000::timestamptz + interval '1 millisecond')`,
+        params: { createdAt0000000000: value },
+      });
+    });
   });
 });

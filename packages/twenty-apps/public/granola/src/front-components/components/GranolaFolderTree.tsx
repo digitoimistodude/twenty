@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { t } from 'twenty-sdk/front-component';
 import { isDefined } from 'twenty-sdk/utils';
 import { themeCssVariables } from 'twenty-ui/theme';
-import { Label } from 'twenty-ui/typography';
+import { Text } from 'twenty-ui/primitives/typography';
 
 import { Checkbox } from 'src/front-components/components/Checkbox';
 import { GranolaFolderTreeItem } from 'src/front-components/components/GranolaFolderTreeItem';
@@ -110,13 +110,17 @@ export const GranolaFolderTree = ({
         />
       </StyledSearchInputContainer>
       <StyledLabelContainer>
-        <Label>{t('Folders')}</Label>
-        <Label>
+        <Text size="xs" weight="semibold" color="light">
+          {t('Folders')}
+        </Text>
+        <Text size="xs" weight="semibold" color="light">
           {selectedFolderIds.length}/{selectionLimit}
-        </Label>
+        </Text>
       </StyledLabelContainer>
       <StyledSectionHeader>
-        <Label>{t('Toggle all folders')}</Label>
+        <Text size="xs" weight="semibold" color="light">
+          {t('Toggle all folders')}
+        </Text>
         <Checkbox
           checked={isEveryFolderSelected}
           indeterminate={!isEveryFolderSelected && selectedFolderIds.length > 0}

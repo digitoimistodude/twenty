@@ -1,4 +1,3 @@
-import { t } from '@lingui/core/macro';
 import { EMAIL_IMAGE_MIME_TYPES } from 'twenty-shared/constants';
 import { FileFolder } from '~/generated-metadata/graphql';
 
@@ -8,8 +7,11 @@ import { useDirectFileUpload } from '@/file/hooks/useDirectFileUpload';
 import { formatFileSize } from '@/file/utils/formatFileSize';
 import { useToast } from 'twenty-ui/components/feedback';
 import { logError } from '~/utils/logError';
+import { doNotTranslate } from 'twenty-shared/i18n';
+import { useLingui } from '@lingui/react/macro';
 
 export const useUploadEmailImage = () => {
+  const { t } = useLingui();
   const { uploadFile } = useDirectFileUpload();
   const { enqueueToast } = useToast();
 
@@ -21,8 +23,9 @@ export const useUploadEmailImage = () => {
     ) {
       enqueueToast({ status: 'error', children: t`Unsupported image format` });
 
-      // oxlint-disable-next-line lingui/no-unlocalized-strings -- A translated toast has already explained this upload failure.
-      throw new Error(`Unsupported email image MIME type: ${file.type}`);
+      throw new Error(
+        doNotTranslate(`Unsupported email image MIME type: ${file.type}`),
+      );
     }
 
     if (file.size > MAX_ATTACHMENT_SIZE) {
@@ -34,8 +37,9 @@ export const useUploadEmailImage = () => {
         children: t`Image "${fileName}" exceeds ${maxUploadSize}`,
       });
 
-      // oxlint-disable-next-line lingui/no-unlocalized-strings -- A translated toast has already explained this upload failure.
-      throw new Error('Email image exceeds the maximum upload size');
+      throw new Error(
+        doNotTranslate('Email image exceeds the maximum upload size'),
+      );
     }
 
     try {

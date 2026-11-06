@@ -1,4 +1,3 @@
-import { t } from '@lingui/core/macro';
 import { FormFieldInputContainer } from '@/ui/input/components/FormFieldInputContainer';
 import { FormFieldInputInnerContainer } from '@/object-record/record-field/ui/form-types/components/FormFieldInputInnerContainer';
 import { FormFieldInputRowContainer } from '@/object-record/record-field/ui/form-types/components/FormFieldInputRowContainer';
@@ -9,6 +8,8 @@ import { Field } from 'twenty-ui/primitives/input';
 import { parseEditorContent } from '@/workflow/workflow-variables/utils/parseEditorContent';
 import { useId } from 'react';
 import { isDefined } from 'twenty-shared/utils';
+import { doNotTranslate } from 'twenty-shared/i18n';
+import { useLingui } from '@lingui/react/macro';
 
 type FormTextFieldInputProps = {
   label?: string;
@@ -21,6 +22,8 @@ type FormTextFieldInputProps = {
   readonly?: boolean;
   placeholder?: string;
   VariablePicker?: VariablePickerComponent;
+  ariaLabel?: string;
+  enableTemplateVariableFallback?: boolean;
 };
 
 export const FormTextFieldInput = ({
@@ -34,7 +37,10 @@ export const FormTextFieldInput = ({
   multiline,
   readonly,
   VariablePicker,
+  ariaLabel,
+  enableTemplateVariableFallback,
 }: FormTextFieldInputProps) => {
+  const { t } = useLingui();
   const instanceId = useId();
   const labelId = `${instanceId}-label`;
 
@@ -44,6 +50,8 @@ export const FormTextFieldInput = ({
     readonly,
     defaultValue,
     ariaLabelledBy: label ? labelId : undefined,
+    ariaLabel,
+    enableTemplateVariableFallback,
     onUpdate: (editor) => {
       const jsonContent = editor.getJSON();
       const parsedContent = parseEditorContent(jsonContent);
@@ -55,9 +63,9 @@ export const FormTextFieldInput = ({
   const handleVariableTagInsert = (variableName: string) => {
     if (!isDefined(editor)) {
       throw new Error(
-        // Error text is used for locale-independent issue grouping.
-        // oxlint-disable-next-line lingui/no-unlocalized-strings
-        'Expected the editor to be defined when a variable is selected',
+        doNotTranslate(
+          'Expected the editor to be defined when a variable is selected',
+        ),
       );
     }
 

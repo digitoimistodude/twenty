@@ -20,6 +20,8 @@ import { HttpTool } from 'src/engine/core-modules/tool/tools/http-tool/http-tool
 import { ExtractJsonPathsTool } from 'src/engine/core-modules/tool/tools/output-navigation-tool/extract-json-paths-tool';
 import { SearchOutputTool } from 'src/engine/core-modules/tool/tools/output-navigation-tool/search-output-tool';
 import { SearchHelpCenterTool } from 'src/engine/core-modules/tool/tools/search-help-center-tool/search-help-center-tool';
+import { ReadAttachmentTool } from 'src/engine/core-modules/tool/tools/read-attachment-tool/read-attachment-tool';
+import { RecordCrudModule } from 'src/engine/core-modules/record-crud/record-crud.module';
 import { ShareRecordTool } from 'src/engine/core-modules/tool/tools/share-record-tool/share-record-tool';
 import { ToolOutputSpillService } from 'src/engine/core-modules/tool/services/tool-output-spill.service';
 import { ConnectedAccountMetadataModule } from 'src/engine/metadata-modules/connected-account/connected-account-metadata.module';
@@ -41,6 +43,7 @@ import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache
     RecordShareModule,
     SecureHttpClientModule,
     WorkspaceCacheModule,
+    RecordCrudModule,
   ],
   providers: [
     HttpTool,
@@ -56,6 +59,7 @@ import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache
     ExtractJsonPathsTool,
     SearchOutputTool,
     ShareRecordTool,
+    ReadAttachmentTool,
     ToolOutputSpillService,
     provideWorkspaceScopedRepository(FileEntity),
   ],
@@ -73,6 +77,7 @@ import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache
     ExtractJsonPathsTool,
     SearchOutputTool,
     ShareRecordTool,
+    ReadAttachmentTool,
     ToolOutputSpillService,
   ],
 })

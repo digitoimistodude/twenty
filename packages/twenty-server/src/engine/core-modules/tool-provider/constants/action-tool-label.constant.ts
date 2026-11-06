@@ -15,6 +15,7 @@ export const ACTION_TOOL_IDS = [
   'create_file_upload',
   'complete_file_upload',
   'share_record',
+  'read_attachment',
 ] as const;
 
 export type ActionToolId = (typeof ACTION_TOOL_IDS)[number];
@@ -52,5 +53,8 @@ export const ACTION_TOOL_LABELS: Record<ActionToolId, ActionToolLabel> = {
   },
   share_record: {
     label: i18nLabel(msg`Share Record`),
+  },
+  read_attachment: {
+    label: i18nLabel(msg`Read Attachment`),
   },
 };

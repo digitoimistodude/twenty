@@ -124,6 +124,11 @@ export const buildMcpServerInstructions = ({
           `  To attach a file: create_file_upload ({ filename, size }), PUT the bytes to uploadUrl with Content-Type contentType (max ${settings.storage.maxDirectUploadFileSize}), then complete_file_upload ({ fileId }). Use that fileId in a FILES value (create_one_attachment file: [{ fileId, label }] and the target*Id, or a FILES field on create_one_* / update_one_*) or in code_interpreter.files. update_many does not copy FILES values; update_one replaces the whole FILES list.`,
         ]
       : []),
+    ...(availableActionTools.has('read_attachment')
+      ? [
+          `  To read a file in the CRM: find_many_attachments filtered by target*Id, then read_attachment ({ attachmentId }). It returns the text of PDF, Word, Excel and PowerPoint files and images as images.`,
+        ]
+      : []),
     ``,
     `On tool failure: read the error message, do not retry silently, report to user.`,
     `Present results as readable summaries, not raw JSON.`,

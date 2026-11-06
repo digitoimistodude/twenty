@@ -18,6 +18,7 @@ import {
   McpException,
   McpExceptionCode,
 } from 'src/engine/api/mcp/exceptions/mcp.exception';
+import { buildMcpToolCallContent } from 'src/engine/api/mcp/utils/build-mcp-tool-call-content.util';
 import { type McpListedTool } from 'src/engine/api/mcp/types/mcp-listed-tool.type';
 import { type McpToolCallResult } from 'src/engine/api/mcp/types/mcp-tool-call-result.type';
 import { type McpToolSet } from 'src/engine/api/mcp/types/mcp-tool-set.type';
@@ -100,7 +101,7 @@ export class McpToolExecutorService {
       });
 
       return {
-        content: [{ type: 'text', text: JSON.stringify(result) }],
+        content: buildMcpToolCallContent(result),
         isError: !succeeded,
       };
     } catch (executionError) {

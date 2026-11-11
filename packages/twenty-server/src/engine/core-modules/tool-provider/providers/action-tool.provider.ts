@@ -189,9 +189,9 @@ export class ActionToolProvider implements ToolProvider {
     }
 
     const hasDownloadFilePermission =
-      await this.permissionsService.hasPermissionFlag({
+      await this.settingPermissionsService.hasPermissionFlag({
         authContext: context.authContext,
-        setting: PermissionFlagType.DOWNLOAD_FILE,
+        permissionFlag: PermissionFlagType.DOWNLOAD_FILE,
       });
 
     if (hasDownloadFilePermission) {

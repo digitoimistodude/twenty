@@ -7,8 +7,14 @@ import {
 } from '@storybook/react-vite';
 import { Suspense, useEffect } from 'react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
-import { type ExtendedUIMessage } from 'twenty-shared/ai';
+import {
+  AgentChatThreadConversationType,
+  DEFAULT_AI_CHAT_ASSISTANT_PROFILE,
+  type AiChatAssistantProfile,
+  type ExtendedUIMessage,
+} from 'twenty-shared/ai';
 import { ComponentDecorator } from 'twenty-ui/testing';
+import { assertIsDefinedOrThrow } from 'twenty-shared/utils';
 
 import { AiChatMessage } from '@/ai/components/AiChatMessage';
 import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
@@ -26,9 +32,12 @@ import { MarkdownLoadingSkeleton } from '@/ai/components/LazyMarkdownRenderer';
 import { agentChatDisplayedThreadState } from '@/ai/states/agentChatDisplayedThreadState';
 import { agentChatMessagesFamilyState } from '@/ai/states/agentChatMessagesFamilyState';
 import { currentAiChatThreadState } from '@/ai/states/currentAiChatThreadState';
+import { recordStoreFamilyState } from '@/object-record/record-store/states/recordStoreFamilyState';
+import { jotaiStore } from '@/ui/utilities/state/jotai/jotaiStore';
 
 import { styled } from '@linaria/react';
 import { useStore } from 'jotai';
+import { MemoryRouterDecorator } from '~/testing/decorators/MemoryRouterDecorator';
 import { RootDecorator } from '~/testing/decorators/RootDecorator';
 import { ToastDecorator } from '~/testing/decorators/ToastDecorator';
 import { IMAGE_URL_MOCK } from '~/testing/mock-data/image-url';
@@ -128,6 +137,7 @@ const mockSimpleTextResponse: ExtendedUIMessage = {
   ],
   metadata: {
     createdAt: MOCKED_DATE,
+    isBuiltInAssistant: true,
   },
 };
 
@@ -352,6 +362,40 @@ Before changing anything, list what you plan to do and ask me to confirm. Keep f
   ],
 };
 
+const MOCK_CONFIGURED_ASSISTANT_PROFILE: AiChatAssistantProfile = {
+  ...DEFAULT_AI_CHAT_ASSISTANT_PROFILE,
+  displayName: 'Scout',
+  avatarShape: 'flower',
+  avatarColor: 'green',
+  avatarFace: 'happy',
+  isAvatarAnimated: false,
+};
+
+const ASSISTANT_MENTION =
+  '[[record:agentChatAssistant:agentChatAssistant:Ada]]';
+const RENAMED_ASSISTANT_MENTION =
+  '[[record:agentChatAssistant:agentChatAssistant:Scout Bot: [support] 100%]]';
+
+const mockAssistantMentionMessage: ExtendedUIMessage = {
+  id: 'msg-assistant-mentions',
+  role: 'assistant',
+  parts: [
+    {
+      type: 'text',
+      text: `Ask ${ASSISTANT_MENTION} and ${RENAMED_ASSISTANT_MENTION} to review [[record:workspaceMember:${mockedWorkspaceMemberData.id}:Charles Test]].
+
+Legacy text: @Ada wrote this.
+
+\`\`\`text
+${ASSISTANT_MENTION}
+\`\`\``,
+    },
+  ],
+  metadata: {
+    createdAt: MOCKED_DATE,
+  },
+};
+
 const allMockMessages = [
   mockUserMessage,
   mockLongUserMessage,
@@ -372,9 +416,11 @@ const allMockMessages = [
 const AgentChatMessagesSetterEffect = ({
   messages,
   isInboxEnabled,
+  assistantProfile,
 }: {
   messages: ExtendedUIMessage[];
   isInboxEnabled: boolean;
+  assistantProfile: AiChatAssistantProfile;
 }) => {
   const store = useStore();
 
@@ -404,6 +450,7 @@ const AgentChatMessagesSetterEffect = ({
     ]);
     store.set(currentWorkspaceState.atom, {
       ...mockCurrentWorkspace,
+      aiChatAssistantProfile: assistantProfile,
       featureFlags: [
         { key: FeatureFlagKey.IS_AI_CHAT_INBOX_ENABLED, value: isInboxEnabled },
       ],
@@ -434,7 +481,7 @@ const AgentChatMessagesSetterEffect = ({
       store.set(messagesAtom, []);
       store.set(reactionsAtom, []);
     };
-  }, [messages, isInboxEnabled, store]);
+  }, [messages, isInboxEnabled, assistantProfile, store]);
 
   return null;
 };
@@ -444,6 +491,9 @@ const AgentChatMessagesDecorator: Decorator = (Story, { parameters }) => (
     <AgentChatMessagesSetterEffect
       messages={parameters.messages ?? allMockMessages}
       isInboxEnabled={parameters.isInboxEnabled ?? false}
+      assistantProfile={
+        parameters.assistantProfile ?? DEFAULT_AI_CHAT_ASSISTANT_PROFILE
+      }
     />
     <Suspense fallback={<MarkdownLoadingSkeleton />}>
       <Story />
@@ -520,6 +570,28 @@ export const AssistantTextResponse: Story = {
   render: () => <AiChatMessage messageId={mockSimpleTextResponse.id} />,
 };
 
+export const AssistantMentions: Story = {
+  decorators: [MemoryRouterDecorator],
+  parameters: {
+    messages: [mockAssistantMentionMessage],
+    assistantProfile: MOCK_CONFIGURED_ASSISTANT_PROFILE,
+  },
+  render: () => <AiChatMessage messageId={mockAssistantMentionMessage.id} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await waitFor(() => expect(canvas.getAllByText('@Scout')).toHaveLength(2));
+    await expect(canvas.getByText('Charles Test')).toBeVisible();
+    await expect(
+      canvas.getByText('Legacy text: @Ada wrote this.'),
+    ).toBeVisible();
+    await expect(canvas.getByText(ASSISTANT_MENTION)).toBeVisible();
+    await expect(
+      canvas.queryByText(RENAMED_ASSISTANT_MENTION),
+    ).not.toBeInTheDocument();
+  },
+};
+
 export const AssistantStreaming: Story = {
   render: () => <AiChatMessage messageId={mockStreamingMessage.id} />,
 };
@@ -572,7 +644,7 @@ export const MultiplayerConversation: Story = {
     const canvas = within(canvasElement);
 
     await expect(await canvas.findByText('Marco Rossi')).toBeVisible();
-    await expect(await canvas.findByText('Assistant')).toBeVisible();
+    await expect(await canvas.findByText('Ada')).toBeVisible();
     const unreadSeparator = canvas.getByRole('separator', { name: 'New' });
     await expect(unreadSeparator).toBeVisible();
     await expect(unreadSeparator).toHaveAttribute(
@@ -588,6 +660,30 @@ export const MultiplayerConversation: Story = {
     })[1];
     await expect(addReactionButton).toHaveFocus();
     await waitFor(() => expect(addReactionButton).toBeVisible());
+
+    const threadId = jotaiStore.get(currentAiChatThreadState.atom);
+    assertIsDefinedOrThrow(threadId);
+    const threadRecordAtom = recordStoreFamilyState.atomFamily(threadId);
+    const previousThread = jotaiStore.get(threadRecordAtom);
+
+    try {
+      jotaiStore.set(threadRecordAtom, {
+        ...previousThread,
+        id: threadId,
+        __typename: 'AgentChatThread',
+        conversationType: AgentChatThreadConversationType.DIRECT_MESSAGE,
+      });
+      await waitFor(() =>
+        expect(
+          canvas.queryByRole('button', { name: 'Add reaction' }),
+        ).not.toBeInTheDocument(),
+      );
+      await expect(
+        canvas.queryByRole('button', { name: '👍 by You' }),
+      ).not.toBeInTheDocument();
+    } finally {
+      jotaiStore.set(threadRecordAtom, previousThread);
+    }
   },
 };
 
@@ -607,5 +703,51 @@ export const SenderFallbacks: Story = {
     await expect(canvas.getByText('Unknown sender')).toBeVisible();
     await expect(canvas.getByText('Marco Rossi')).toBeVisible();
     await expect(canvas.queryByText('Ada')).not.toBeInTheDocument();
+  },
+};
+
+const mockDistinctAgentMessage: ExtendedUIMessage = {
+  id: 'msg-custom-agent',
+  role: 'assistant',
+  parts: [{ type: 'text', text: 'A custom agent response.' }],
+  metadata: { createdAt: MOCKED_DATE, agentId: 'custom-agent' },
+};
+
+const mockLegacyAssistantMessage: ExtendedUIMessage = {
+  id: 'msg-legacy-assistant',
+  role: 'assistant',
+  parts: [{ type: 'text', text: 'Legacy prose mentions Ada unchanged.' }],
+  metadata: { createdAt: MOCKED_DATE },
+};
+
+export const ConfiguredAssistantIdentity: Story = {
+  parameters: {
+    isInboxEnabled: true,
+    assistantProfile: MOCK_CONFIGURED_ASSISTANT_PROFILE,
+    messages: [
+      mockSimpleTextResponse,
+      mockTeammateMessage,
+      mockDistinctAgentMessage,
+      mockLegacyAssistantMessage,
+    ],
+  },
+  render: () => (
+    <StyledConversationContainer>
+      <AiChatMessage messageId={mockSimpleTextResponse.id} />
+      <AiChatMessage messageId={mockTeammateMessage.id} />
+      <AiChatMessage messageId={mockDistinctAgentMessage.id} />
+      <AiChatMessage messageId={mockLegacyAssistantMessage.id} />
+    </StyledConversationContainer>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await expect(await canvas.findByText('Scout')).toBeVisible();
+    await expect(canvas.getByText('Marco Rossi')).toBeVisible();
+    await expect(canvas.getByText('Agent')).toBeVisible();
+    await expect(canvas.getByText('Unknown sender')).toBeVisible();
+    await expect(
+      canvas.getByText('Legacy prose mentions Ada unchanged.'),
+    ).toBeVisible();
   },
 };

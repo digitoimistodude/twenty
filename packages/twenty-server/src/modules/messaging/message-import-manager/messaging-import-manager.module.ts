@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { FeatureFlagModule } from 'src/engine/core-modules/feature-flag/feature-flag.module';
+import { FileEntity } from 'src/engine/core-modules/file/entities/file.entity';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { ConnectedAccountEntity } from 'src/engine/metadata-modules/connected-account/entities/connected-account.entity';
@@ -47,6 +49,7 @@ import { MessagingImportFolderMessagesService } from 'src/modules/messaging/mess
 import { MessagingGetMessageListService } from 'src/modules/messaging/message-import-manager/services/messaging-get-message-list.service';
 import { MessagingGetMessagesService } from 'src/modules/messaging/message-import-manager/services/messaging-get-messages.service';
 import { MessageImportExceptionHandlerService } from 'src/modules/messaging/message-import-manager/services/messaging-import-exception-handler.service';
+import { MessagingMessageAttachmentService } from 'src/modules/messaging/message-import-manager/services/messaging-message-attachment.service';
 import { MessagingMessageFolderAssociationService } from 'src/modules/messaging/message-import-manager/services/messaging-message-folder-association.service';
 import { MessagingMessageListFetchService } from 'src/modules/messaging/message-import-manager/services/messaging-message-list-fetch.service';
 import { MessagingMessageService } from 'src/modules/messaging/message-import-manager/services/messaging-message.service';
@@ -60,6 +63,7 @@ import { MessagingMonitoringModule } from 'src/modules/messaging/monitoring/mess
 import { BlocklistRepository } from 'src/modules/blocklist/repositories/blocklist.repository';
 @Module({
   imports: [
+    FeatureFlagModule,
     MessagingGmailDriverModule,
     MessagingMicrosoftDriverModule,
     MessagingIMAPDriverModule,
@@ -74,6 +78,7 @@ import { BlocklistRepository } from 'src/modules/blocklist/repositories/blocklis
       FieldMetadataEntity,
       // Attachment import resolves the files field and fetches from Gmail itself.
       ObjectMetadataEntity,
+      FileEntity,
     ]),
     OAuth2ClientManagerModule,
     FilesFieldModule,
@@ -109,6 +114,7 @@ import { BlocklistRepository } from 'src/modules/blocklist/repositories/blocklis
     MessagingInboundEmailImportJob,
     MessagingMessageService,
     MessagingMessageFolderAssociationService,
+    MessagingMessageAttachmentService,
     MessagingMessageListFetchService,
     MessagingMessagesImportService,
     MessagingSaveMessagesAndEnqueueContactCreationService,
@@ -123,6 +129,7 @@ import { BlocklistRepository } from 'src/modules/blocklist/repositories/blocklis
     MessagingDeleteGroupEmailMessagesService,
     InboundEmailImportService,
     provideWorkspaceScopedRepository(MessageFolderEntity),
+    provideWorkspaceScopedRepository(FileEntity),
   ],
   exports: [
     MessagingMessageListFetchCronCommand,

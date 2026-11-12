@@ -265,11 +265,25 @@ export class MessagingOpportunityCreationService {
             );
           };
 
-          const sender = allParticipants.find(
-            (participant) =>
-              participant.messageId === firstMessage.id &&
-              participant.role === MessageParticipantRole.FROM,
+          const participantWithRole = (role: MessageParticipantRole) =>
+            allParticipants.find(
+              (participant) =>
+                participant.messageId === firstMessage.id &&
+                participant.role === role,
+            );
+
+          const fromParticipant = participantWithRole(
+            MessageParticipantRole.FROM,
           );
+
+          // A Google Group rewrites From to itself when the sender's domain
+          // has strict DMARC; the real sender is then only in Reply-To.
+          const sender = (fromParticipant?.handle ?? '')
+            .toLowerCase()
+            .endsWith(`@${internalDomain}`)
+            ? (participantWithRole(MessageParticipantRole.REPLY_TO) ??
+              fromParticipant)
+            : fromParticipant;
 
           const handle = sender?.handle ?? '';
 
